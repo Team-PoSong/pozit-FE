@@ -98,6 +98,27 @@ class _AppTopNavigateBarState extends State<AppTopNavigateBar> {
                       ),
                     ),
                   ),
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.all(3),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _TabText(
+                              label: '미완료 ${widget.incompleteCount}',
+                              isSelected: isIncompleteSelected,
+                            ),
+                          ),
+                          Expanded(
+                            child: _TabText(
+                              label: '완료 ${widget.completeCount}',
+                              isSelected: !isIncompleteSelected,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -109,10 +130,6 @@ class _AppTopNavigateBarState extends State<AppTopNavigateBar> {
                             onTap: () =>
                                 _handleTap(AppTopNavigateTab.incomplete),
                             behavior: HitTestBehavior.opaque,
-                            child: _TabText(
-                              label: '미완료 ${widget.incompleteCount}',
-                              isSelected: isIncompleteSelected,
-                            ),
                           ),
                         ),
                       ),
@@ -124,10 +141,6 @@ class _AppTopNavigateBarState extends State<AppTopNavigateBar> {
                           child: GestureDetector(
                             onTap: () => _handleTap(AppTopNavigateTab.complete),
                             behavior: HitTestBehavior.opaque,
-                            child: _TabText(
-                              label: '완료 ${widget.completeCount}',
-                              isSelected: !isIncompleteSelected,
-                            ),
                           ),
                         ),
                       ),
