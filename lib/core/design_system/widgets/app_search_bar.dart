@@ -75,7 +75,7 @@ class AppSearchBar extends StatelessWidget {
   }
 }
 
-@Preview(name: '검색바 기본형')
+@Preview(group: 'hycho', name: 'Search Bar - 기본형')
 Widget appSearchBarDefaultPreview() {
   return const MaterialApp(
     home: Scaffold(
@@ -84,7 +84,7 @@ Widget appSearchBarDefaultPreview() {
   );
 }
 
-@Preview(name: '검색값 입력형')
+@Preview(group: 'hycho', name: 'Search Bar - 검색값 있음')
 Widget appSearchBarValuePreview() {
   final controller = TextEditingController(text: '경주');
 
