@@ -39,4 +39,6 @@ class AppIcons {
   static const String exit = '$_basePath/ic_exit.svg';
   static const String hasNotification = '$_basePath/ic_notification_has.svg';
   static const String noNotification = '$_basePath/ic_notification_no.svg';
+  static const String cameraOff = '$_basePath/ic_off_camera.svg';
+  static const String cameraOn = '$_basePath/ic_on_camera.svg';
 }
