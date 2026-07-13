@@ -39,7 +39,7 @@ class AppTravelDate extends StatelessWidget {
             const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
-              height: 128,
+              height: 66,
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final width = constraints.maxWidth;
@@ -175,29 +175,37 @@ class _DateText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+    return Stack(
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 8,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
               label,
               maxLines: 1,
               style: AppTextStyles.body.copyWith(color: AppColors.text),
             ),
-            const SizedBox(height: 6),
-            Text(
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 38,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
               date,
               maxLines: 1,
               style: AppTextStyles.subTitle.copyWith(color: AppColors.primary),
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -205,7 +213,7 @@ class _DateText extends StatelessWidget {
 class _StartDateClipper extends CustomClipper<Path> {
   const _StartDateClipper();
 
-  static const double arrowWidth = 45;
+  static const double arrowWidth = 30;
 
   @override
   Path getClip(Size size) {
@@ -225,7 +233,7 @@ class _StartDateClipper extends CustomClipper<Path> {
 class _EndDateClipper extends CustomClipper<Path> {
   const _EndDateClipper();
 
-  static const double arrowWidth = 75;
+  static const double arrowWidth = 40;
 
   @override
   Path getClip(Size size) {
@@ -242,7 +250,7 @@ class _EndDateClipper extends CustomClipper<Path> {
   bool shouldReclip(_EndDateClipper oldClipper) => false;
 }
 
-@Preview(group: 'hycho', name: 'Travel Date', size: Size.fromHeight(280))
+@Preview(group: 'hycho', name: 'Travel Date', size: Size.fromHeight(220))
 Widget appTravelDatePreview() {
   return MaterialApp(
     home: Scaffold(
