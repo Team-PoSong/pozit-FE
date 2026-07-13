@@ -4,7 +4,7 @@ import 'package:flutter/widget_previews.dart';
 import '../app_colors.dart';
 import '../app_text_styles.dart';
 
-class AppInputField extends StatelessWidget {
+class AppInputField extends StatefulWidget {
   const AppInputField({
     super.key,
     this.controller,
@@ -25,19 +25,74 @@ class AppInputField extends StatelessWidget {
   final bool autofocus;
 
   @override
+  State<AppInputField> createState() => _AppInputFieldState();
+}
+
+class _AppInputFieldState extends State<AppInputField> {
+  late TextEditingController _controller;
+  late bool _ownsController;
+  late bool _hasText;
+
+  @override
+  void initState() {
+    super.initState();
+    _attachController(widget.controller);
+  }
+
+  @override
+  void didUpdateWidget(AppInputField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.controller != widget.controller) {
+      _detachController();
+      _attachController(widget.controller);
+    }
+  }
+
+  void _attachController(TextEditingController? controller) {
+    _ownsController = controller == null;
+    _controller = controller ?? TextEditingController();
+    _hasText = _controller.text.isNotEmpty;
+    _controller.addListener(_handleTextChanged);
+  }
+
+  void _detachController() {
+    _controller.removeListener(_handleTextChanged);
+    if (_ownsController) {
+      _controller.dispose();
+    }
+  }
+
+  void _handleTextChanged() {
+    final hasText = _controller.text.isNotEmpty;
+    if (_hasText != hasText) {
+      setState(() => _hasText = hasText);
+    }
+  }
+
+  @override
+  void dispose() {
+    _detachController();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     const borderRadius = BorderRadius.all(Radius.circular(4));
+    final borderSide = _hasText
+        ? const BorderSide(width: 1, color: AppColors.purple2)
+        : BorderSide.none;
 
     return SizedBox(
       width: double.infinity,
       height: 58,
       child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        onChanged: onChanged,
-        onTap: onTap,
-        readOnly: readOnly,
-        autofocus: autofocus,
+        controller: _controller,
+        focusNode: widget.focusNode,
+        onChanged: widget.onChanged,
+        onTap: widget.onTap,
+        readOnly: widget.readOnly,
+        autofocus: widget.autofocus,
         maxLines: 1,
         textAlignVertical: TextAlignVertical.center,
         cursorColor: AppColors.text,
@@ -49,24 +104,24 @@ class AppInputField extends StatelessWidget {
         decoration: InputDecoration(
           filled: true,
           fillColor: AppColors.gray2,
-          hintText: hintText,
+          hintText: widget.hintText,
           hintStyle: AppTextStyles.body.copyWith(
             color: AppColors.textSub,
             height: 20 / 14,
             letterSpacing: -0.5,
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 28),
-          border: const OutlineInputBorder(
+          border: OutlineInputBorder(
             borderRadius: borderRadius,
-            borderSide: BorderSide.none,
+            borderSide: borderSide,
           ),
-          enabledBorder: const OutlineInputBorder(
+          enabledBorder: OutlineInputBorder(
             borderRadius: borderRadius,
-            borderSide: BorderSide.none,
+            borderSide: borderSide,
           ),
-          focusedBorder: const OutlineInputBorder(
+          focusedBorder: OutlineInputBorder(
             borderRadius: borderRadius,
-            borderSide: BorderSide(width: 1, color: AppColors.purple2),
+            borderSide: borderSide,
           ),
         ),
       ),
@@ -91,7 +146,7 @@ Widget appInputFieldValuePreview() {
     home: Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: AppInputField(controller: controller, autofocus: true),
+        child: AppInputField(controller: controller),
       ),
     ),
   );
