@@ -10,7 +10,6 @@ class AppIcons {
   static const String travelVisiting = '$_basePath/ic_travel_visiting.svg';
   static const String travelWillVisit = '$_basePath/ic_travel_will_visit.svg';
 
-  static const String home = '$_basePath/ic_home.svg';
   static const String travel = '$_basePath/ic_travel.svg';
   static const String search = '$_basePath/ic_search.svg';
   static const String pin = '$_basePath/ic_pin.svg';
@@ -18,30 +17,26 @@ class AppIcons {
   static const String mypage = '$_basePath/ic_mypage.svg';
   static const String arrowLeft = '$_basePath/ic_arrow_left.svg';
   static const String wish = '$_basePath/ic_wish.svg';
-  static const String arrowLeft2 = '$_basePath/ic_arrow_left_2.svg';
   static const String arrowDown = '$_basePath/ic_arrow_down.svg';
   static const String close = '$_basePath/ic_close.svg';
-  static const String plus = '$_basePath/ic_plus.svg';
   static const String arrowRight = '$_basePath/ic_arrow_right.svg';
-  static const String map = '$_basePath/ic_map.svg';
+  static const String arrowRightBig = '$_basePath/ic_arrow_right_big.svg';
+  static const String arrowRightSmall = '$_basePath/ic_arrow_right_small.svg';
   static const String edit = '$_basePath/ic_edit.svg';
   static const String copy = '$_basePath/ic_copy.svg';
-  static const String share = '$_basePath/ic_share.svg';
   static const String leader = '$_basePath/ic_leader.svg';
-  static const String locationMove = '$_basePath/ic_location_move.svg';
+  static const String reorderHandle = '$_basePath/ic_reorder_handle.svg';
   static const String filter = '$_basePath/ic_filter.svg';
-  static const String date = '$_basePath/ic_date.svg';
+  static const String calendar = '$_basePath/ic_calendar.svg';
   static const String category = '$_basePath/ic_category.svg';
   static const String arrowUp = '$_basePath/ic_arrow_up.svg';
-  static const String settings = '$_basePath/ic_settings.svg';
   static const String arrowLeftSmall = '$_basePath/ic_arrow_left_small.svg';
-  static const String arrowLeftSmall2 = '$_basePath/ic_arrow_left_small_2.svg';
   static const String user = '$_basePath/ic_user.svg';
   static const String create = '$_basePath/ic_create.svg';
   static const String group = '$_basePath/ic_group.svg';
+  static const String groupGray = '$_basePath/ic_group_gray.svg';
   static const String trash = '$_basePath/ic_trash.svg';
   static const String exit = '$_basePath/ic_exit.svg';
-  static const String send = '$_basePath/ic_send.svg';
-  static const String save = '$_basePath/ic_save.svg';
-  static const String notification = '$_basePath/ic_notification.svg';
+  static const String hasNotification = '$_basePath/ic_notification_has.svg';
+  static const String noNotification = '$_basePath/ic_notification_no.svg';
 }
