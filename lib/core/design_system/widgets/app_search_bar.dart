@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/widget_previews.dart';
 
 import '../app_colors.dart';
 import '../app_icons.dart';
@@ -28,10 +29,7 @@ class AppSearchBar extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 58,
-      padding: const EdgeInsets.only(
-        left: 28,
-        right: 20,
-      ),
+      padding: const EdgeInsets.only(left: 28, right: 20),
       decoration: BoxDecoration(
         color: AppColors.gray2,
         borderRadius: BorderRadius.circular(4),
@@ -69,14 +67,33 @@ class AppSearchBar extends StatelessWidget {
           GestureDetector(
             onTap: onSearchTap,
             behavior: HitTestBehavior.opaque,
-            child: SvgPicture.asset(
-              AppIcons.search,
-              width: 24,
-              height: 24,
-            ),
+            child: SvgPicture.asset(AppIcons.search, width: 24, height: 24),
           ),
         ],
       ),
     );
   }
+}
+
+@Preview(name: '검색바 기본형')
+Widget appSearchBarDefaultPreview() {
+  return const MaterialApp(
+    home: Scaffold(
+      body: Padding(padding: EdgeInsets.all(20), child: AppSearchBar()),
+    ),
+  );
+}
+
+@Preview(name: '검색값 입력형')
+Widget appSearchBarValuePreview() {
+  final controller = TextEditingController(text: '경주');
+
+  return MaterialApp(
+    home: Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: AppSearchBar(controller: controller),
+      ),
+    ),
+  );
 }
