@@ -28,7 +28,7 @@ class AppLocation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 77,
+      constraints: const BoxConstraints(minHeight: 77),
       clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
         color: AppColors.gray1,
