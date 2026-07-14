@@ -1,5 +1,4 @@
 // 공통적으로 쓰이는 아이콘을 변수화합니다.
-// 플러터 기본 제공 아이콘과 겹치는 아이콘은 정의하지 않습니다.
 
 class AppIcons {
   AppIcons._();
@@ -9,6 +8,19 @@ class AppIcons {
   static const String travelVisited = '$_basePath/ic_travel_visited.svg';
   static const String travelVisiting = '$_basePath/ic_travel_visiting.svg';
   static const String travelWillVisit = '$_basePath/ic_travel_will_visit.svg';
+  static const String myLocation = '$_basePath/ic_my_location.svg';
+  static const String gps = '$_basePath/ic_gps.svg';
+
+  static const String lockClosed = '$_basePath/ic_lock_closed.svg';
+  static const String lockOpen = '$_basePath/ic_lock_open.svg';
+
+  static const String z = '$_basePath/ic_z.svg';
+  static const String plus = '$_basePath/ic_plus.svg';
+  static const String chatBubble = '$_basePath/ic_chat_bubble.svg';
+  static const String send = '$_basePath/ic_send.svg';
+
+  static const String hasNotification = '$_basePath/ic_notification_has.svg';
+  static const String noNotification = '$_basePath/ic_notification_no.svg';
 
   static const String travel = '$_basePath/ic_travel.svg';
   static const String search = '$_basePath/ic_search.svg';
@@ -17,6 +29,7 @@ class AppIcons {
   static const String mypage = '$_basePath/ic_mypage.svg';
   static const String arrowLeft = '$_basePath/ic_arrow_left.svg';
   static const String wish = '$_basePath/ic_wish.svg';
+  static const String heartWish = '$_basePath/ic_heart_wish.svg';
   static const String arrowDown = '$_basePath/ic_arrow_down.svg';
   static const String close = '$_basePath/ic_close.svg';
   static const String arrowRight = '$_basePath/ic_arrow_right.svg';
@@ -37,6 +50,4 @@ class AppIcons {
   static const String groupGray = '$_basePath/ic_group_gray.svg';
   static const String trash = '$_basePath/ic_trash.svg';
   static const String exit = '$_basePath/ic_exit.svg';
-  static const String hasNotification = '$_basePath/ic_notification_has.svg';
-  static const String noNotification = '$_basePath/ic_notification_no.svg';
 }
