@@ -95,10 +95,13 @@ class AppButton extends StatelessWidget {
               ),
               SizedBox(width: iconGap),
             ],
-            Text(
-              text,
-              style: (textStyle ?? _defaultTextStyle).copyWith(
-                color: _contentColor,
+            Flexible(
+              child: Text(
+                text,
+                overflow: TextOverflow.ellipsis,
+                style: (textStyle ?? _defaultTextStyle).copyWith(
+                  color: _contentColor,
+                ),
               ),
             ),
           ],
@@ -228,7 +231,7 @@ class _NextButtonDemoState extends State<_NextButtonDemo> {
 @Preview(group: 'haerim', name: 'AppButton - 다음')
 Widget appButtonNextPreview() => const _NextButtonDemo();
 
-/// "찜하기" 버튼 - 누를 때마다 활성(보라)/비활성(회색) 토글됨
+/// "찜하기" 버튼 - 누를 때마다 활성(보라)/비활성(회색) 토글되는 걸 눈으로 확인하는 데모.
 class _LikeButtonDemo extends StatefulWidget {
   const _LikeButtonDemo();
 
