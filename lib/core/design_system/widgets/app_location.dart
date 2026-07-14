@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app_colors.dart';
@@ -16,25 +17,26 @@ class AppLocation extends StatelessWidget {
     required this.address,
     this.showReorderHandle = false,
     this.onMorePressed,
-    this.width = 345,
   });
 
   final String name;
   final String address;
   final bool showReorderHandle;
   final VoidCallback? onMorePressed;
-  final double width;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width,
+      width: double.infinity,
       height: 77,
       clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
         color: AppColors.gray1,
         shape: RoundedRectangleBorder(
-          side: const BorderSide(width: 0.5, color: AppColors.gray3),
+          side: const BorderSide(
+            width: 0.5,
+            color: AppColors.gray3,
+          ),
           borderRadius: BorderRadius.circular(8),
         ),
       ),
@@ -42,10 +44,15 @@ class AppLocation extends StatelessWidget {
         children: [
           if (showReorderHandle) ...[
             const SizedBox(width: 16),
-            SvgPicture.asset(AppIcons.reorderHandle, width: 24, height: 24),
+            SvgPicture.asset(
+              AppIcons.reorderHandle,
+              width: 24,
+              height: 24,
+            ),
             const SizedBox(width: 17),
           ] else
             const SizedBox(width: 30),
+
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -55,18 +62,23 @@ class AppLocation extends StatelessWidget {
                   name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.subTitle.copyWith(color: AppColors.text),
+                  style: AppTextStyles.subTitle.copyWith(
+                    color: AppColors.text,
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption.copyWith(color: AppColors.text),
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.text,
+                  ),
                 ),
               ],
             ),
           ),
+
           if (onMorePressed != null)
             Semantics(
               button: true,
@@ -96,4 +108,38 @@ class AppLocation extends StatelessWidget {
       ),
     );
   }
+}
+
+@Preview(
+  group: 'yoongi',
+  name: 'Location',
+)
+Widget appLocationPreview() {
+  return const Material(
+    child: Padding(
+      padding: EdgeInsets.all(16),
+      child: AppLocation(
+        name: '첨성대',
+        address: '경북 경주시 인왕동 839-1',
+      ),
+    ),
+  );
+}
+
+@Preview(
+  group: 'yoongi',
+  name: 'Reorderable Location',
+)
+Widget reorderableAppLocationPreview() {
+  return Material(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: AppLocation(
+        name: '동궁과월지',
+        address: '경북 경주시 원화로 102',
+        showReorderHandle: true,
+        onMorePressed: () {},
+      ),
+    ),
+  );
 }
