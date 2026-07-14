@@ -28,8 +28,11 @@ class AppIcons {
   static const String more = '$_basePath/ic_more.svg';
   static const String mypage = '$_basePath/ic_mypage.svg';
   static const String arrowLeft = '$_basePath/ic_arrow_left.svg';
+  static const String check = '$_basePath/ic_check.svg';
   static const String wish = '$_basePath/ic_wish.svg';
   static const String heartBig = '$_basePath/ic_heart_big.svg';
+  static const String heartMiddle = '$_basePath/ic_heart_middle.svg';
+  static const String heartSmall = '$_basePath/ic_heart_small.svg';
   static const String arrowDown = '$_basePath/ic_arrow_down.svg';
   static const String close = '$_basePath/ic_close.svg';
   static const String arrowRight = '$_basePath/ic_arrow_right.svg';
