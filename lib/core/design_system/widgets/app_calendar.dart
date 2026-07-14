@@ -116,10 +116,13 @@ class _AppCalendarState extends State<AppCalendar> {
                 ? _isSameDay(week[segEnd], _rangeEnd!)
                 : _isSameDay(week[segEnd], _rangeStart!); // 종료일 없으면 시작일 자체가 곧 끝
 
-            final left = isTrueStart ? startPos.dx - _capPaddingHorizontal : 0.0;
-            final right = isTrueEnd
+            final double left = isTrueStart
+                ? startPos.dx - _capPaddingHorizontal
+                : (segStart == 0 ? 0.0 : startPos.dx);
+
+            final double right = isTrueEnd
                 ? endPos.dx + endBox.size.width + _capPaddingHorizontal
-                : _rowContentWidth;
+                : (segEnd == 6 ? _rowContentWidth : endPos.dx + endBox.size.width);
 
             rects.add(_HighlightSegment(
               rect: Rect.fromLTRB(

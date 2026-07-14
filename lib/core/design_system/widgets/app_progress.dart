@@ -49,7 +49,7 @@ class AppDensityTrack extends StatelessWidget {
             child: Row(
               children: List.generate(
                 3,
-                (index) => Expanded(
+                    (index) => Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () => onLevelSelected?.call(index),
@@ -91,7 +91,7 @@ class AppCompletionProgressBar extends StatelessWidget {
       child: Align(
         alignment: Alignment.centerLeft,
         child: FractionallySizedBox(
-          widthFactor: progress.clamp(0.0, 1.0),
+          widthFactor: progress.clamp(0.0, 1.0).toDouble(),
           child: Container(
             height: height,
             decoration: BoxDecoration(

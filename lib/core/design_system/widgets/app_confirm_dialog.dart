@@ -26,8 +26,8 @@ class AppConfirmDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 345.0,
-      height: 180.0,
-      padding: const EdgeInsets.only(top: 30.0, left: 25.0, right: 25.0),
+      constraints: const BoxConstraints(minHeight: 180.0),
+      padding: const EdgeInsets.fromLTRB(25.0, 30.0, 25.0, 20.0),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20.0),
@@ -107,14 +107,14 @@ class _DialogButton extends StatelessWidget {
 }
 
 Future<void> showAppConfirmDialog(
-  BuildContext context, {
-  required String title,
-  String? description,
-  String cancelText = '취소',
-  required String confirmText,
-  VoidCallback? onCancel,
-  VoidCallback? onConfirm,
-}) {
+    BuildContext context, {
+      required String title,
+      String? description,
+      String cancelText = '취소',
+      required String confirmText,
+      VoidCallback? onCancel,
+      VoidCallback? onConfirm,
+    }) {
   return showDialog(
     context: context,
     builder: (context) => Dialog(
@@ -124,8 +124,14 @@ Future<void> showAppConfirmDialog(
         description: description,
         cancelText: cancelText,
         confirmText: confirmText,
-        onCancel: onCancel ?? () => Navigator.of(context).pop(),
-        onConfirm: onConfirm ?? () => Navigator.of(context).pop(),
+        onCancel: () {
+          Navigator.of(context).pop();
+          onCancel?.call();
+        },
+        onConfirm: () {
+          Navigator.of(context).pop();
+          onConfirm?.call();
+        },
       ),
     ),
   );
