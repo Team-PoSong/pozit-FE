@@ -29,7 +29,7 @@ class AppIcons {
   static const String mypage = '$_basePath/ic_mypage.svg';
   static const String arrowLeft = '$_basePath/ic_arrow_left.svg';
   static const String wish = '$_basePath/ic_wish.svg';
-  static const String heartWish = '$_basePath/ic_heart_wish.svg';
+  static const String heartBig = '$_basePath/ic_heart_big.svg';
   static const String arrowDown = '$_basePath/ic_arrow_down.svg';
   static const String close = '$_basePath/ic_close.svg';
   static const String arrowRight = '$_basePath/ic_arrow_right.svg';

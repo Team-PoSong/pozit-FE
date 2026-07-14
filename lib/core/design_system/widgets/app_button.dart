@@ -14,6 +14,8 @@ class AppButton extends StatelessWidget {
   final String text;
   final AppButtonStyle style;
   final bool isEnabled;
+  final bool isLoading; // true면 회색으로 바뀌고 탭 막힘 (비활성과 동일한 시각 효과)
+  final bool isActive; // 찜하기처럼 "켜짐/꺼짐" 토글용. false면 회색이지만 탭은 계속 가능
   final VoidCallback? onPressed;
   final String? iconAsset;
   final double iconWidth;
@@ -31,6 +33,8 @@ class AppButton extends StatelessWidget {
     required this.text,
     this.style = AppButtonStyle.filled,
     this.isEnabled = true,
+    this.isLoading = false,
+    this.isActive = true,
     this.onPressed,
     this.iconAsset,
     this.iconWidth = 16.0,
@@ -51,8 +55,10 @@ class AppButton extends StatelessWidget {
     height: 25 / 18,
   );
 
+  bool get _isTappable => isEnabled && !isLoading;
+
   Color get _backgroundColor {
-    if (!isEnabled) return AppColors.gray3;
+    if (!isEnabled || isLoading || !isActive) return AppColors.gray3;
     if (backgroundColor != null) return backgroundColor!;
     return style == AppButtonStyle.filled
         ? AppColors.primary
@@ -60,7 +66,7 @@ class AppButton extends StatelessWidget {
   }
 
   Color get _contentColor {
-    if (!isEnabled) return AppColors.gray5;
+    if (!isEnabled || isLoading || !isActive) return AppColors.gray5;
     if (contentColor != null) return contentColor!;
     return style == AppButtonStyle.filled ? AppColors.white : AppColors.purple3;
   }
@@ -68,7 +74,7 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isEnabled ? onPressed : null,
+      onTap: _isTappable ? onPressed : null,
       child: Container(
         width: width ?? double.infinity,
         padding: padding,
@@ -197,45 +203,62 @@ class AppCircleButton extends StatelessWidget {
   }
 }
 
-@Preview(group: 'haerim', name: 'AppButton - 다음 활성')
-Widget appButtonNextEnabledPreview() => const AppButton(text: '다음');
+/// "다음" 버튼 - 누르면 로딩(비활성과 동일한 회색)으로 바뀌는 데모.
+/// 한 번 로딩 상태가 되면(isLoading: true) AppButton 내부에서 탭을 막음
+class _NextButtonDemo extends StatefulWidget {
+  const _NextButtonDemo();
 
-@Preview(group: 'haerim', name: 'AppButton - 다음 비활성')
-Widget appButtonNextDisabledPreview() =>
-    const AppButton(text: '다음', isEnabled: false);
+  @override
+  State<_NextButtonDemo> createState() => _NextButtonDemoState();
+}
 
-@Preview(group: 'haerim', name: 'AppButton - 찜하기 활성')
-Widget appButtonLikeEnabledPreview() => const AppButton(
-  text: '찜하기',
-  style: AppButtonStyle.tonal,
-  iconAsset: AppIcons.heartWish,
-  iconWidth: 16.0,
-  iconHeight: 14.0,
-  padding: EdgeInsets.symmetric(vertical: 20.0),
-  iconGap: 11.0,
-  textStyle: TextStyle(
-    fontFamily: 'Pretendard',
-    fontSize: 18,
-    fontWeight: FontWeight.w400,
-  ),
-);
+class _NextButtonDemoState extends State<_NextButtonDemo> {
+  bool _isLoading = false;
 
-@Preview(group: 'haerim', name: 'AppButton - 찜하기 비활성')
-Widget appButtonLikeDisabledPreview() => const AppButton(
-  text: '찜하기',
-  style: AppButtonStyle.tonal,
-  isEnabled: false,
-  iconAsset: AppIcons.heartWish,
-  iconWidth: 16.0,
-  iconHeight: 14.0,
-  padding: EdgeInsets.symmetric(vertical: 20.0),
-  iconGap: 11.0,
-  textStyle: TextStyle(
-    fontFamily: 'Pretendard',
-    fontSize: 18,
-    fontWeight: FontWeight.w400,
-  ),
-);
+  @override
+  Widget build(BuildContext context) {
+    return AppButton(
+      text: '다음',
+      isLoading: _isLoading,
+      onPressed: () => setState(() => _isLoading = true),
+    );
+  }
+}
+
+/// "찜하기" 버튼 - 누를 때마다 활성(보라)/비활성(회색) 토글됨
+class _LikeButtonDemo extends StatefulWidget {
+  const _LikeButtonDemo();
+
+  @override
+  State<_LikeButtonDemo> createState() => _LikeButtonDemoState();
+}
+
+class _LikeButtonDemoState extends State<_LikeButtonDemo> {
+  bool _isActive = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppButton(
+      text: '찜하기',
+      style: AppButtonStyle.tonal,
+      isActive: _isActive,
+      iconAsset: AppIcons.heartBig,
+      iconWidth: 24.0,
+      iconHeight: 24.0,
+      padding: const EdgeInsets.symmetric(vertical: 20.0),
+      iconGap: 11.0,
+      textStyle: const TextStyle(
+        fontFamily: 'Pretendard',
+        fontSize: 18,
+        fontWeight: FontWeight.w400,
+      ),
+      onPressed: () => setState(() => _isActive = !_isActive),
+    );
+  }
+}
+
+@Preview(group: 'haerim', name: 'AppButton - 찜하기')
+Widget appButtonLikePreview() => const _LikeButtonDemo();
 
 @Preview(group: 'haerim', name: 'AppButton - 챗봇 적용하기')
 Widget appButtonChatbotApplyPreview() => const AppButton(
@@ -246,12 +269,31 @@ Widget appButtonChatbotApplyPreview() => const AppButton(
   textStyle: AppTextStyles.body,
 );
 
+/// "코스 수정하기" 버튼 - "다음" 버튼과 동일하게 한 번 로딩 상태가 되면 되돌아오지 않음.
+class _EditCourseButtonDemo extends StatefulWidget {
+  const _EditCourseButtonDemo();
+
+  @override
+  State<_EditCourseButtonDemo> createState() => _EditCourseButtonDemoState();
+}
+
+class _EditCourseButtonDemoState extends State<_EditCourseButtonDemo> {
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppButton(
+      text: '코스 수정하기',
+      style: AppButtonStyle.tonal,
+      contentColor: AppColors.text,
+      isLoading: _isLoading,
+      onPressed: () => setState(() => _isLoading = true),
+    );
+  }
+}
+
 @Preview(group: 'haerim', name: 'AppButton - 코스 수정하기')
-Widget appButtonEditCoursePreview() => const AppButton(
-  text: '코스 수정하기',
-  style: AppButtonStyle.tonal,
-  contentColor: AppColors.text,
-);
+Widget appButtonEditCoursePreview() => const _EditCourseButtonDemo();
 
 @Preview(group: 'haerim', name: 'AppCircleButton - +버튼')
 Widget appCircleButtonPreview() => const AppCircleButton();
@@ -262,6 +304,8 @@ Widget appButtonFilterPreview() => const AppButton(
   width: 73.0,
   backgroundColor: AppColors.purple3,
   iconAsset: AppIcons.filter,
+  iconWidth: 20.0,
+  iconHeight: 20.0,
   iconGap: 8.0,
   padding: EdgeInsets.symmetric(vertical: 3.0),
   borderRadius: 999.0,
