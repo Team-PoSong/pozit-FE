@@ -72,7 +72,7 @@ Widget notificationListItemPreview() => const NotificationListItem(
   time: '16시간 전',
 );
 
-@Preview(group: 'haerim', name: 'NotificationListItem - 2 lines')
+@Preview(group: 'haerim', name: 'NotificationListItem - 2줄')
 Widget notificationListItemTwoLinesPreview() => const NotificationListItem(
   title: '경주 여행!!!',
   body: '오늘의 코스를 모두 완료했습니다. 알림이 길어지면 두우우우우줄로 됩니드아아아아.',

@@ -90,5 +90,5 @@ Widget appTagChipSelectedPreview() =>
 @Preview(group: 'haerim', name: 'AppTagChip - 선택안됨')
 Widget appTagChipUnselectedPreview() => const AppTagChip(label: '# 예술');
 
-@Preview(group: 'haerim', name: 'AppDeletableChip - 경주월드')
+@Preview(group: 'haerim', name: 'AppDeletableChip - 삭제 가능 칩')
 Widget appDeletableChipPreview() => const AppDeletableChip(label: '경주월드');

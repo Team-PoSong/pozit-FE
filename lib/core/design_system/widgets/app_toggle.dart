@@ -78,17 +78,66 @@ class AppVisibilityToggle extends StatelessWidget {
   }
 }
 
+/// 눌러서 선택/비선택이 바뀌는 걸 확인하는 지역 토글 데모
+class _RegionToggleDemo extends StatefulWidget {
+  final String label;
+  final bool initialSelected;
+
+  const _RegionToggleDemo({required this.label, required this.initialSelected});
+
+  @override
+  State<_RegionToggleDemo> createState() => _RegionToggleDemoState();
+}
+
+class _RegionToggleDemoState extends State<_RegionToggleDemo> {
+  late bool _selected = widget.initialSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppRegionToggle(
+      label: widget.label,
+      isSelected: _selected,
+      onTap: () => setState(() => _selected = !_selected),
+    );
+  }
+}
+
+/// 눌러서 선택/비선택이 바뀌는 걸 확인하는 공개/비공개 토글 데모
+class _VisibilityToggleDemo extends StatefulWidget {
+  final String label;
+  final bool initialSelected;
+
+  const _VisibilityToggleDemo({required this.label, required this.initialSelected});
+
+  @override
+  State<_VisibilityToggleDemo> createState() => _VisibilityToggleDemoState();
+}
+
+class _VisibilityToggleDemoState extends State<_VisibilityToggleDemo> {
+  late bool _selected = widget.initialSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppVisibilityToggle(
+      label: widget.label,
+      isSelected: _selected,
+      onTap: () => setState(() => _selected = !_selected),
+    );
+  }
+}
+
 @Preview(group: 'haerim', name: 'AppRegionToggle - 전국(선택)')
 Widget appRegionToggleSelectedPreview() =>
-    const AppRegionToggle(label: '전국', isSelected: true);
+    const _RegionToggleDemo(label: '전국', initialSelected: true);
 
 @Preview(group: 'haerim', name: 'AppRegionToggle - 서울(비선택)')
-Widget appRegionToggleUnselectedPreview() => const AppRegionToggle(label: '서울');
+Widget appRegionToggleUnselectedPreview() =>
+    const _RegionToggleDemo(label: '서울', initialSelected: false);
 
 @Preview(group: 'haerim', name: 'AppVisibilityToggle - 비공개(선택)')
 Widget appVisibilityToggleSelectedPreview() =>
-    const AppVisibilityToggle(label: '비공개', isSelected: true);
+    const _VisibilityToggleDemo(label: '비공개', initialSelected: true);
 
 @Preview(group: 'haerim', name: 'AppVisibilityToggle - 공개(비선택)')
 Widget appVisibilityToggleUnselectedPreview() =>
-    const AppVisibilityToggle(label: '공개');
+    const _VisibilityToggleDemo(label: '공개', initialSelected: false);
