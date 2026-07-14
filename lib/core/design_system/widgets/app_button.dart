@@ -225,6 +225,9 @@ class _NextButtonDemoState extends State<_NextButtonDemo> {
   }
 }
 
+@Preview(group: 'haerim', name: 'AppButton - 다음')
+Widget appButtonNextPreview() => const _NextButtonDemo();
+
 /// "찜하기" 버튼 - 누를 때마다 활성(보라)/비활성(회색) 토글됨
 class _LikeButtonDemo extends StatefulWidget {
   const _LikeButtonDemo();
