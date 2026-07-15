@@ -14,6 +14,7 @@ class AppInputField extends StatefulWidget {
     this.onTap,
     this.readOnly = false,
     this.autofocus = false,
+    this.isError = false,
   });
 
   final TextEditingController? controller;
@@ -23,6 +24,7 @@ class AppInputField extends StatefulWidget {
   final VoidCallback? onTap;
   final bool readOnly;
   final bool autofocus;
+  final bool isError;
 
   @override
   State<AppInputField> createState() => _AppInputFieldState();
@@ -79,8 +81,10 @@ class _AppInputFieldState extends State<AppInputField> {
   @override
   Widget build(BuildContext context) {
     const borderRadius = BorderRadius.all(Radius.circular(4));
-    final borderSide = _hasText
-        ? const BorderSide(width: 1, color: AppColors.purple2)
+    final borderSide = widget.isError
+        ? const BorderSide(width: 1, color: AppColors.error)
+        : _hasText
+        ? const BorderSide(width: 1, color: AppColors.purple3)
         : BorderSide.none;
 
     return SizedBox(
@@ -147,6 +151,20 @@ Widget appInputFieldValuePreview() {
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: AppInputField(controller: controller),
+      ),
+    ),
+  );
+}
+
+@Preview(group: 'hycho', name: 'Input Field - 에러')
+Widget appInputFieldErrorPreview() {
+  final controller = TextEditingController(text: '참새@!#1');
+
+  return MaterialApp(
+    home: Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: AppInputField(controller: controller, isError: true),
       ),
     ),
   );
