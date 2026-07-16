@@ -59,7 +59,7 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
   Widget build(BuildContext context) {
     final double? circleCenterX = _dragX ??
         (widget.selectedIndex != null
-            ? _tickLeftOffsets[widget.selectedIndex!] + 1.5
+            ? _tickLeftOffsets[widget.selectedIndex!.clamp(0, _tickLeftOffsets.length - 1)] + 1.5
             : null);
 
     return Padding(
@@ -126,7 +126,11 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
                       ),
                     ),
                   ),
-                Positioned.fill(
+                Positioned(
+                  top: -16.0,
+                  bottom: -16.0,
+                  left: 0,
+                  right: 0,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTapUp: (details) => _handleTap(details.localPosition.dx),

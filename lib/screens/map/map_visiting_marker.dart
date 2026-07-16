@@ -20,7 +20,10 @@ class MapVisitingMarker extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(4.082, 5.0, 3.582, 4.375),
-        child: Image.asset(AppImages.posongVisiting),
+        child: Image.asset(
+          AppImages.posongVisiting,
+          semanticLabel: '방문 중',
+        ),
       ),
     );
   }
