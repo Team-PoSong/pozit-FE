@@ -37,7 +37,7 @@ class AppSwitch extends StatelessWidget {
   }
 }
 
-/// 누를 때마다 켜짐/꺼짐이 부드럽게(AnimatedContainer) 넘어가는 걸 확인하는 데모.
+/// 누를 때마다 켜짐/꺼짐이 부드럽게 넘어가는 걸 확인하는 데모.
 class _SwitchDemo extends StatefulWidget {
   const _SwitchDemo();
 

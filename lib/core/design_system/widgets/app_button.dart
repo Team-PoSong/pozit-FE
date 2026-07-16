@@ -14,8 +14,7 @@ class AppButton extends StatelessWidget {
   final String text;
   final AppButtonStyle style;
   final bool isEnabled;
-  final bool isLoading; // true면 회색으로 바뀌고 탭 막힘 (비활성과 동일한 시각 효과)
-  final bool isActive; // 찜하기처럼 "켜짐/꺼짐" 토글용. false면 회색이지만 탭은 계속 가능
+  final bool isActive;
   final VoidCallback? onPressed;
   final String? iconAsset;
   final double iconWidth;
@@ -33,7 +32,6 @@ class AppButton extends StatelessWidget {
     required this.text,
     this.style = AppButtonStyle.filled,
     this.isEnabled = true,
-    this.isLoading = false,
     this.isActive = true,
     this.onPressed,
     this.iconAsset,
@@ -55,10 +53,10 @@ class AppButton extends StatelessWidget {
     height: 25 / 18,
   );
 
-  bool get _isTappable => isEnabled && !isLoading;
+  bool get _isTappable => isEnabled;
 
   Color get _backgroundColor {
-    if (!isEnabled || isLoading || !isActive) return AppColors.gray3;
+    if (!isEnabled || !isActive) return AppColors.gray3;
     if (backgroundColor != null) return backgroundColor!;
     return style == AppButtonStyle.filled
         ? AppColors.primary
@@ -66,7 +64,7 @@ class AppButton extends StatelessWidget {
   }
 
   Color get _contentColor {
-    if (!isEnabled || isLoading || !isActive) return AppColors.gray5;
+    if (!isEnabled || !isActive) return AppColors.gray5;
     if (contentColor != null) return contentColor!;
     return style == AppButtonStyle.filled ? AppColors.white : AppColors.purple3;
   }
@@ -165,11 +163,17 @@ class AppChatbotButton extends StatelessWidget {
   }
 }
 
+/// 원형 아이콘 버튼
+/// 기본 생성자: 진보라 배경(+버튼) 스타일
+/// .outline 생성자: 흰 배경+회색 테두리 스타일
 class AppCircleButton extends StatelessWidget {
   final String iconAsset;
   final VoidCallback? onPressed;
   final double size;
   final double iconSize;
+  final Color backgroundColor;
+  final Color iconColor;
+  final Color? borderColor;
 
   const AppCircleButton({
     super.key,
@@ -177,7 +181,20 @@ class AppCircleButton extends StatelessWidget {
     this.onPressed,
     this.size = 42.0,
     this.iconSize = 24.0,
+    this.backgroundColor = AppColors.primary,
+    this.iconColor = AppColors.white,
+    this.borderColor,
   });
+
+  const AppCircleButton.outline({
+    super.key,
+    required this.iconAsset,
+    this.onPressed,
+    this.size = 60.0,
+    this.iconSize = 24.0,
+  })  : backgroundColor = AppColors.white,
+        iconColor = AppColors.text,
+        borderColor = AppColors.gray3;
 
   @override
   Widget build(BuildContext context) {
@@ -186,17 +203,18 @@ class AppCircleButton extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: const BoxDecoration(
-          color: AppColors.primary,
+        decoration: BoxDecoration(
+          color: backgroundColor,
           shape: BoxShape.circle,
+          border: borderColor != null ? Border.all(color: borderColor!, width: 1.0) : null,
         ),
         child: Center(
           child: SvgPicture.asset(
             iconAsset,
             width: iconSize,
             height: iconSize,
-            colorFilter: const ColorFilter.mode(
-              AppColors.white,
+            colorFilter: ColorFilter.mode(
+              iconColor,
               BlendMode.srcIn,
             ),
           ),
@@ -206,30 +224,14 @@ class AppCircleButton extends StatelessWidget {
   }
 }
 
-/// "다음" 버튼 - 누르면 로딩(비활성과 동일한 회색)으로 바뀌는 데모.
-/// 한 번 로딩 상태가 되면(isLoading: true) AppButton 내부에서 탭을 막음
-class _NextButtonDemo extends StatefulWidget {
-  const _NextButtonDemo();
+// "다음" 버튼
+@Preview(group: 'haerim', name: 'AppButton - 다음 활성')
+Widget appButtonNextEnabledPreview() =>
+    const AppButton(text: '다음', isEnabled: true);
 
-  @override
-  State<_NextButtonDemo> createState() => _NextButtonDemoState();
-}
-
-class _NextButtonDemoState extends State<_NextButtonDemo> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppButton(
-      text: '다음',
-      isLoading: _isLoading,
-      onPressed: () => setState(() => _isLoading = true),
-    );
-  }
-}
-
-@Preview(group: 'haerim', name: 'AppButton - 다음')
-Widget appButtonNextPreview() => const _NextButtonDemo();
+@Preview(group: 'haerim', name: 'AppButton - 다음 비활성')
+Widget appButtonNextDisabledPreview() =>
+    const AppButton(text: '다음', isEnabled: false);
 
 /// "찜하기" 버튼 - 누를 때마다 활성(보라)/비활성(회색) 토글되는 걸 눈으로 확인하는 데모.
 class _LikeButtonDemo extends StatefulWidget {
@@ -275,34 +277,29 @@ Widget appButtonChatbotApplyPreview() => const AppButton(
   textStyle: AppTextStyles.body,
 );
 
-/// "코스 수정하기" 버튼 - "다음" 버튼과 동일하게 한 번 로딩 상태가 되면 되돌아오지 않음.
-class _EditCourseButtonDemo extends StatefulWidget {
-  const _EditCourseButtonDemo();
-
-  @override
-  State<_EditCourseButtonDemo> createState() => _EditCourseButtonDemoState();
-}
-
-class _EditCourseButtonDemoState extends State<_EditCourseButtonDemo> {
-  bool _isLoading = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppButton(
-      text: '코스 수정하기',
-      style: AppButtonStyle.tonal,
-      contentColor: AppColors.text,
-      isLoading: _isLoading,
-      onPressed: () => setState(() => _isLoading = true),
-    );
-  }
-}
-
+// "코스 수정하기" 버튼
 @Preview(group: 'haerim', name: 'AppButton - 코스 수정하기')
-Widget appButtonEditCoursePreview() => const _EditCourseButtonDemo();
+Widget appButtonEditCourseEnabledPreview() => const AppButton(
+  text: '코스 수정하기',
+  style: AppButtonStyle.tonal,
+  contentColor: AppColors.text,
+  isEnabled: true,
+);
 
-@Preview(group: 'haerim', name: 'AppCircleButton - +버튼')
+@Preview(group: 'haerim', name: 'AppCircleButton - +')
 Widget appCircleButtonPreview() => const AppCircleButton();
+
+@Preview(group: 'haerim', name: 'AppCircleButton - X')
+Widget appCircleButtonClosePreview() =>
+    const AppCircleButton.outline(iconAsset: AppIcons.close);
+
+@Preview(group: 'haerim', name: 'AppCircleButton - 저장')
+Widget appCircleButtonSavePreview() =>
+    const AppCircleButton.outline(iconAsset: AppIcons.save);
+
+@Preview(group: 'haerim', name: 'AppCircleButton - 공유')
+Widget appCircleButtonSharePreview() =>
+    const AppCircleButton.outline(iconAsset: AppIcons.share);
 
 @Preview(group: 'haerim', name: 'AppButton - 필터')
 Widget appButtonFilterPreview() => const AppButton(

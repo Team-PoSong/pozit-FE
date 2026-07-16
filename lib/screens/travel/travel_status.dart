@@ -38,17 +38,17 @@ class TravelStatusIndicator extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: isTraveling
             ? const [
-                _CompletedItem(iconTextGap: 8.0),
-                SizedBox(width: 12.12),
-                _VisitingItem(),
-                SizedBox(width: 16.39),
-                _NotVisitedItem(iconTextGap: 7.0),
-              ]
+          _CompletedItem(iconTextGap: 8.0),
+          SizedBox(width: 12.12),
+          _VisitingItem(),
+          SizedBox(width: 16.39),
+          _NotVisitedItem(iconTextGap: 7.0),
+        ]
             : const [
-                _CompletedItem(iconTextGap: 11.57),
-                SizedBox(width: 11.57),
-                _NotVisitedItem(iconTextGap: 11.57),
-              ],
+          _CompletedItem(iconTextGap: 11.57),
+          SizedBox(width: 11.57),
+          _NotVisitedItem(iconTextGap: 11.57),
+        ],
       ),
     );
   }
@@ -96,7 +96,7 @@ class _VisitingItem extends StatelessWidget {
             color: AppColors.white,
             boxShadow: const [
               BoxShadow(
-                color: Color(0x669FA1FF), // purple2, 40% 투명도
+                color: Color(0x669FA1FF),
                 blurRadius: 4.0,
               ),
             ],
