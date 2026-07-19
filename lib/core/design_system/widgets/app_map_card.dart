@@ -40,57 +40,58 @@ class AppMapCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(color: AppColors.gray4, blurRadius: 4),
-        ],
+        boxShadow: const [BoxShadow(color: AppColors.gray4, blurRadius: 4)],
       ),
-      child: Column(
-        children: [
-          SizedBox(
-            height: 47,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 76),
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.subTitle.copyWith(
-                      color: AppColors.gray5,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 47,
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 14,
+                    left: 64,
+                    right: 64,
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.subTitle.copyWith(
+                        color: AppColors.gray5,
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  right: 12,
-                  child: _CourseAction(onTap: onCourseTap),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image(
-                image: mapImage,
-                width: double.infinity,
-                height: 156,
-                fit: BoxFit.cover,
+                  Positioned(
+                    top: 17,
+                    right: 0,
+                    child: _CourseAction(onTap: onCourseTap),
+                  ),
+                ],
               ),
             ),
-          ),
-          Expanded(
-            child: Center(
-              child: _PageIndicator(
-                currentPage: currentPage,
-                pageCount: pageCount,
+            SizedBox(
+              height: 156,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image(image: mapImage, fit: BoxFit.cover),
               ),
             ),
-          ),
-        ],
+            SizedBox(
+              height: 30,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 12),
+                child: _PageIndicator(
+                  currentPage: currentPage,
+                  pageCount: pageCount,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -106,8 +107,8 @@ class _CourseAction extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+      child: SizedBox(
+        height: 14,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -116,14 +117,11 @@ class _CourseAction extends StatelessWidget {
               style: AppTextStyles.caption.copyWith(
                 color: AppColors.gray5,
                 fontWeight: FontWeight.w300,
+                height: 14 / 12,
               ),
             ),
             const SizedBox(width: 4),
-            SvgPicture.asset(
-              AppIcons.arrowRightSmall,
-              width: 14,
-              height: 14,
-            ),
+            SvgPicture.asset(AppIcons.arrowRightSmall, width: 14, height: 14),
           ],
         ),
       ),
@@ -132,10 +130,7 @@ class _CourseAction extends StatelessWidget {
 }
 
 class _PageIndicator extends StatelessWidget {
-  const _PageIndicator({
-    required this.currentPage,
-    required this.pageCount,
-  });
+  const _PageIndicator({required this.currentPage, required this.pageCount});
 
   final int currentPage;
   final int pageCount;
@@ -143,7 +138,7 @@ class _PageIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         pageCount,
         (index) => Padding(
@@ -152,9 +147,7 @@ class _PageIndicator extends StatelessWidget {
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: index == currentPage
-                  ? AppColors.primary
-                  : AppColors.gray3,
+              color: index == currentPage ? AppColors.primary : AppColors.gray3,
               shape: BoxShape.circle,
             ),
           ),
