@@ -40,7 +40,7 @@ class DayPlaceHeader extends StatelessWidget {
             ),
             const SizedBox(width: 65.0),
             SvgPicture.asset(
-              AppIcons.pin,
+              AppIcons.pinFilter,
               width: 48.0,
               height: 48.0,
               colorFilter: const ColorFilter.mode(AppColors.purple3, BlendMode.srcIn),

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../app_colors.dart';
 import '../app_icons.dart';
 import '../app_text_styles.dart';
-
-// 공통 버튼을 정의합니다.
-// 버튼 색상 스타일: filled-진한 색상 배경, tonal-연한 색상 배경
 
 enum AppButtonStyle { filled, tonal }
 
@@ -14,7 +12,10 @@ class AppButton extends StatelessWidget {
   final String text;
   final AppButtonStyle style;
   final bool isEnabled;
+
+  /// 활성 스타일 여부. false여도 탭할 수 있습니다.
   final bool isActive;
+
   final VoidCallback? onPressed;
   final String? iconAsset;
   final double iconWidth;
@@ -58,6 +59,7 @@ class AppButton extends StatelessWidget {
   Color get _backgroundColor {
     if (!isEnabled || !isActive) return AppColors.gray3;
     if (backgroundColor != null) return backgroundColor!;
+
     return style == AppButtonStyle.filled
         ? AppColors.primary
         : AppColors.purple1;
@@ -66,7 +68,10 @@ class AppButton extends StatelessWidget {
   Color get _contentColor {
     if (!isEnabled || !isActive) return AppColors.gray5;
     if (contentColor != null) return contentColor!;
-    return style == AppButtonStyle.filled ? AppColors.white : AppColors.purple3;
+
+    return style == AppButtonStyle.filled
+        ? AppColors.white
+        : AppColors.purple3;
   }
 
   @override
@@ -89,7 +94,6 @@ class AppButton extends StatelessWidget {
                 iconAsset!,
                 width: iconWidth,
                 height: iconHeight,
-                colorFilter: ColorFilter.mode(_contentColor, BlendMode.srcIn),
               ),
               SizedBox(width: iconGap),
             ],
@@ -134,10 +138,6 @@ class AppChatbotButton extends StatelessWidget {
               AppIcons.chatBubble,
               width: width,
               height: height,
-              colorFilter: const ColorFilter.mode(
-                AppColors.primary,
-                BlendMode.srcIn,
-              ),
             ),
             Positioned.fill(
               child: Padding(
@@ -164,8 +164,9 @@ class AppChatbotButton extends StatelessWidget {
 }
 
 /// 원형 아이콘 버튼
-/// 기본 생성자: 진보라 배경(+버튼) 스타일
-/// .outline 생성자: 흰 배경+회색 테두리 스타일
+///
+/// 기본 생성자는 진보라 배경이며,
+/// [AppCircleButton.outline]은 흰 배경과 회색 테두리를 사용합니다.
 class AppCircleButton extends StatelessWidget {
   final String iconAsset;
   final VoidCallback? onPressed;
@@ -206,7 +207,9 @@ class AppCircleButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor,
           shape: BoxShape.circle,
-          border: borderColor != null ? Border.all(color: borderColor!, width: 1.0) : null,
+          border: borderColor != null
+              ? Border.all(color: borderColor!, width: 1.0)
+              : null,
         ),
         child: Center(
           child: SvgPicture.asset(
@@ -250,7 +253,9 @@ class _LikeButtonDemoState extends State<_LikeButtonDemo> {
       text: '찜하기',
       style: AppButtonStyle.tonal,
       isActive: _isActive,
-      iconAsset: AppIcons.heartBig,
+      iconAsset: _isActive
+          ? AppIcons.heartMiddle
+          : AppIcons.heartMiddleGray,
       iconWidth: 24.0,
       iconHeight: 24.0,
       padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -260,7 +265,9 @@ class _LikeButtonDemoState extends State<_LikeButtonDemo> {
         fontSize: 18,
         fontWeight: FontWeight.w400,
       ),
-      onPressed: () => setState(() => _isActive = !_isActive),
+      onPressed: () {
+        setState(() => _isActive = !_isActive);
+      },
     );
   }
 }
