@@ -11,6 +11,7 @@ class AppSearchBar extends StatelessWidget {
     super.key,
     this.controller,
     this.onChanged,
+    this.onSubmitted,
     this.onTap,
     this.onSearchTap,
     this.readOnly = false,
@@ -19,6 +20,7 @@ class AppSearchBar extends StatelessWidget {
 
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final VoidCallback? onTap;
   final VoidCallback? onSearchTap;
   final bool readOnly;
@@ -40,8 +42,10 @@ class AppSearchBar extends StatelessWidget {
             child: TextField(
               controller: controller,
               onChanged: onChanged,
+              onSubmitted: onSubmitted,
               onTap: onTap,
               readOnly: readOnly,
+              textInputAction: TextInputAction.search,
               maxLines: 1,
               cursorColor: AppColors.text,
               style: AppTextStyles.body.copyWith(

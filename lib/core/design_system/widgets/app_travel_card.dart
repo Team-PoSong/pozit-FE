@@ -57,6 +57,7 @@ class AppTravelCard extends StatelessWidget {
   final VoidCallback? onFavoriteTap;
 
   bool get _isPozitPick => type == AppTravelCardType.pozitPick;
+  bool get _isMyTravel => type == AppTravelCardType.myTravel;
   bool get _isOtherTravel => type == AppTravelCardType.otherTravel;
   bool get _showsVisibility =>
       type == AppTravelCardType.myTravel && status == AppTravelStatus.completed;
@@ -103,6 +104,7 @@ class AppTravelCard extends StatelessWidget {
             _TravelCardThumbnail(
               image: _resolvedBackgroundImage,
               isPozitPick: _isPozitPick,
+              isMyTravel: _isMyTravel,
               status: status,
               dDay: dDay,
               isPublic: isPublic,
@@ -134,6 +136,7 @@ class _TravelCardThumbnail extends StatelessWidget {
   const _TravelCardThumbnail({
     required this.image,
     required this.isPozitPick,
+    required this.isMyTravel,
     required this.status,
     required this.dDay,
     required this.isPublic,
@@ -146,6 +149,7 @@ class _TravelCardThumbnail extends StatelessWidget {
 
   final ImageProvider<Object>? image;
   final bool isPozitPick;
+  final bool isMyTravel;
   final AppTravelStatus? status;
   final String? dDay;
   final bool isPublic;
@@ -188,13 +192,13 @@ class _TravelCardThumbnail extends StatelessWidget {
             ),
           if (isPozitPick)
             const Positioned(left: 10, top: 10, child: _PozitPickBadge()),
-          if (!isPozitPick && status == AppTravelStatus.upcoming)
+          if (isMyTravel && status == AppTravelStatus.upcoming)
             Positioned(
               left: 10,
               top: 10,
               child: AppPillBadge(label: dDay ?? 'D-Day', isFilled: false),
             ),
-          if (!isPozitPick && status == AppTravelStatus.inProgress)
+          if (isMyTravel && status == AppTravelStatus.inProgress)
             const Positioned(
               left: 10,
               top: 10,
