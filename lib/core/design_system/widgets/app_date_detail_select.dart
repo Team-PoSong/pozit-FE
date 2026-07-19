@@ -38,10 +38,8 @@ class _AppDateDetailSelectState extends State<AppDateDetailSelect> {
   void didUpdateWidget(AppDateDetailSelect oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.selectedDay != null &&
-        widget.selectedDay != oldWidget.selectedDay) {
-      _selectedDay = widget.selectedDay!;
-    }
+    final nextSelectedDay = widget.selectedDay ?? _selectedDay;
+    _selectedDay = nextSelectedDay.clamp(1, widget.dayCount);
   }
 
   void _handleTap(int day) {
