@@ -330,6 +330,7 @@ class _TravelCardContent extends StatelessWidget {
           SizedBox(
             height: 20,
             child: ListView.separated(
+              padding: EdgeInsets.zero,
               scrollDirection: Axis.horizontal,
               itemCount: tags.length,
               separatorBuilder: (_, _) => const SizedBox(width: 6),
