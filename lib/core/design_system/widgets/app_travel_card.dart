@@ -77,9 +77,6 @@ class AppTravelCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(8),
-          border: _isPozitPick
-              ? Border.all(color: AppColors.primary, width: 1)
-              : null,
           boxShadow: _isPozitPick
               ? null
               : const [
@@ -95,6 +92,12 @@ class AppTravelCard extends StatelessWidget {
                   ),
                 ],
         ),
+        foregroundDecoration: _isPozitPick
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.primary, width: 1),
+              )
+            : null,
         child: Row(
           children: [
             _TravelCardThumbnail(
@@ -295,28 +298,21 @@ class _TravelCardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 10,
+            runSpacing: 2,
             children: [
-              Flexible(
-                child: Text(
-                  location,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption2.copyWith(
-                    color: AppColors.purple3,
-                  ),
+              Text(
+                location,
+                style: AppTextStyles.caption2.copyWith(
+                  color: AppColors.purple3,
                 ),
               ),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  dateText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.gray5,
-                    fontWeight: FontWeight.w400,
-                  ),
+              Text(
+                dateText,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.gray5,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
@@ -324,8 +320,6 @@ class _TravelCardContent extends StatelessWidget {
           const SizedBox(height: 9),
           Text(
             title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: AppTextStyles.subTitle.copyWith(color: AppColors.text),
           ),
           const SizedBox(height: 15),
@@ -354,24 +348,15 @@ class _TravelCardContent extends StatelessWidget {
                 SvgPicture.asset(AppIcons.groupGray, width: 16, height: 16),
                 const SizedBox(width: 5),
                 Text(
-                  author,
+                  participantCount == null
+                      ? author
+                      : '$author 외 $participantCount명',
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.gray5,
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                if (participantCount != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    '$participantCount명',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.gray5,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
               ],
             ),
         ],
@@ -412,7 +397,12 @@ class _TravelTag extends StatelessWidget {
 Widget _travelCardPreview(Widget child) {
   return MaterialApp(
     home: Scaffold(
-      body: Center(child: SizedBox(width: 345, child: child)),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: child,
+        ),
+      ),
     ),
   );
 }
@@ -424,7 +414,7 @@ Widget appTravelCardPozitPickPreview() {
       type: AppTravelCardType.pozitPick,
       title: '강릉 데이트',
       location: '강원 강릉',
-      dateText: '7/2 ~ 7/3 · 1박 2일',
+      dateText: '7/2 ~ 7/3',
       tags: ['문화', '탐험'],
       author: '포송',
     ),
@@ -440,7 +430,7 @@ Widget appTravelCardUpcomingWithPhotoPreview() {
       dDay: 'D-24',
       title: '강릉 데이트',
       location: '강원 강릉',
-      dateText: '7/2 ~ 7/3 · 1박 2일',
+      dateText: '7/2 ~ 7/3',
       tags: ['문화', '탐험'],
       author: '민서',
       participantCount: 2,
@@ -458,7 +448,7 @@ Widget appTravelCardUpcomingWithoutPhotoPreview() {
       dDay: 'D-24',
       title: '강릉 데이트',
       location: '강원 강릉',
-      dateText: '7/2 ~ 7/3 · 1박 2일',
+      dateText: '7/2 ~ 7/3',
       tags: ['문화', '탐험'],
       author: '민서',
       participantCount: 2,
@@ -474,7 +464,7 @@ Widget appTravelCardInProgressPreview() {
       status: AppTravelStatus.inProgress,
       title: '강릉 데이트',
       location: '강원 강릉',
-      dateText: '7/2 ~ 7/3 · 1박 2일',
+      dateText: '7/2 ~ 7/3',
       tags: ['문화', '탐험'],
       author: '민서',
       participantCount: 2,
@@ -491,7 +481,7 @@ Widget appTravelCardCompletedPublicPreview() {
       status: AppTravelStatus.completed,
       title: '강릉 데이트',
       location: '강원 강릉',
-      dateText: '7/2 ~ 7/3 · 1박 2일',
+      dateText: '7/2 ~ 7/3',
       tags: ['문화', '탐험'],
       author: '민서',
       participantCount: 2,
@@ -508,7 +498,7 @@ Widget appTravelCardCompletedPrivatePreview() {
       status: AppTravelStatus.completed,
       title: '강릉 데이트',
       location: '강원 강릉',
-      dateText: '7/2 ~ 7/3 · 1박 2일',
+      dateText: '7/2 ~ 7/3',
       tags: ['문화', '탐험'],
       author: '민서',
       participantCount: 2,
@@ -524,7 +514,7 @@ Widget appTravelCardOtherFavoritePreview() {
       type: AppTravelCardType.otherTravel,
       title: '경주 여행',
       location: '경북 경주',
-      dateText: '7/2 ~ 7/3 · 1박 2일',
+      dateText: '7/2 ~ 7/3',
       tags: ['힐링', '미식'],
       author: '해림',
       participantCount: 2,
@@ -542,7 +532,7 @@ Widget appTravelCardOtherWithoutPhotoPreview() {
       type: AppTravelCardType.otherTravel,
       title: '강릉 데이트',
       location: '강원 강릉',
-      dateText: '7/2 ~ 7/3 · 1박 2일',
+      dateText: '7/2 ~ 7/3',
       tags: ['문화', '탐험'],
       author: '민서',
       participantCount: 2,
