@@ -66,7 +66,8 @@ class AppMapCard extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: 17,
+                    top: 0,
+                    bottom: 0,
                     right: 0,
                     child: _CourseAction(onTap: onCourseTap),
                   ),
@@ -108,21 +109,24 @@ class _CourseAction extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        height: 14,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '코스 보기',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.gray5,
-                fontWeight: FontWeight.w300,
-                height: 14 / 12,
+        height: 47,
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '코스 보기',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.gray5,
+                  fontWeight: FontWeight.w300,
+                  height: 14 / 12,
+                ),
               ),
-            ),
-            const SizedBox(width: 4),
-            SvgPicture.asset(AppIcons.arrowRightSmall, width: 14, height: 14),
-          ],
+              const SizedBox(width: 4),
+              SvgPicture.asset(AppIcons.arrowRightSmall, width: 14, height: 14),
+            ],
+          ),
         ),
       ),
     );
