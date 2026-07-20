@@ -67,8 +67,9 @@ class _AppLocationSelectState extends State<AppLocationSelect> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           width: double.infinity,
-          height: 77,
-          padding: const EdgeInsets.only(left: 30, right: 20),
+          padding: const EdgeInsets.symmetric(
+            vertical: 19,
+          ).copyWith(left: 30, right: 20),
           decoration: BoxDecoration(
             color: AppColors.gray1,
             border: Border.all(width: borderWidth, color: borderColor),

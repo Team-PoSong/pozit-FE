@@ -35,7 +35,6 @@ class AppMapCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 233,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -84,14 +83,11 @@ class AppMapCard extends StatelessWidget {
                 child: Image(image: mapImage, fit: BoxFit.cover),
               ),
             ),
-            SizedBox(
-              height: 30,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 12),
-                child: _PageIndicator(
-                  currentPage: currentPage,
-                  pageCount: pageCount,
-                ),
+            Padding(
+              padding: const EdgeInsets.only(top: 10, bottom: 12),
+              child: _PageIndicator(
+                currentPage: currentPage,
+                pageCount: pageCount,
               ),
             ),
           ],
