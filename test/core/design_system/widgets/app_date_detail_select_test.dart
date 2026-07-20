@@ -6,7 +6,7 @@ import 'package:pozit/core/design_system/widgets/app_date_detail_select.dart';
 void main() {
   testWidgets('dayCount가 줄어들면 선택 일차를 새 범위로 보정한다', (tester) async {
     var dayCount = 4;
-    var changedDays = <int>[];
+    final changedDays = <int>[];
     late StateSetter setState;
 
     await tester.pumpWidget(
@@ -28,7 +28,7 @@ void main() {
     );
     await tester.tap(fourthDayButton);
     await tester.pumpAndSettle();
-    changedDays = <int>[];
+    changedDays.clear();
 
     setState(() => dayCount = 2);
     await tester.pumpAndSettle();
