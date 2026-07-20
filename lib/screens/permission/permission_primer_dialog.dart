@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
@@ -45,21 +44,14 @@ class PermissionPrimerDialog extends StatelessWidget {
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.only(
-              top: 50.0,
-              left: 20.0,
-              right: 20.0,
-              bottom: 33.0,
-            ),
+            padding: const EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 33.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   '원활한 여행을 위해 권한을 허용해주세요.',
-                  style: AppTextStyles.subTitle.copyWith(
-                    color: Colors.black,
-                  ),
+                  style: AppTextStyles.subTitle.copyWith(color: Colors.black),
                 ),
                 const SizedBox(height: 35.0),
                 const _PermissionCard(
@@ -118,10 +110,7 @@ class PermissionPrimerDialog extends StatelessWidget {
                     AppIcons.x,
                     width: 24.0,
                     height: 24.0,
-                    colorFilter: const ColorFilter.mode(
-                      AppColors.text,
-                      BlendMode.srcIn,
-                    ),
+                    colorFilter: const ColorFilter.mode(AppColors.text, BlendMode.srcIn),
                   ),
                 ),
               ),
@@ -147,45 +136,32 @@ class _PermissionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 101.0,
+      constraints: const BoxConstraints(minHeight: 101.0),
+      padding: const EdgeInsets.only(left: 26.0, right: 16.0, top: 14.0, bottom: 14.0),
       decoration: BoxDecoration(
         color: AppColors.gray1,
         borderRadius: BorderRadius.circular(4.0),
-        border: Border.all(
-          color: AppColors.gray3,
-          width: 0.5,
-        ),
+        border: Border.all(color: AppColors.gray3, width: 0.5),
       ),
-      child: Stack(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Positioned(
-            left: 26.0,
-            top: 14.0,
-            child: Text(
-              title,
-              style: AppTextStyles.caption2.copyWith(
-                color: Colors.black,
-              ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(title, style: AppTextStyles.caption2.copyWith(color: Colors.black)),
+                const SizedBox(height: 11.0),
+                Text(
+                  bulletLines.map((line) => '• $line').join('\n'),
+                  style: _cardDescriptionStyle,
+                ),
+              ],
             ),
           ),
-          Positioned(
-            left: 26.0,
-            top: 39.0,
-            child: SizedBox(
-              width: 211.0,
-              child: Text(
-                bulletLines.map((line) => '• $line').join('\n'),
-                style: _cardDescriptionStyle,
-              ),
-            ),
-          ),
-          Positioned(
-            right: 16.0,
-            top: 41.0,
-            child: _PermissionBadge(
-              isRequired: isRequired,
-            ),
-          ),
+          const SizedBox(width: 8.0),
+          _PermissionBadge(isRequired: isRequired),
         ],
       ),
     );
@@ -195,26 +171,16 @@ class _PermissionCard extends StatelessWidget {
 class _PermissionBadge extends StatelessWidget {
   final bool isRequired;
 
-  const _PermissionBadge({
-    required this.isRequired,
-  });
+  const _PermissionBadge({required this.isRequired});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(
-        11.0,
-        3.0,
-        12.0,
-        3.0,
-      ),
+      padding: const EdgeInsets.fromLTRB(11.0, 3.0, 12.0, 3.0),
       decoration: BoxDecoration(
         color: isRequired ? AppColors.primary : AppColors.purple1,
         borderRadius: BorderRadius.circular(999.0),
-        border: Border.all(
-          color: AppColors.purple3,
-          width: 0.5,
-        ),
+        border: Border.all(color: AppColors.purple3, width: 0.5),
       ),
       child: Text(
         isRequired ? '필수' : '선택',
@@ -236,10 +202,7 @@ Future<void> showPermissionPrimerDialog(
     barrierDismissible: false,
     builder: (dialogContext) => Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(
-        horizontal: 20.0,
-        vertical: 24.0,
-      ),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
       child: SingleChildScrollView(
         child: PermissionPrimerDialog(
           onClose: () {
