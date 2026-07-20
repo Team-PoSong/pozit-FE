@@ -25,9 +25,10 @@ class AppVisibilityToggle extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.purple1 : AppColors.gray2,
           borderRadius: BorderRadius.circular(12.0),
-          border: isSelected
-              ? Border.all(color: AppColors.primary, width: 1.0)
-              : null,
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            width: 1.0,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

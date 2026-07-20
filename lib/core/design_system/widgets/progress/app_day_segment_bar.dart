@@ -14,23 +14,26 @@ class AppDaySegmentBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (int i = 0; i < totalDays; i++) ...[
-          if (i > 0) const SizedBox(width: 8.0),
-          Container(
-            width: 50.0,
-            height: 7.0,
-            decoration: ShapeDecoration(
-              color: i == currentDayIndex
-                  ? AppColors.purple3
-                  : AppColors.purple1,
-              shape: const StadiumBorder(),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (int i = 0; i < totalDays; i++) ...[
+            if (i > 0) const SizedBox(width: 8.0),
+            Container(
+              width: 50.0,
+              height: 7.0,
+              decoration: ShapeDecoration(
+                color: i == currentDayIndex
+                    ? AppColors.purple3
+                    : AppColors.purple1,
+                shape: const StadiumBorder(),
+              ),
             ),
-          ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

@@ -58,7 +58,7 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
   Widget build(BuildContext context) {
     final double? circleCenterX = _dragX ??
         (widget.selectedIndex != null
-            ? _tickLeftOffsets[widget.selectedIndex!] + 1.5
+            ? _tickLeftOffsets[widget.selectedIndex!.clamp(0, _tickLeftOffsets.length - 1)] + 1.5
             : null);
 
     return Padding(
