@@ -52,16 +52,19 @@ class AppMapCard extends StatelessWidget {
               child: Stack(
                 children: [
                   Positioned(
-                    top: 14,
+                    top: 0,
+                    bottom: 0,
                     left: 64,
                     right: 64,
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.subTitle.copyWith(
-                        color: AppColors.gray5,
+                    child: Center(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.subTitle.copyWith(
+                          color: AppColors.gray5,
+                        ),
                       ),
                     ),
                   ),
