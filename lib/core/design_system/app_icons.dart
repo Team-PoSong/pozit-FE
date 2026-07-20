@@ -44,6 +44,7 @@ class AppIcons {
   static const String arrowDown = '$_basePath/ic_arrow_down.svg';
   static const String close = '$_basePath/ic_close.svg';
   static const String arrowRight = '$_basePath/ic_arrow_right_white.svg';
+  static const String arrowRightBig = '$_basePath/ic_arrow_right_big.svg';
   static const String arrowRightSmall =
       '$_basePath/ic_arrow_right_small_gray.svg';
   static const String arrowRightSmallWhite =
@@ -67,6 +68,8 @@ class AppIcons {
   static const String groupGray = '$_basePath/ic_group_gray.svg';
   static const String trash = '$_basePath/ic_trash.svg';
   static const String exit = '$_basePath/ic_exit.svg';
+  static const String cameraOff = '$_basePath/ic_off_camera.svg';
+  static const String cameraOn = '$_basePath/ic_on_camera.svg';
   static const String map = '$_basePath/ic_map.svg';
   static const String x = '$_basePath/ic_x.svg';
   static const String share = '$_basePath/ic_share.svg';
