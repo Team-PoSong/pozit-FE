@@ -6,7 +6,7 @@ import '../app_colors.dart';
 import '../app_icons.dart';
 import '../app_images.dart';
 import '../app_text_styles.dart';
-import 'app_badge.dart';
+import 'badge/app_pill_badge.dart';
 
 enum AppTravelCardType { pozitPick, myTravel, otherTravel }
 

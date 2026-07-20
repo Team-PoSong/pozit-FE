@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
-import '../app_colors.dart';
-import '../app_text_styles.dart';
+import '../../app_colors.dart';
+import '../../app_text_styles.dart';
 
-/// 여행 빡빡정도 선택 트랙
 class AppDensityTrack extends StatefulWidget {
-  final int? selectedIndex; // 현재 선택된 위치(0~2)
+  final int? selectedIndex;
   final ValueChanged<int>? onLevelSelected;
 
   const AppDensityTrack({super.key, this.selectedIndex, this.onLevelSelected});
@@ -59,7 +58,7 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
   Widget build(BuildContext context) {
     final double? circleCenterX = _dragX ??
         (widget.selectedIndex != null
-            ? _tickLeftOffsets[widget.selectedIndex!.clamp(0, _tickLeftOffsets.length - 1)] + 1.5
+            ? _tickLeftOffsets[widget.selectedIndex!] + 1.5
             : null);
 
     return Padding(
@@ -126,11 +125,7 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
                       ),
                     ),
                   ),
-                Positioned(
-                  top: -16.0,
-                  bottom: -16.0,
-                  left: 0,
-                  right: 0,
+                Positioned.fill(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTapUp: (details) => _handleTap(details.localPosition.dx),
@@ -151,86 +146,6 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
   }
 }
 
-/// 완주율 프로그레스바
-/// progress: 0.0 ~ 1.0
-class AppCompletionProgressBar extends StatelessWidget {
-  final double progress;
-  final double width;
-  final double height;
-
-  const AppCompletionProgressBar({
-    super.key,
-    required this.progress,
-    this.width = 242.0,
-    this.height = 16.0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: AppColors.purple1,
-        borderRadius: BorderRadius.circular(9999.0),
-        border: Border.all(color: AppColors.primary, width: 0.5),
-      ),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: FractionallySizedBox(
-          widthFactor: progress.clamp(0.0, 1.0).toDouble(),
-          child: Container(
-            height: height,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(200.0),
-              gradient: const LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [AppColors.purple2, AppColors.purple3],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 일자별 세그먼트 바
-class AppDaySegmentBar extends StatelessWidget {
-  final int totalDays;
-  final int currentDayIndex;
-
-  const AppDaySegmentBar({
-    super.key,
-    required this.totalDays,
-    required this.currentDayIndex,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (int i = 0; i < totalDays; i++) ...[
-          if (i > 0) const SizedBox(width: 8.0),
-          Container(
-            width: 50.0,
-            height: 7.0,
-            decoration: BoxDecoration(
-              color: i == currentDayIndex
-                  ? AppColors.purple3
-                  : AppColors.purple1,
-              borderRadius: BorderRadius.circular(9999.0),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-/// 탭/드래그 둘 다 눌러보고 원이 실제로 옮겨가는지 확인하는 데모
 class _DensityTrackDemo extends StatefulWidget {
   const _DensityTrackDemo();
 
@@ -252,15 +167,3 @@ class _DensityTrackDemoState extends State<_DensityTrackDemo> {
 
 @Preview(group: 'haerim', name: 'AppDensityTrack')
 Widget appDensityTrackPreview() => const _DensityTrackDemo();
-
-@Preview(group: 'haerim', name: 'AppCompletionProgressBar')
-Widget appCompletionProgressBarPreview() =>
-    const AppCompletionProgressBar(progress: 156 / 242);
-
-@Preview(group: 'haerim', name: 'AppDaySegmentBar - 4일 중 3일차')
-Widget appDaySegmentBarPreview() =>
-    const AppDaySegmentBar(totalDays: 4, currentDayIndex: 2);
-
-@Preview(group: 'haerim', name: 'AppDaySegmentBar - 3일 중 2일차')
-Widget appDaySegmentBarThreeStepPreview() =>
-    const AppDaySegmentBar(totalDays: 3, currentDayIndex: 1);
