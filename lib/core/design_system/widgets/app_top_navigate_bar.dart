@@ -170,7 +170,7 @@ class _TabText extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: AppTextStyles.body.copyWith(
-          color: isSelected ? Colors.black : AppColors.gray5,
+          color: isSelected ? AppColors.text : AppColors.gray5,
         ),
       ),
     );

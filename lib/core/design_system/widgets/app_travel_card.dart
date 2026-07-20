@@ -82,12 +82,12 @@ class AppTravelCard extends StatelessWidget {
               ? null
               : const [
                   BoxShadow(
-                    color: Color(0x19000000),
+                    color: AppColors.shadow,
                     blurRadius: 2,
                     offset: Offset(2, 2),
                   ),
                   BoxShadow(
-                    color: Color(0x19000000),
+                    color: AppColors.shadow,
                     blurRadius: 4,
                     offset: Offset(-1, -1),
                   ),
@@ -180,7 +180,7 @@ class _TravelCardThumbnail extends StatelessWidget {
             Image(image: image!, fit: BoxFit.cover)
           else
             ColoredBox(
-              color: const Color(0xFFF4F5F6),
+              color: AppColors.gray2,
               child: Center(
                 child: Image.asset(
                   AppImages.posongPlainMini,
@@ -383,7 +383,7 @@ class _TravelTag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 9),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F5FF),
+        color: AppColors.travelTagBackground,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(

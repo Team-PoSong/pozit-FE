@@ -27,8 +27,6 @@ class AppCourseMethodSelect extends StatefulWidget {
 }
 
 class _AppCourseMethodSelectState extends State<AppCourseMethodSelect> {
-  static const Color _backgroundColor = Color(0xFFF9F8FF);
-
   late bool _isSelected;
 
   @override
@@ -72,7 +70,7 @@ class _AppCourseMethodSelectState extends State<AppCourseMethodSelect> {
           height: 111,
           padding: const EdgeInsets.only(left: 25, right: 20),
           decoration: BoxDecoration(
-            color: _backgroundColor,
+            color: AppColors.courseMethodBackground,
             border: Border.all(
               width: 1,
               color: _isSelected ? AppColors.purple2 : AppColors.purple1,
