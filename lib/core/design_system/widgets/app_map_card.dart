@@ -46,6 +46,7 @@ class AppMapCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(
@@ -64,11 +65,15 @@ class AppMapCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 13),
-                SizedBox(
-                  height: 156,
+                AspectRatio(
+                  aspectRatio: 319 / 156,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image(image: mapImage, fit: BoxFit.cover),
+                    child: Image(
+                      image: mapImage,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
