@@ -66,12 +66,12 @@ class _AppTopNavigateBarState extends State<AppTopNavigateBar> {
               _selectedTab == AppTopNavigateTab.incomplete;
 
           return DecoratedBox(
-            decoration: BoxDecoration(
+            decoration: const ShapeDecoration(
               color: AppColors.gray2,
-              borderRadius: BorderRadius.circular(9999),
+              shape: StadiumBorder(),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(9999),
+            child: ClipPath(
+              clipper: const ShapeBorderClipper(shape: StadiumBorder()),
               child: Stack(
                 children: [
                   Positioned.fill(

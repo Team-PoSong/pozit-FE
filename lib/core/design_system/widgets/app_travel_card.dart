@@ -253,10 +253,11 @@ class _PozitPickBadge extends StatelessWidget {
       height: 20,
       padding: const EdgeInsets.symmetric(horizontal: 6),
       alignment: Alignment.center,
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: AppColors.white,
-        border: Border.all(color: AppColors.purple3, width: 0.5),
-        borderRadius: BorderRadius.circular(999),
+        shape: const StadiumBorder(
+          side: BorderSide(color: AppColors.purple3, width: 0.5),
+        ),
       ),
       child: Text.rich(
         TextSpan(
@@ -382,9 +383,9 @@ class _TravelTag extends StatelessWidget {
       height: 20,
       padding: const EdgeInsets.symmetric(horizontal: 9),
       alignment: Alignment.center,
-      decoration: BoxDecoration(
+      decoration: const ShapeDecoration(
         color: AppColors.travelTagBackground,
-        borderRadius: BorderRadius.circular(999),
+        shape: StadiumBorder(),
       ),
       child: Text(
         text,
