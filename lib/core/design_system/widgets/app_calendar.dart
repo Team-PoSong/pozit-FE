@@ -237,10 +237,9 @@ class _AppCalendarState extends State<AppCalendar> {
                   GestureDetector(
                     onTap: _goToPrevMonth,
                     child: SvgPicture.asset(
-                      AppIcons.arrowLeftSmall,
+                      AppIcons.arrowLeftSmallPurple,
                       width: 24.0,
                       height: 24.0,
-                      colorFilter: const ColorFilter.mode(AppColors.purple3, BlendMode.srcIn),
                     ),
                   ),
                   Expanded(
@@ -254,10 +253,9 @@ class _AppCalendarState extends State<AppCalendar> {
                   GestureDetector(
                     onTap: _goToNextMonth,
                     child: SvgPicture.asset(
-                      AppIcons.arrowRightSmall,
+                      AppIcons.arrowRightSmallPurple,
                       width: 24.0,
                       height: 24.0,
-                      colorFilter: const ColorFilter.mode(AppColors.purple3, BlendMode.srcIn),
                     ),
                   ),
                 ],

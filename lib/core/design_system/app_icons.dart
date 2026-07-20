@@ -35,9 +35,10 @@ class AppIcons {
   static const String arrowLeftWhite = '$_basePath/ic_arrow_left_white.svg';
   static const String check = '$_basePath/ic_check.svg';
   static const String wish = '$_basePath/ic_wish.svg';
-  static const String heart = '$_basePath/ic_heart.svg';
-  static const String heartBig = '$_basePath/ic_heart_big.svg';
+  static const String heartLarge = '$_basePath/ic_heart_large.svg';
+  static const String heartLargeGray = '$_basePath/ic_heart_large_gray.svg';
   static const String heartMiddle = '$_basePath/ic_heart_middle.svg';
+  static const String heartMiddleGray = '$_basePath/ic_heart_middle_gray.svg';
   static const String heartSmall = '$_basePath/ic_heart_small.svg';
   static const String heartSmallGray = '$_basePath/ic_heart_small_gray.svg';
   static const String arrowDown = '$_basePath/ic_arrow_down.svg';
@@ -48,6 +49,8 @@ class AppIcons {
       '$_basePath/ic_arrow_right_small_gray.svg';
   static const String arrowRightSmallWhite =
       '$_basePath/ic_arrow_right_small_white.svg';
+  static const String arrowRightSmallPurple =
+      '$_basePath/ic_arrow_right_small_purple.svg';
   static const String edit = '$_basePath/ic_edit.svg';
   static const String copy = '$_basePath/ic_copy.svg';
   static const String leader = '$_basePath/ic_leader.svg';
@@ -57,6 +60,8 @@ class AppIcons {
   static const String category = '$_basePath/ic_category.svg';
   static const String arrowUp = '$_basePath/ic_arrow_up.svg';
   static const String arrowLeftSmall = '$_basePath/ic_arrow_left_black.svg';
+  static const String arrowLeftSmallPurple =
+      '$_basePath/ic_arrow_left_small_purple.svg';
   static const String user = '$_basePath/ic_user.svg';
   static const String create = '$_basePath/ic_create.svg';
   static const String group = '$_basePath/ic_group.svg';
