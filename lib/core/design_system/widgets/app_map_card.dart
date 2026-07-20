@@ -41,57 +41,47 @@ class AppMapCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [BoxShadow(color: AppColors.gray4, blurRadius: 4)],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: 47,
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 0,
-                    bottom: 0,
-                    left: 64,
-                    right: 64,
-                    child: Center(
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.subTitle.copyWith(
-                          color: AppColors.gray5,
-                        ),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 20,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 64),
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.subTitle.copyWith(
+                        color: AppColors.gray5,
                       ),
                     ),
                   ),
-                  Positioned(
-                    top: 0,
-                    bottom: 0,
-                    right: 0,
-                    child: _CourseAction(onTap: onCourseTap),
+                ),
+                const SizedBox(height: 13),
+                SizedBox(
+                  height: 156,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image(image: mapImage, fit: BoxFit.cover),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 10),
+                _PageIndicator(currentPage: currentPage, pageCount: pageCount),
+              ],
             ),
-            SizedBox(
-              height: 156,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image(image: mapImage, fit: BoxFit.cover),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 12),
-              child: _PageIndicator(
-                currentPage: currentPage,
-                pageCount: pageCount,
-              ),
-            ),
-          ],
-        ),
+          ),
+          Positioned(
+            top: 2,
+            right: 12,
+            child: _CourseAction(onTap: onCourseTap),
+          ),
+        ],
       ),
     );
   }
@@ -108,7 +98,7 @@ class _CourseAction extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        height: 47,
+        height: 44,
         child: Align(
           alignment: Alignment.centerRight,
           child: Row(
