@@ -78,7 +78,6 @@ class _AppLocationState extends State<AppLocation> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 77),
       clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
         color: AppColors.gray1,
@@ -211,30 +210,30 @@ class _DeletePopover extends StatelessWidget {
               ),
             ],
           ),
-          child: Stack(
-            children: [
-              Positioned(
-                left: 22,
-                top: 13,
-                child: SvgPicture.asset(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 22, right: 8),
+            child: Row(
+              children: [
+                SvgPicture.asset(
                   AppIcons.trashBlack,
                   package: assetPackage,
                   width: 24,
                   height: 24,
                 ),
-              ),
-              Positioned(
-                left: 54,
-                top: 13,
-                child: Text(
-                  '삭제하기',
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.text,
-                    package: assetPackage,
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    '삭제하기',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.text,
+                      package: assetPackage,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
