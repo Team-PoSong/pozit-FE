@@ -89,8 +89,8 @@ class LoginScreen extends StatelessWidget {
                   child: Image.asset(
                     AppImages.posongCarrier,
                     package: assetPackage,
-                    width: 257 * verticalScale,
-                    height: 176 * verticalScale,
+                    width: 257 * 0.9 * verticalScale,
+                    height: 176 * 0.9 * verticalScale,
                     fit: BoxFit.contain,
                   ),
                 ),
