@@ -9,6 +9,7 @@ import '../app_text_styles.dart';
 /// 여행지의 이름과 주소를 표시하는 공통 카드입니다.
 ///
 /// [showReorderHandle]을 활성화하면 왼쪽에 정렬 핸들이 표시되고,
+/// [reorderIndex]를 전달하면 핸들을 드래그해 순서 변경을 시작할 수 있습니다.
 /// [onDelete]를 전달하면 오른쪽 더보기 버튼과 삭제 팝오버가 표시됩니다.
 class AppLocation extends StatefulWidget {
   const AppLocation({
@@ -18,14 +19,19 @@ class AppLocation extends StatefulWidget {
     this.showReorderHandle = false,
     this.onMorePressed,
     this.onDelete,
+    this.reorderIndex,
     this.assetPackage,
-  });
+  }) : assert(
+         reorderIndex == null || showReorderHandle,
+         'reorderIndex를 사용하려면 showReorderHandle이 true여야 합니다.',
+       );
 
   final String name;
   final String address;
   final bool showReorderHandle;
   final VoidCallback? onMorePressed;
   final VoidCallback? onDelete;
+  final int? reorderIndex;
   final String? assetPackage;
 
   @override
@@ -46,6 +52,26 @@ class _AppLocationState extends State<AppLocation> {
   void _handleDelete() {
     setState(() => _isDeletePopoverVisible = false);
     widget.onDelete?.call();
+  }
+
+  Widget _buildReorderHandle() {
+    final Widget handle = Semantics(
+      button: widget.reorderIndex != null,
+      label: widget.reorderIndex != null ? '순서 변경' : null,
+      child: SvgPicture.asset(
+        AppIcons.reorderHandle,
+        package: widget.assetPackage,
+        width: 24,
+        height: 24,
+      ),
+    );
+
+    final int? reorderIndex = widget.reorderIndex;
+    if (reorderIndex == null) {
+      return handle;
+    }
+
+    return ReorderableDragStartListener(index: reorderIndex, child: handle);
   }
 
   @override
@@ -75,12 +101,7 @@ class _AppLocationState extends State<AppLocation> {
                 children: [
                   if (widget.showReorderHandle) ...[
                     const SizedBox(width: 16),
-                    SvgPicture.asset(
-                      AppIcons.reorderHandle,
-                      package: widget.assetPackage,
-                      width: 24,
-                      height: 24,
-                    ),
+                    _buildReorderHandle(),
                     const SizedBox(width: 17),
                   ] else
                     const SizedBox(width: 30),
@@ -246,4 +267,61 @@ Widget reorderableAppLocationPreview() {
       ),
     ),
   );
+}
+
+@Preview(group: 'yoongi', name: 'Reorderable Location List')
+Widget reorderableAppLocationListPreview() {
+  return const Material(child: _ReorderableLocationListPreview());
+}
+
+class _ReorderableLocationListPreview extends StatefulWidget {
+  const _ReorderableLocationListPreview();
+
+  @override
+  State<_ReorderableLocationListPreview> createState() =>
+      _ReorderableLocationListPreviewState();
+}
+
+class _ReorderableLocationListPreviewState
+    extends State<_ReorderableLocationListPreview> {
+  final List<(String, String)> _locations = [
+    ('첨성대', '경북 경주시 인왕동 839-1'),
+    ('동궁과 월지', '경북 경주시 원화로 102'),
+    ('황리단길', '경북 경주시 포석로 1080'),
+  ];
+
+  void _reorder(int oldIndex, int newIndex) {
+    setState(() {
+      final location = _locations.removeAt(oldIndex);
+      _locations.insert(newIndex, location);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ReorderableListView.builder(
+      buildDefaultDragHandles: false,
+      padding: const EdgeInsets.all(16),
+      itemCount: _locations.length,
+      onReorderItem: _reorder,
+      itemBuilder: (context, index) {
+        final location = _locations[index];
+
+        return Padding(
+          key: ValueKey(location.$1),
+          padding: const EdgeInsets.only(bottom: 8),
+          child: AppLocation(
+            name: location.$1,
+            address: location.$2,
+            showReorderHandle: true,
+            reorderIndex: index,
+            onDelete: () {
+              setState(() => _locations.remove(location));
+            },
+            assetPackage: 'pozit',
+          ),
+        );
+      },
+    );
+  }
 }
