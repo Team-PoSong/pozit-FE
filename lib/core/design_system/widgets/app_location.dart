@@ -133,29 +133,32 @@ class _AppLocationState extends State<AppLocation> {
                     ),
                   ),
                   if (widget.onMorePressed != null || widget.onDelete != null)
-                    Semantics(
-                      button: true,
-                      label: '더보기',
-                      child: InkWell(
-                        onTap: _handleMorePressed,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 26,
-                          ),
-                          child: SvgPicture.asset(
-                            AppIcons.more,
-                            package: widget.assetPackage,
-                            width: 24,
-                            height: 24,
-                            colorFilter: const ColorFilter.mode(
-                              AppColors.gray5,
-                              BlendMode.srcIn,
+                    if (_isDeletePopoverVisible)
+                      const SizedBox(width: 44)
+                    else
+                      Semantics(
+                        button: true,
+                        label: '더보기',
+                        child: InkWell(
+                          onTap: _handleMorePressed,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 26,
+                            ),
+                            child: SvgPicture.asset(
+                              AppIcons.more,
+                              package: widget.assetPackage,
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.gray5,
+                                BlendMode.srcIn,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    )
+                      )
                   else
                     const SizedBox(width: 30),
                 ],

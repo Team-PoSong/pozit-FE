@@ -43,6 +43,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('삭제하기'), findsOneWidget);
+    expect(find.bySemanticsLabel('더보기'), findsNothing);
 
     await tester.tap(find.text('삭제하기'));
     await tester.pumpAndSettle();
