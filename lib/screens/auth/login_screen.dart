@@ -1,15 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 
 class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key, this.onAppleLogin, this.onKakaoLogin});
+  const LoginScreen({
+    super.key,
+    this.onAppleLogin,
+    this.onKakaoLogin,
+    this.assetPackage,
+  });
+
+  static final Uri _kakaoLoginUri = Uri.parse(
+    'https://api.pozit.kr/api/auth/kakao',
+  );
 
   final VoidCallback? onAppleLogin;
   final VoidCallback? onKakaoLogin;
+  final String? assetPackage;
+
+  Future<void> _launchKakaoLogin() async {
+    final bool didLaunch = await launchUrl(
+      _kakaoLoginUri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!didLaunch) {
+      throw StateError('카카오 로그인 페이지를 열 수 없습니다.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +53,7 @@ class LoginScreen extends StatelessWidget {
                 child: Center(
                   child: Image.asset(
                     AppImages.miniLogo,
+                    package: assetPackage,
                     width: 70 * verticalScale,
                     height: 32 * verticalScale,
                     fit: BoxFit.contain,
@@ -44,6 +67,7 @@ class LoginScreen extends StatelessWidget {
                 child: Center(
                   child: Image.asset(
                     AppImages.posongCarrier,
+                    package: assetPackage,
                     width: 257 * verticalScale,
                     height: 176 * verticalScale,
                     fit: BoxFit.contain,
@@ -60,7 +84,7 @@ class LoginScreen extends StatelessWidget {
                   style: AppTextStyles.subTitle.copyWith(
                     color: AppColors.text,
                     fontWeight: FontWeight.w500,
-                    package: 'pozit',
+                    package: assetPackage,
                   ),
                 ),
               ),
@@ -74,7 +98,7 @@ class LoginScreen extends StatelessWidget {
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.gray5,
                     fontWeight: FontWeight.w500,
-                    package: 'pozit',
+                    package: assetPackage,
                   ),
                 ),
               ),
@@ -96,7 +120,7 @@ class LoginScreen extends StatelessWidget {
               ),
               Positioned(
                 bottom: panelHeight - 51,
-                child: const _LoginGuideBadge(),
+                child: _LoginGuideBadge(assetPackage: assetPackage),
               ),
               Positioned(
                 left: 0,
@@ -109,13 +133,15 @@ class LoginScreen extends StatelessWidget {
                       _SocialLoginButton(
                         semanticLabel: 'Apple로 로그인',
                         asset: AppImages.apple,
+                        assetPackage: assetPackage,
                         onTap: onAppleLogin,
                       ),
                       const SizedBox(width: 50),
                       _SocialLoginButton(
                         semanticLabel: '카카오로 로그인',
                         asset: AppImages.kakao,
-                        onTap: onKakaoLogin,
+                        assetPackage: assetPackage,
+                        onTap: onKakaoLogin ?? _launchKakaoLogin,
                       ),
                     ],
                   ),
@@ -130,7 +156,9 @@ class LoginScreen extends StatelessWidget {
 }
 
 class _LoginGuideBadge extends StatelessWidget {
-  const _LoginGuideBadge();
+  const _LoginGuideBadge({required this.assetPackage});
+
+  final String? assetPackage;
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +177,7 @@ class _LoginGuideBadge extends StatelessWidget {
         style: AppTextStyles.caption.copyWith(
           color: AppColors.purple2,
           fontWeight: FontWeight.w500,
-          package: 'pozit',
+          package: assetPackage,
         ),
       ),
     );
@@ -160,11 +188,13 @@ class _SocialLoginButton extends StatelessWidget {
   const _SocialLoginButton({
     required this.semanticLabel,
     required this.asset,
+    required this.assetPackage,
     required this.onTap,
   });
 
   final String semanticLabel;
   final String asset;
+  final String? assetPackage;
   final VoidCallback? onTap;
 
   @override
@@ -178,7 +208,12 @@ class _SocialLoginButton extends StatelessWidget {
         child: SizedBox.square(
           dimension: 60,
           child: Center(
-            child: Image.asset(asset, package: 'pozit', width: 60, height: 60),
+            child: Image.asset(
+              asset,
+              package: assetPackage,
+              width: 60,
+              height: 60,
+            ),
           ),
         ),
       ),
@@ -190,6 +225,6 @@ class _SocialLoginButton extends StatelessWidget {
 Widget loginScreenPreview() {
   return const MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: LoginScreen(),
+    home: LoginScreen(assetPackage: 'pozit'),
   );
 }
