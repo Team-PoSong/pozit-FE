@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
+import '../../core/auth/auth_repository.dart';
 import '../../core/auth/kakao_login_service.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
@@ -28,9 +29,13 @@ class LoginScreen extends StatelessWidget {
 
     try {
       final accessToken = await const KakaoLoginService().login();
-      await onKakaoAccessToken?.call(accessToken);
+      if (onKakaoAccessToken case final callback?) {
+        await callback(accessToken);
+      } else {
+        await AuthRepository().loginWithKakaoAccessToken(accessToken);
+      }
 
-      if (context.mounted && onKakaoAccessToken == null) {
+      if (context.mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('카카오 로그인에 성공했어요.')));
@@ -43,7 +48,7 @@ class LoginScreen extends StatelessWidget {
           exception: error,
           stack: stackTrace,
           library: 'Kakao Login',
-          context: ErrorDescription('카카오 accessToken 발급 중'),
+          context: ErrorDescription('카카오 로그인 처리 중'),
         ),
       );
       if (context.mounted) {
