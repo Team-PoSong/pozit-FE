@@ -20,21 +20,21 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
-            <meta-data
-                android:name="flutter_deeplinking_enabled"
-                android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <intent-filter>
+        </activity>
+        <activity
+            android:name="com.kakao.sdk.flutter.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter android:label="flutter_web_auth">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="pozit"
-                    android:host="auth"
-                    android:pathPrefix="/callback" />
+                    android:scheme="kakaoe8fc6abad12e9b55dbf73798fe65c140"
+                    android:host="oauth" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/auth/kakao_login_service.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
@@ -11,25 +11,46 @@ class LoginScreen extends StatelessWidget {
     super.key,
     this.onAppleLogin,
     this.onKakaoLogin,
+    this.onKakaoAccessToken,
     this.assetPackage,
   });
 
-  static final Uri _kakaoLoginUri = Uri.parse(
-    'https://api.pozit.kr/api/auth/kakao',
-  );
-
   final VoidCallback? onAppleLogin;
   final VoidCallback? onKakaoLogin;
+  final Future<void> Function(String accessToken)? onKakaoAccessToken;
   final String? assetPackage;
 
-  Future<void> _launchKakaoLogin() async {
-    final bool didLaunch = await launchUrl(
-      _kakaoLoginUri,
-      mode: LaunchMode.externalApplication,
-    );
+  Future<void> _handleKakaoLogin(BuildContext context) async {
+    if (onKakaoLogin != null) {
+      onKakaoLogin!();
+      return;
+    }
 
-    if (!didLaunch) {
-      throw StateError('카카오 로그인 페이지를 열 수 없습니다.');
+    try {
+      final accessToken = await const KakaoLoginService().login();
+      await onKakaoAccessToken?.call(accessToken);
+
+      if (context.mounted && onKakaoAccessToken == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('카카오 로그인에 성공했어요.')));
+      }
+    } on KakaoLoginCanceledException {
+      return;
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'Kakao Login',
+          context: ErrorDescription('카카오 accessToken 발급 중'),
+        ),
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('카카오 로그인에 실패했어요. 다시 시도해 주세요.')),
+        );
+      }
     }
   }
 
@@ -141,7 +162,7 @@ class LoginScreen extends StatelessWidget {
                         semanticLabel: '카카오로 로그인',
                         asset: AppImages.kakao,
                         assetPackage: assetPackage,
-                        onTap: onKakaoLogin ?? _launchKakaoLogin,
+                        onTap: () => _handleKakaoLogin(context),
                       ),
                     ],
                   ),
