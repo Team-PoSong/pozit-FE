@@ -194,8 +194,7 @@ class _DeletePopover extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
-          width: 125,
-          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
           clipBehavior: Clip.antiAlias,
           decoration: ShapeDecoration(
             color: AppColors.white,
@@ -210,30 +209,24 @@ class _DeletePopover extends StatelessWidget {
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.only(left: 22, right: 8),
-            child: Row(
-              children: [
-                SvgPicture.asset(
-                  AppIcons.trashBlack,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset(
+                AppIcons.trashBlack,
+                package: assetPackage,
+                width: 24,
+                height: 24,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '삭제하기',
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.text,
                   package: assetPackage,
-                  width: 24,
-                  height: 24,
                 ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    '삭제하기',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.text,
-                      package: assetPackage,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
