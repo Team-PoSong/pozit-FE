@@ -24,7 +24,7 @@ class AppIcons {
   static const String hasNotification = '$_basePath/ic_notification_has.svg';
   static const String noNotification = '$_basePath/ic_notification_no.svg';
 
-  static const String travel = '$_basePath/ic_travel.svg';
+  static const String travelLuggage = '$_basePath/ic_travel_luggage.svg';
   static const String search = '$_basePath/ic_search.svg';
   static const String pin = '$_basePath/ic_pin_gray.svg';
   static const String pinPurple = '$_basePath/ic_pin_purple.svg';

@@ -47,7 +47,7 @@ class TravelSettingsPopup extends StatelessWidget {
 
   List<_MenuItemData> get _items {
     final settings = _MenuItemData(
-      icon: AppIcons.travel,
+      icon: AppIcons.travelLuggage,
       label: '여행 설정',
       color: AppColors.text,
       onTap: onSettingsTap,
