@@ -175,7 +175,7 @@ class _PopupMenuRow extends StatelessWidget {
           children: [
             SvgPicture.asset(data.icon, width: 24.0, height: 24.0),
             const SizedBox(width: 18.0),
-            Text(data.label, style: AppTextStyles.body.copyWith(color: AppColors.text)),
+            Text(data.label, style: AppTextStyles.body.copyWith(color: data.color)),
           ],
         ),
       ),
