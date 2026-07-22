@@ -9,6 +9,7 @@ void main() {
 
     expect(find.text('지금 포짓과 함께 여행을 떠나볼까요?'), findsOneWidget);
     expect(find.text('여행의 순간을 남기는 가장 쉬운 방법'), findsOneWidget);
+    expect(find.byKey(const Key('login-intro')), findsOneWidget);
     expect(find.bySemanticsLabel('Apple로 로그인'), findsOneWidget);
     expect(find.bySemanticsLabel('카카오로 로그인'), findsOneWidget);
     expect(tester.takeException(), isNull);
