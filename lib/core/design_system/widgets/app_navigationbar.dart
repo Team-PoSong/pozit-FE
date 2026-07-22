@@ -284,30 +284,30 @@ class _BottomNavigationClipper extends CustomClipper<Path> {
       ..moveTo(outerRadius, 0)
       ..lineTo(notchStart, 0)
       ..cubicTo(
-        notchStart + 13,
+        notchStart + 10,
         0,
-        centerX - 46,
+        centerX - 42,
+        notchDepth * 0.48,
+        centerX - 30,
         notchDepth * 0.72,
-        centerX - 15,
-        notchDepth * 0.92,
       )
       ..cubicTo(
-        centerX - 8,
-        notchDepth,
-        centerX - 3,
+        centerX - 20,
+        notchDepth * 0.91,
+        centerX - 10,
         notchDepth,
         centerX,
         notchDepth,
       )
       ..cubicTo(
-        centerX + 3,
+        centerX + 10,
         notchDepth,
-        centerX + 8,
-        notchDepth,
-        centerX + 15,
-        notchDepth * 0.92,
+        centerX + 20,
+        notchDepth * 0.91,
+        centerX + 30,
+        notchDepth * 0.72,
       )
-      ..cubicTo(centerX + 46, notchDepth * 0.72, notchEnd - 13, 0, notchEnd, 0)
+      ..cubicTo(centerX + 42, notchDepth * 0.48, notchEnd - 10, 0, notchEnd, 0)
       ..lineTo(width - outerRadius, 0)
       ..arcToPoint(
         Offset(width, outerRadius),
