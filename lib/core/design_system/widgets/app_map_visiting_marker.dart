@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
-import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_images.dart';
+import '../app_colors.dart';
+import '../app_images.dart';
 
 class MapVisitingMarker extends StatelessWidget {
   const MapVisitingMarker({super.key});
