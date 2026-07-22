@@ -66,114 +66,121 @@ class LoginScreen extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final screenHeight = constraints.maxHeight;
-          final panelHeight = screenHeight < 760 ? 196.0 : 211.0;
-          final verticalScale = (screenHeight / 852).clamp(0.85, 1.15);
+          final contentHeight = screenHeight < 700 ? 700.0 : screenHeight;
+          final panelHeight = contentHeight < 760 ? 196.0 : 211.0;
+          final verticalScale = (contentHeight / 852).clamp(0.85, 1.15);
 
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              Positioned(
-                top: 60 * verticalScale,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Image.asset(
-                    AppImages.miniLogo,
-                    package: assetPackage,
-                    width: 70 * verticalScale,
-                    height: 32 * verticalScale,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 242 * verticalScale,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Image.asset(
-                    AppImages.posongCarrier,
-                    package: assetPackage,
-                    width: 257 * 0.9 * verticalScale,
-                    height: 176 * 0.9 * verticalScale,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 453 * verticalScale,
-                left: 0,
-                right: 0,
-                child: Text(
-                  '지금 포짓과 함께 여행을 떠나볼까요?',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.subTitle.copyWith(
-                    color: AppColors.text,
-                    fontWeight: FontWeight.w500,
-                    package: assetPackage,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 487 * verticalScale,
-                left: 0,
-                right: 0,
-                child: Text(
-                  '여행의 순간을 남기는 가장 쉬운 방법',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.gray5,
-                    fontWeight: FontWeight.w500,
-                    package: assetPackage,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 17,
-                right: 16,
-                bottom: 0,
-                height: panelHeight,
-                child: const DecoratedBox(
-                  decoration: ShapeDecoration(
-                    color: AppColors.loginPanelBackground,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(50),
+          return SingleChildScrollView(
+            child: SizedBox(
+              width: constraints.maxWidth,
+              height: contentHeight,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned(
+                    top: 60 * verticalScale,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Image.asset(
+                        AppImages.miniLogo,
+                        package: assetPackage,
+                        width: 70 * verticalScale,
+                        height: 32 * verticalScale,
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
-                ),
-              ),
-              Positioned(
-                bottom: panelHeight - 51,
-                child: _LoginGuideBadge(assetPackage: assetPackage),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 70,
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _SocialLoginButton(
-                        semanticLabel: 'Apple로 로그인',
-                        asset: AppImages.apple,
-                        assetPackage: assetPackage,
-                        onTap: onAppleLogin,
+                  Positioned(
+                    top: 242 * verticalScale,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Image.asset(
+                        AppImages.posongCarrier,
+                        package: assetPackage,
+                        width: 257 * 0.9 * verticalScale,
+                        height: 176 * 0.9 * verticalScale,
+                        fit: BoxFit.contain,
                       ),
-                      const SizedBox(width: 50),
-                      _SocialLoginButton(
-                        semanticLabel: '카카오로 로그인',
-                        asset: AppImages.kakao,
-                        assetPackage: assetPackage,
-                        onTap: () => _handleKakaoLogin(context),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  Positioned(
+                    top: 453 * verticalScale,
+                    left: 0,
+                    right: 0,
+                    child: Text(
+                      '지금 포짓과 함께 여행을 떠나볼까요?',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.subTitle.copyWith(
+                        color: AppColors.text,
+                        fontWeight: FontWeight.w500,
+                        package: assetPackage,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 487 * verticalScale,
+                    left: 0,
+                    right: 0,
+                    child: Text(
+                      '여행의 순간을 남기는 가장 쉬운 방법',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.gray5,
+                        fontWeight: FontWeight.w500,
+                        package: assetPackage,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 17,
+                    right: 16,
+                    bottom: 0,
+                    height: panelHeight,
+                    child: const DecoratedBox(
+                      decoration: ShapeDecoration(
+                        color: AppColors.loginPanelBackground,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(50),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: panelHeight - 51,
+                    child: _LoginGuideBadge(assetPackage: assetPackage),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 70,
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _SocialLoginButton(
+                            semanticLabel: 'Apple로 로그인',
+                            asset: AppImages.apple,
+                            assetPackage: assetPackage,
+                            onTap: onAppleLogin,
+                          ),
+                          const SizedBox(width: 50),
+                          _SocialLoginButton(
+                            semanticLabel: '카카오로 로그인',
+                            asset: AppImages.kakao,
+                            assetPackage: assetPackage,
+                            onTap: () => _handleKakaoLogin(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           );
         },
       ),

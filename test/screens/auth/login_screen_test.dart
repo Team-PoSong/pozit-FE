@@ -13,4 +13,17 @@ void main() {
     expect(find.bySemanticsLabel('카카오로 로그인'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('짧은 화면에서는 로그인 콘텐츠를 스크롤할 수 있다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(393, 568));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
+    expect(find.bySemanticsLabel('Apple로 로그인'), findsOneWidget);
+    expect(find.bySemanticsLabel('카카오로 로그인'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
