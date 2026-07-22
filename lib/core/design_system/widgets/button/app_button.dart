@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-import '../app_colors.dart';
-import '../app_icons.dart';
-import '../app_text_styles.dart';
+import '../../app_colors.dart';
+import '../../app_icons.dart';
+import '../../app_text_styles.dart';
 
 enum AppButtonStyle { filled, tonal }
 
@@ -12,10 +11,7 @@ class AppButton extends StatelessWidget {
   final String text;
   final AppButtonStyle style;
   final bool isEnabled;
-
-  /// 활성 스타일 여부. false여도 탭할 수 있습니다.
   final bool isActive;
-
   final VoidCallback? onPressed;
   final String? iconAsset;
   final double iconWidth;
@@ -59,7 +55,6 @@ class AppButton extends StatelessWidget {
   Color get _backgroundColor {
     if (!isEnabled || !isActive) return AppColors.gray3;
     if (backgroundColor != null) return backgroundColor!;
-
     return style == AppButtonStyle.filled
         ? AppColors.primary
         : AppColors.purple1;
@@ -68,10 +63,7 @@ class AppButton extends StatelessWidget {
   Color get _contentColor {
     if (!isEnabled || !isActive) return AppColors.gray5;
     if (contentColor != null) return contentColor!;
-
-    return style == AppButtonStyle.filled
-        ? AppColors.white
-        : AppColors.purple3;
+    return style == AppButtonStyle.filled ? AppColors.white : AppColors.purple3;
   }
 
   @override
@@ -113,121 +105,6 @@ class AppButton extends StatelessWidget {
   }
 }
 
-class AppChatbotButton extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final double width;
-  final double height;
-
-  const AppChatbotButton({
-    super.key,
-    this.onPressed,
-    this.width = 38.0,
-    this.height = 31.0,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: SizedBox(
-        width: width,
-        height: height,
-        child: Stack(
-          children: [
-            SvgPicture.asset(
-              AppIcons.chatBubble,
-              width: width,
-              height: height,
-            ),
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(13.0, 5.0, 13.0, 12.0),
-                child: Center(
-                  child: Text(
-                    'AI',
-                    style: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 12,
-                      height: 14 / 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 원형 아이콘 버튼
-///
-/// 기본 생성자는 진보라 배경이며,
-/// [AppCircleButton.outline]은 흰 배경과 회색 테두리를 사용합니다.
-class AppCircleButton extends StatelessWidget {
-  final String iconAsset;
-  final VoidCallback? onPressed;
-  final double size;
-  final double iconSize;
-  final Color backgroundColor;
-  final Color iconColor;
-  final Color? borderColor;
-
-  const AppCircleButton({
-    super.key,
-    this.iconAsset = AppIcons.plus,
-    this.onPressed,
-    this.size = 42.0,
-    this.iconSize = 24.0,
-    this.backgroundColor = AppColors.primary,
-    this.iconColor = AppColors.white,
-    this.borderColor,
-  });
-
-  const AppCircleButton.outline({
-    super.key,
-    required this.iconAsset,
-    this.onPressed,
-    this.size = 60.0,
-    this.iconSize = 24.0,
-  })  : backgroundColor = AppColors.white,
-        iconColor = AppColors.text,
-        borderColor = AppColors.gray3;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          shape: BoxShape.circle,
-          border: borderColor != null
-              ? Border.all(color: borderColor!, width: 1.0)
-              : null,
-        ),
-        child: Center(
-          child: SvgPicture.asset(
-            iconAsset,
-            width: iconSize,
-            height: iconSize,
-            colorFilter: ColorFilter.mode(
-              iconColor,
-              BlendMode.srcIn,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// "다음" 버튼
 @Preview(group: 'haerim', name: 'AppButton - 다음 활성')
 Widget appButtonNextEnabledPreview() =>
     const AppButton(text: '다음', isEnabled: true);
@@ -236,7 +113,6 @@ Widget appButtonNextEnabledPreview() =>
 Widget appButtonNextDisabledPreview() =>
     const AppButton(text: '다음', isEnabled: false);
 
-/// "찜하기" 버튼 - 누를 때마다 활성(보라)/비활성(회색) 토글되는 걸 눈으로 확인하는 데모.
 class _LikeButtonDemo extends StatefulWidget {
   const _LikeButtonDemo();
 
@@ -253,9 +129,7 @@ class _LikeButtonDemoState extends State<_LikeButtonDemo> {
       text: '찜하기',
       style: AppButtonStyle.tonal,
       isActive: _isActive,
-      iconAsset: _isActive
-          ? AppIcons.heartMiddle
-          : AppIcons.heartMiddleGray,
+      iconAsset: _isActive ? AppIcons.heartMiddle : AppIcons.heartMiddleGray,
       iconWidth: 24.0,
       iconHeight: 24.0,
       padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -265,9 +139,7 @@ class _LikeButtonDemoState extends State<_LikeButtonDemo> {
         fontSize: 18,
         fontWeight: FontWeight.w400,
       ),
-      onPressed: () {
-        setState(() => _isActive = !_isActive);
-      },
+      onPressed: () => setState(() => _isActive = !_isActive),
     );
   }
 }
@@ -284,7 +156,6 @@ Widget appButtonChatbotApplyPreview() => const AppButton(
   textStyle: AppTextStyles.body,
 );
 
-// "코스 수정하기" 버튼
 @Preview(group: 'haerim', name: 'AppButton - 코스 수정하기')
 Widget appButtonEditCourseEnabledPreview() => const AppButton(
   text: '코스 수정하기',
@@ -292,21 +163,6 @@ Widget appButtonEditCourseEnabledPreview() => const AppButton(
   contentColor: AppColors.text,
   isEnabled: true,
 );
-
-@Preview(group: 'haerim', name: 'AppCircleButton - +')
-Widget appCircleButtonPreview() => const AppCircleButton();
-
-@Preview(group: 'haerim', name: 'AppCircleButton - X')
-Widget appCircleButtonClosePreview() =>
-    const AppCircleButton.outline(iconAsset: AppIcons.close);
-
-@Preview(group: 'haerim', name: 'AppCircleButton - 저장')
-Widget appCircleButtonSavePreview() =>
-    const AppCircleButton.outline(iconAsset: AppIcons.save);
-
-@Preview(group: 'haerim', name: 'AppCircleButton - 공유')
-Widget appCircleButtonSharePreview() =>
-    const AppCircleButton.outline(iconAsset: AppIcons.share);
 
 @Preview(group: 'haerim', name: 'AppButton - 필터')
 Widget appButtonFilterPreview() => const AppButton(
@@ -321,6 +177,3 @@ Widget appButtonFilterPreview() => const AppButton(
   borderRadius: 999.0,
   textStyle: AppTextStyles.body,
 );
-
-@Preview(group: 'haerim', name: 'AppChatbotButton')
-Widget appChatbotButtonPreview() => const AppChatbotButton();

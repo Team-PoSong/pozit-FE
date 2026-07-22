@@ -67,6 +67,7 @@ class AppIcons {
   static const String group = '$_basePath/ic_group.svg';
   static const String groupGray = '$_basePath/ic_group_gray.svg';
   static const String trash = '$_basePath/ic_trash.svg';
+  static const String trashBlack = '$_basePath/ic_trash_black.svg';
   static const String exit = '$_basePath/ic_exit.svg';
   static const String cameraOff = '$_basePath/ic_off_camera.svg';
   static const String cameraOn = '$_basePath/ic_on_camera.svg';
