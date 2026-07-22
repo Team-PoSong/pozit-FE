@@ -240,7 +240,17 @@ class _SocialLoginButton extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: SizedBox.square(
           dimension: 60,
-          child: Center(
+          child: DecoratedBox(
+            decoration: const ShapeDecoration(
+              shape: CircleBorder(),
+              shadows: [
+                BoxShadow(
+                  color: AppColors.socialLoginShadow,
+                  blurRadius: 4,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
             child: Image.asset(
               asset,
               package: assetPackage,
