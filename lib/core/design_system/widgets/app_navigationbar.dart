@@ -16,6 +16,7 @@ class AppNavigationBar extends StatefulWidget {
     this.initialTab = AppNavigationTab.travel,
     this.onChanged,
     this.onPosongTap,
+    this.isCameraReady = false,
     this.assetPackage,
   });
 
@@ -23,6 +24,7 @@ class AppNavigationBar extends StatefulWidget {
   final AppNavigationTab initialTab;
   final ValueChanged<AppNavigationTab>? onChanged;
   final VoidCallback? onPosongTap;
+  final bool isCameraReady;
   final String? assetPackage;
 
   @override
@@ -131,6 +133,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                   Positioned(
                     top: -28,
                     child: _CenterButton(
+                      isCameraReady: widget.isCameraReady,
                       assetPackage: widget.assetPackage,
                       onTap: widget.onPosongTap,
                     ),
@@ -204,62 +207,150 @@ class _NavigationItem extends StatelessWidget {
   }
 }
 
-class _CenterButton extends StatelessWidget {
-  const _CenterButton({required this.assetPackage, required this.onTap});
+class _CenterButton extends StatefulWidget {
+  const _CenterButton({
+    required this.isCameraReady,
+    required this.assetPackage,
+    required this.onTap,
+  });
 
+  final bool isCameraReady;
   final String? assetPackage;
   final VoidCallback? onTap;
+
+  @override
+  State<_CenterButton> createState() => _CenterButtonState();
+}
+
+class _CenterButtonState extends State<_CenterButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1800),
+  );
+
+  bool _disableAnimations = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _disableAnimations =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    _syncAnimation();
+  }
+
+  @override
+  void didUpdateWidget(_CenterButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isCameraReady != oldWidget.isCameraReady) {
+      _syncAnimation();
+    }
+  }
+
+  void _syncAnimation() {
+    if (widget.isCameraReady && !_disableAnimations) {
+      if (!_controller.isAnimating) _controller.repeat();
+      return;
+    }
+
+    _controller.stop();
+    _controller.value = 0;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: '포짓',
+      label: widget.isCameraReady ? '포짓 촬영' : '포짓',
       child: SizedBox.square(
         dimension: 75,
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(color: AppColors.navigationBorderStart, blurRadius: 12),
-            ],
-          ),
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.navigationBorderStart,
-                  AppColors.navigationBorderEnd,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final pulse = (math.sin(_controller.value * math.pi * 2) + 1) / 2;
+            final glowBlur = widget.isCameraReady ? 12 + (pulse * 6) : 12.0;
+
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.isCameraReady
+                        ? AppColors.purple2.withValues(alpha: 0.65)
+                        : AppColors.navigationBorderStart,
+                    blurRadius: glowBlur,
+                  ),
                 ],
               ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Material(
-                color: AppColors.white,
-                shape: const CircleBorder(),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: onTap,
-                  child: Padding(
-                    padding: const EdgeInsets.all(9),
-                    child: Image.asset(
-                      AppImages.appLogo,
-                      package: assetPackage,
-                      width: 52,
-                      height: 52,
-                      fit: BoxFit.contain,
-                      excludeFromSemantics: true,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned.fill(
+                    child: Transform.rotate(
+                      angle: widget.isCameraReady
+                          ? _controller.value * math.pi * 2
+                          : 0,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: widget.isCameraReady
+                              ? const SweepGradient(
+                                  colors: [
+                                    AppColors.purple1,
+                                    AppColors.navigationBorderEnd,
+                                    AppColors.purple3,
+                                    AppColors.navigationBorderEnd,
+                                    AppColors.purple1,
+                                    AppColors.white,
+                                    AppColors.purple1,
+                                  ],
+                                  stops: [0, 0.18, 0.38, 0.58, 0.72, 0.84, 1],
+                                )
+                              : const LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    AppColors.navigationBorderStart,
+                                    AppColors.navigationBorderEnd,
+                                  ],
+                                ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: Material(
+                      color: AppColors.white,
+                      shape: const CircleBorder(),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: widget.onTap,
+                        child: Padding(
+                          padding: const EdgeInsets.all(9),
+                          child: Image.asset(
+                            AppImages.appLogo,
+                            package: widget.assetPackage,
+                            width: 52,
+                            height: 52,
+                            fit: BoxFit.contain,
+                            excludeFromSemantics: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -360,6 +451,30 @@ Widget appNavigationBarPreview() {
         body: Align(
           alignment: Alignment.bottomCenter,
           child: AppNavigationBar(assetPackage: 'pozit'),
+        ),
+      ),
+    ),
+  );
+}
+
+@Preview(
+  group: 'hycho',
+  name: 'App Navigation Bar - Camera Ready',
+  size: Size(393, 140),
+)
+Widget appNavigationBarCameraReadyPreview() {
+  return const MediaQuery(
+    data: MediaQueryData(
+      size: Size(393, 140),
+      padding: EdgeInsets.only(bottom: 34),
+    ),
+    child: MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: AppColors.gray1,
+        body: Align(
+          alignment: Alignment.bottomCenter,
+          child: AppNavigationBar(isCameraReady: true, assetPackage: 'pozit'),
         ),
       ),
     ),
