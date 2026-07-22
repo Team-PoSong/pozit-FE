@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/widgets/app_button.dart';
+import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/dio_client.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
