@@ -6,11 +6,12 @@ import '../app_colors.dart';
 import '../app_icons.dart';
 import '../app_images.dart';
 import '../app_text_styles.dart';
+import '../app_travel_status.dart';
 import 'badge/app_pill_badge.dart';
 
-enum AppTravelCardType { pozitPick, myTravel, otherTravel }
+export '../app_travel_status.dart';
 
-enum AppTravelStatus { upcoming, inProgress, completed }
+enum AppTravelCardType { pozitPick, myTravel, otherTravel }
 
 /// 여행 목록에서 공통으로 사용하는 카드입니다.
 ///
