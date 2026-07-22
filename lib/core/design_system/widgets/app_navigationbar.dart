@@ -173,6 +173,7 @@ class _NavigationItem extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
+          overlayColor: const WidgetStatePropertyAll(Colors.transparent),
           child: Padding(
             padding: const EdgeInsets.only(top: 7, bottom: 5),
             child: Column(
