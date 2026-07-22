@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
-import 'package:pozit/core/auth/auth_token_storage.dart';
 import 'package:pozit/core/config/app_config.dart';
 import 'package:pozit/core/design_system/app_colors.dart';
 import 'package:pozit/core/network/dio_client.dart';
+import 'package:pozit/data/datasources/auth/auth_token_storage.dart';
 import 'package:pozit/screens/auth/login_screen.dart';
 
 Future<void> main() async {

@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pozit/core/auth/kakao_login_service.dart';
+import 'package:pozit/data/datasources/auth/kakao_login_service.dart';
 
 void main() {
   test('카카오톡이 설치되면 앱 로그인만 시도한다', () async {
