@@ -276,7 +276,7 @@ class _BottomNavigationClipper extends CustomClipper<Path> {
     const designOuterRadius = 56.0;
     final outerRadius = math.min(designOuterRadius, height / 2);
     final notchHalfWidth = width * (52 / 283);
-    final notchDepth = 53.0.clamp(0.0, height);
+    final notchDepth = 52.0.clamp(0.0, height);
     final notchStart = centerX - notchHalfWidth;
     final notchEnd = centerX + notchHalfWidth;
 
@@ -286,7 +286,7 @@ class _BottomNavigationClipper extends CustomClipper<Path> {
       ..cubicTo(
         notchStart + 10,
         0,
-        centerX - 42,
+        centerX - 44,
         notchDepth * 0.48,
         centerX - 30,
         notchDepth * 0.72,
@@ -307,7 +307,7 @@ class _BottomNavigationClipper extends CustomClipper<Path> {
         centerX + 30,
         notchDepth * 0.72,
       )
-      ..cubicTo(centerX + 42, notchDepth * 0.48, notchEnd - 10, 0, notchEnd, 0)
+      ..cubicTo(centerX + 44, notchDepth * 0.48, notchEnd - 10, 0, notchEnd, 0)
       ..lineTo(width - outerRadius, 0)
       ..arcToPoint(
         Offset(width, outerRadius),
