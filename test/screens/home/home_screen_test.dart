@@ -10,23 +10,56 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
 
     expect(find.byType(AppMainHeader), findsOneWidget);
-    expect(tester.getTopLeft(find.byType(AppMainHeader)).dy, 60);
-    expect(tester.getTopLeft(find.byType(AppTopNavigateBar)).dy, 120);
+    expect(tester.getTopLeft(find.byType(AppMainHeader)).dy, 0);
+    expect(tester.getTopLeft(find.byType(AppTopNavigateBar)).dy, 64);
     expect(find.byType(AppTopNavigateBar), findsOneWidget);
     expect(find.byType(SvgPicture), findsNWidgets(4));
     expect(find.text('여행이 없어요! 포짓과 함께 떠나볼까요?'), findsOneWidget);
-    expect(find.bySemanticsLabel('여행 만들기'), findsOneWidget);
+    expect(find.bySemanticsLabel('여행 메뉴 열기'), findsOneWidget);
   });
 
-  testWidgets('여행 만들기 버튼 콜백을 호출한다', (tester) async {
+  testWidgets('여행 메뉴를 열고 여행 만들기 콜백을 호출한다', (tester) async {
     var tapped = false;
 
     await tester.pumpWidget(
       MaterialApp(home: HomeScreen(onCreateTravelTap: () => tapped = true)),
     );
 
-    await tester.tap(find.bySemanticsLabel('여행 만들기'));
+    await tester.tap(find.bySemanticsLabel('여행 메뉴 열기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('여행 만들기'), findsOneWidget);
+    expect(find.text('초대코드로 참여하기'), findsOneWidget);
+    expect(find.bySemanticsLabel('여행 메뉴 닫기'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const ValueKey('travel-menu-popover'))),
+      const Size(205, 114),
+    );
+    final menuButtonRect = tester.getRect(find.bySemanticsLabel('여행 메뉴 닫기'));
+    final popoverRect = tester.getRect(
+      find.byKey(const ValueKey('travel-menu-popover')),
+    );
+    expect(popoverRect.right, menuButtonRect.right);
+    expect(popoverRect.top - menuButtonRect.bottom, 10);
+
+    await tester.tap(find.text('여행 만들기'));
+    await tester.pumpAndSettle();
 
     expect(tapped, isTrue);
+    expect(find.text('여행 만들기'), findsNothing);
+  });
+
+  testWidgets('여행 메뉴 바깥을 누르면 메뉴를 닫는다', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    await tester.tap(find.bySemanticsLabel('여행 메뉴 열기'));
+    await tester.pumpAndSettle();
+    expect(find.text('여행 만들기'), findsOneWidget);
+
+    await tester.tapAt(const Offset(20, 300));
+    await tester.pumpAndSettle();
+
+    expect(find.text('여행 만들기'), findsNothing);
+    expect(find.bySemanticsLabel('여행 메뉴 열기'), findsOneWidget);
   });
 }

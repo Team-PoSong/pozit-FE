@@ -14,7 +14,7 @@ void main() {
     expect(find.bySemanticsLabel('알림'), findsOneWidget);
     expect(find.bySemanticsLabel('찜 목록'), findsOneWidget);
     expect(find.bySemanticsLabel('마이페이지'), findsOneWidget);
-    expect(tester.getSize(find.byType(AppMainHeader)), const Size(800, 40));
+    expect(tester.getSize(find.byType(AppMainHeader)), const Size(800, 44));
     expect(tester.getTopLeft(find.byType(Image)).dx, 21);
   });
 
