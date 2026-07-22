@@ -6,6 +6,7 @@ import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../data/datasources/auth/kakao_login_service.dart';
 import '../../data/repositories/auth/auth_repository.dart';
+import '../home/temporary_home_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   static const double _carrierWidth = 231.3;
@@ -38,11 +39,10 @@ class LoginScreen extends StatelessWidget {
         await AuthRepository().loginWithKakaoAccessToken(accessToken);
       }
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('카카오 로그인에 성공했어요.')));
-      }
+      if (!context.mounted) return;
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(builder: (_) => const TemporaryHomeScreen()),
+      );
     } on KakaoLoginCanceledException {
       return;
     } catch (error, stackTrace) {
@@ -184,9 +184,9 @@ class _LoginGuideBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: const Key('login-guide-badge'),
       constraints: const BoxConstraints(minWidth: 170),
       padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 11),
-      alignment: Alignment.center,
       decoration: const ShapeDecoration(
         color: AppColors.white,
         shape: StadiumBorder(),
