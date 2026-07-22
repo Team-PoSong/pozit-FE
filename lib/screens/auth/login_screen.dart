@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
-import '../../core/auth/auth_repository.dart';
 import '../../core/auth/kakao_login_service.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
+import '../../data/repositories/auth/auth_repository.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({

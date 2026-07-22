@@ -1,5 +1,5 @@
-class LoginToken {
-  const LoginToken({
+class LoginTokenModel {
+  const LoginTokenModel({
     required this.accessToken,
     required this.tokenType,
     required this.expiresIn,
@@ -7,8 +7,8 @@ class LoginToken {
     required this.nickname,
   });
 
-  factory LoginToken.fromJson(Map<String, dynamic> json) {
-    return LoginToken(
+  factory LoginTokenModel.fromJson(Map<String, dynamic> json) {
+    return LoginTokenModel(
       accessToken: json['accessToken'] as String,
       tokenType: json['tokenType'] as String,
       expiresIn: json['expiresIn'] as int,

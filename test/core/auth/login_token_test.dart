@@ -1,7 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/auth/auth_token_storage.dart';
-import 'package:pozit/core/auth/login_token.dart';
+import 'package:pozit/data/models/auth/login_token_model.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -9,21 +9,13 @@ void main() {
   test('POZIT accessToken을 보안 저장소에 저장한다', () async {
     FlutterSecureStorage.setMockInitialValues({});
     const storage = AuthTokenStorage();
-    const token = LoginToken(
-      accessToken: 'pozit-token',
-      tokenType: 'Bearer',
-      expiresIn: 1800000,
-      userId: 3,
-      nickname: '조현영',
-    );
-
-    await storage.save(token);
+    await storage.save(accessToken: 'pozit-token', tokenType: 'Bearer');
 
     expect(await storage.readAccessToken(), 'pozit-token');
   });
 
-  test('로그인 응답을 LoginToken으로 변환한다', () {
-    final token = LoginToken.fromJson({
+  test('로그인 응답을 LoginTokenModel로 변환한다', () {
+    final token = LoginTokenModel.fromJson({
       'accessToken': 'pozit-token',
       'tokenType': 'Bearer',
       'expiresIn': 1800000,
