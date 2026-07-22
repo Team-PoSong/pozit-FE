@@ -4,6 +4,7 @@ import 'package:flutter/widget_previews.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/datasources/auth/kakao_login_service.dart';
 import '../../data/repositories/auth/auth_repository.dart';
 import '../home/temporary_home_screen.dart';
@@ -45,21 +46,34 @@ class LoginScreen extends StatelessWidget {
       );
     } on KakaoLoginCanceledException {
       return;
-    } catch (error, stackTrace) {
-      FlutterError.reportError(
-        FlutterErrorDetails(
-          exception: error,
-          stack: stackTrace,
-          library: 'Kakao Login',
-          context: ErrorDescription('카카오 로그인 처리 중'),
-        ),
-      );
+    } on ApiException catch (error, stackTrace) {
+      _reportLoginError(error, stackTrace);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('카카오 로그인에 실패했어요. 다시 시도해 주세요.')),
-        );
+        _showLoginError(context, error.message);
+      }
+    } catch (error, stackTrace) {
+      _reportLoginError(error, stackTrace);
+      if (context.mounted) {
+        _showLoginError(context, '카카오 로그인에 실패했어요. 다시 시도해 주세요.');
       }
     }
+  }
+
+  void _reportLoginError(Object error, StackTrace stackTrace) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'Kakao Login',
+        context: ErrorDescription('카카오 로그인 처리 중'),
+      ),
+    );
+  }
+
+  void _showLoginError(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

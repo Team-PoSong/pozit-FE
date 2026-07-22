@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/services.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
@@ -26,22 +28,31 @@ class KakaoLoginService {
     if (await isTalkInstalled()) {
       try {
         return await loginWithTalk();
-      } on PlatformException catch (error) {
-        if (error.code == 'CANCELED') {
+      } catch (error, stackTrace) {
+        if (_isCanceled(error)) {
           throw const KakaoLoginCanceledException();
         }
-        rethrow;
+        developer.log(
+          '카카오톡 앱 로그인에 실패해 카카오계정 로그인으로 전환합니다.',
+          name: 'KakaoLoginService',
+          error: error,
+          stackTrace: stackTrace,
+        );
       }
     }
 
     try {
       return await loginWithAccount();
-    } on PlatformException catch (error) {
-      if (error.code == 'CANCELED') {
+    } catch (error) {
+      if (_isCanceled(error)) {
         throw const KakaoLoginCanceledException();
       }
       rethrow;
     }
+  }
+
+  static bool _isCanceled(Object error) {
+    return error is PlatformException && error.code == 'CANCELED';
   }
 
   static Future<String> _defaultLoginWithTalk() async {
