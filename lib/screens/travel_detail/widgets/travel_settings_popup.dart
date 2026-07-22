@@ -113,7 +113,10 @@ class TravelSettingsPopup extends StatelessWidget {
                       alignment: Alignment.centerRight,
                       child: _CloseButton(onTap: onClose),
                     ),
-                    for (final item in _items) _PopupMenuRow(data: item),
+                    for (var i = 0; i < _items.length; i++) ...[
+                      if (i > 0) const _PopupDivider(),
+                      _PopupMenuRow(data: _items[i]),
+                    ],
                   ],
                 ),
               ),
@@ -136,14 +139,21 @@ class _CloseButton extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.only(
-          top: 12.0,
-          right: 20.0,
-          bottom: 12.0,
-          left: 12.0,
-        ),
+        padding: const EdgeInsets.only(top: 20.0, right: 11.0, left: 11.0),
         child: SvgPicture.asset(AppIcons.close, width: 24.0, height: 24.0),
       ),
+    );
+  }
+}
+
+class _PopupDivider extends StatelessWidget {
+  const _PopupDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.0),
+      child: Divider(height: 0.5, thickness: 0.5, color: AppColors.gray4),
     );
   }
 }
@@ -159,16 +169,13 @@ class _PopupMenuRow extends StatelessWidget {
       onTap: data.onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.gray3, width: 0.5)),
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             SvgPicture.asset(data.icon, width: 24.0, height: 24.0),
-            const SizedBox(width: 12.0),
-            Text(data.label, style: AppTextStyles.body.copyWith(color: data.color)),
+            const SizedBox(width: 18.0),
+            Text(data.label, style: AppTextStyles.body.copyWith(color: AppColors.text)),
           ],
         ),
       ),
