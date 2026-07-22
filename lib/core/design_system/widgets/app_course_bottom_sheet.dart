@@ -150,19 +150,31 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
                     ),
                   ),
                   Expanded(
-                    child: isPeeking
-                        ? Center(
-                            child: Text(
-                              '올려서 코스 자세히 보기',
-                              style: AppTextStyles.body.copyWith(
-                                color: AppColors.gray5,
-                              ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          controller: scrollController,
+                          physics: isPeeking
+                              ? const NeverScrollableScrollPhysics()
+                              : const ClampingScrollPhysics(),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
                             ),
-                          )
-                        : SingleChildScrollView(
-                            controller: scrollController,
-                            child: widget.child,
+                            child: isPeeking
+                                ? Center(
+                              child: Text(
+                                '올려서 코스 자세히 보기',
+                                style: AppTextStyles.body.copyWith(
+                                  color: AppColors.gray5,
+                                ),
+                              ),
+                            )
+                                : widget.child,
                           ),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
