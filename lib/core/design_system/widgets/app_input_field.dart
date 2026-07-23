@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../app_colors.dart';
@@ -15,6 +16,8 @@ class AppInputField extends StatefulWidget {
     this.readOnly = false,
     this.autofocus = false,
     this.isError = false,
+    this.maxLength,
+    this.inputFormatters,
   });
 
   final TextEditingController? controller;
@@ -25,6 +28,8 @@ class AppInputField extends StatefulWidget {
   final bool readOnly;
   final bool autofocus;
   final bool isError;
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   State<AppInputField> createState() => _AppInputFieldState();
@@ -95,6 +100,15 @@ class _AppInputFieldState extends State<AppInputField> {
       readOnly: widget.readOnly,
       autofocus: widget.autofocus,
       maxLines: 1,
+      maxLength: widget.maxLength,
+      inputFormatters: widget.inputFormatters,
+      buildCounter:
+          (
+            context, {
+            required currentLength,
+            required isFocused,
+            required maxLength,
+          }) => null,
       textAlignVertical: TextAlignVertical.center,
       cursorColor: AppColors.text,
       style: AppTextStyles.body.copyWith(

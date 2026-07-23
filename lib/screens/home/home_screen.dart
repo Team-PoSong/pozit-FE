@@ -10,7 +10,7 @@ import '../../core/design_system/widgets/app_bottom_gradient.dart';
 import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
-import '../../core/design_system/widgets/app_top_navigate_bar.dart';
+import 'widgets/travel_completion_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _travelMenuController = OverlayPortalController();
   final _travelMenuButtonKey = GlobalKey();
 
-  AppTopNavigateTab _selectedTab = AppTopNavigateTab.incomplete;
+  TravelCompletionStatus _selectedStatus = TravelCompletionStatus.incomplete;
   bool _isTravelMenuOpen = false;
 
   void _toggleTravelMenu() {
@@ -116,12 +116,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: AppTopNavigateBar(
+                    child: TravelCompletionToggle(
                       incompleteCount: widget.incompleteCount,
                       completeCount: widget.completeCount,
-                      selectedTab: _selectedTab,
-                      onChanged: (tab) {
-                        setState(() => _selectedTab = tab);
+                      selectedStatus: _selectedStatus,
+                      onChanged: (status) {
+                        setState(() => _selectedStatus = status);
                       },
                     ),
                   ),

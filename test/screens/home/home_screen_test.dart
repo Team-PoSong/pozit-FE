@@ -4,8 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pozit/core/design_system/widgets/app_bottom_gradient.dart';
 import 'package:pozit/core/design_system/widgets/app_main_header.dart';
 import 'package:pozit/core/design_system/widgets/app_navigationbar.dart';
-import 'package:pozit/core/design_system/widgets/app_top_navigate_bar.dart';
 import 'package:pozit/screens/home/home_screen.dart';
+import 'package:pozit/screens/home/widgets/travel_completion_toggle.dart';
 
 void main() {
   testWidgets('홈 화면의 헤더, 여행 탭, 추가 버튼과 빈 상태를 표시한다', (tester) async {
@@ -15,8 +15,8 @@ void main() {
     expect(find.byType(AppNavigationBar), findsOneWidget);
     expect(find.byType(AppBottomGradient), findsOneWidget);
     expect(tester.getTopLeft(find.byType(AppMainHeader)).dy, 0);
-    expect(tester.getTopLeft(find.byType(AppTopNavigateBar)).dy, 64);
-    expect(find.byType(AppTopNavigateBar), findsOneWidget);
+    expect(tester.getTopLeft(find.byType(TravelCompletionToggle)).dy, 64);
+    expect(find.byType(TravelCompletionToggle), findsOneWidget);
     expect(find.byType(SvgPicture), findsNWidgets(4));
     expect(find.text('여행이 없어요! 포짓과 함께 떠나볼까요?'), findsOneWidget);
     expect(find.bySemanticsLabel('여행 메뉴 열기'), findsOneWidget);
