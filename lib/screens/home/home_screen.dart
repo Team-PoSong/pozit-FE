@@ -6,8 +6,10 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
+import '../../core/design_system/widgets/app_bottom_gradient.dart';
 import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
+import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../../core/design_system/widgets/app_top_navigate_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,6 +23,9 @@ class HomeScreen extends StatefulWidget {
     this.onMyPageTap,
     this.onCreateTravelTap,
     this.onJoinWithInviteCodeTap,
+    this.onNavigationChanged,
+    this.onPosongTap,
+    this.isCameraReady = false,
     this.assetPackage,
   });
 
@@ -32,6 +37,9 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onMyPageTap;
   final VoidCallback? onCreateTravelTap;
   final VoidCallback? onJoinWithInviteCodeTap;
+  final ValueChanged<AppNavigationTab>? onNavigationChanged;
+  final VoidCallback? onPosongTap;
+  final bool isCameraReady;
   final String? assetPackage;
 
   @override
@@ -69,6 +77,27 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      bottomNavigationBar: SizedBox(
+        height: AppBottomGradient.height,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Positioned.fill(child: AppBottomGradient()),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: AppNavigationBar(
+                selectedTab: AppNavigationTab.travel,
+                onChanged: widget.onNavigationChanged,
+                onPosongTap: widget.onPosongTap,
+                isCameraReady: widget.isCameraReady,
+                assetPackage: widget.assetPackage,
+              ),
+            ),
+          ],
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -189,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: Column(
                 children: [
-                  const Spacer(flex: 3),
+                  const Spacer(flex: 7),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -210,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const Spacer(flex: 5),
+                  const Spacer(flex: 9),
                 ],
               ),
             ),
@@ -264,14 +293,14 @@ class _TravelMenuPopover extends StatelessWidget {
 
 @Preview(group: 'hycho', name: 'Home Screen', size: Size(393, 852))
 Widget homeScreenPreview() {
-  return const MediaQuery(
-    data: MediaQueryData(
-      size: Size(393, 852),
-      padding: EdgeInsets.only(top: 60),
-    ),
-    child: MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: HomeScreen(assetPackage: 'pozit'),
+  return const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: MediaQuery(
+      data: MediaQueryData(
+        size: Size(393, 852),
+        padding: EdgeInsets.only(top: 59, bottom: 34),
+      ),
+      child: HomeScreen(assetPackage: 'pozit'),
     ),
   );
 }

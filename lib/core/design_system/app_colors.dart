@@ -13,6 +13,8 @@ class AppColors {
   static const Color travelTagBackground = Color(0xFFF8F6FF);
   static const Color navigationBorderStart = Color(0xFFE3E4FF);
   static const Color navigationBorderEnd = Color(0xFF9999FF);
+  static const Color bottomGradientStart = Color(0x00E3E4FF);
+  static const Color bottomGradientEnd = Color(0xB2E3E4FF);
 
   static const Color gray5 = Color(0xFF7E7E7E);
   static const Color gray4 = Color(0xFFC6C6C6);

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pozit/core/design_system/widgets/app_bottom_gradient.dart';
 import 'package:pozit/core/design_system/widgets/app_main_header.dart';
+import 'package:pozit/core/design_system/widgets/app_navigationbar.dart';
 import 'package:pozit/core/design_system/widgets/app_top_navigate_bar.dart';
 import 'package:pozit/screens/home/home_screen.dart';
 
@@ -10,6 +12,8 @@ void main() {
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
 
     expect(find.byType(AppMainHeader), findsOneWidget);
+    expect(find.byType(AppNavigationBar), findsOneWidget);
+    expect(find.byType(AppBottomGradient), findsOneWidget);
     expect(tester.getTopLeft(find.byType(AppMainHeader)).dy, 0);
     expect(tester.getTopLeft(find.byType(AppTopNavigateBar)).dy, 64);
     expect(find.byType(AppTopNavigateBar), findsOneWidget);
