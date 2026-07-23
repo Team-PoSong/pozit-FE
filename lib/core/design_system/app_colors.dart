@@ -13,7 +13,6 @@ class AppColors {
   static const Color travelTagBackground = Color(0xFFF8F6FF);
   static const Color loginPanelBackground = Color(0xFFF4F3F8);
   static const Color loginBadgeShadow = Color(0x3FD0D0D0);
-  static const Color socialLoginShadow = Color(0x0C000000);
 
   static const Color gray5 = Color(0xFF7E7E7E);
   static const Color gray4 = Color(0xFFC6C6C6);
@@ -23,6 +22,7 @@ class AppColors {
 
   static const Color error = Color(0xFFFF0000);
   static const Color white = Color(0xFFFFFFFF);
+  static const Color white20 = Color(0x33FFFFFF);
   static const Color text = Color(0xFF161424);
   static const Color textSub = Color(0xFF6B7280);
   static const Color shadow = Color(0x19000000);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/screens/auth/login_screen.dart';
@@ -32,5 +34,36 @@ void main() {
     expect(find.bySemanticsLabel('Apple로 로그인'), findsOneWidget);
     expect(find.bySemanticsLabel('카카오로 로그인'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('로그인 처리 중 카카오 버튼을 연속으로 눌러도 한 번만 실행한다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(393, 852));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    var loginCallCount = 0;
+    final loginCompleter = Completer<void>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginScreen(
+          onKakaoLogin: () {
+            loginCallCount++;
+            return loginCompleter.future;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final kakaoButton = find.bySemanticsLabel('카카오로 로그인');
+    await tester.tap(kakaoButton);
+    await tester.tap(kakaoButton);
+
+    expect(loginCallCount, 1);
+    await tester.pump();
+    expect(find.byKey(const Key('social-login-progress')), findsOneWidget);
+
+    loginCompleter.complete();
+    await tester.pump();
   });
 }

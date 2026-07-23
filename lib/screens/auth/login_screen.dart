@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -9,10 +11,7 @@ import '../../data/datasources/auth/kakao_login_service.dart';
 import '../../data/repositories/auth/auth_repository.dart';
 import '../home/temporary_home_screen.dart';
 
-class LoginScreen extends StatelessWidget {
-  static const double _carrierWidth = 231.3;
-  static const double _carrierAspectRatio = 257 / 176;
-
+class LoginScreen extends StatefulWidget {
   const LoginScreen({
     super.key,
     this.onAppleLogin,
@@ -22,19 +21,32 @@ class LoginScreen extends StatelessWidget {
   });
 
   final VoidCallback? onAppleLogin;
-  final VoidCallback? onKakaoLogin;
+  final FutureOr<void> Function()? onKakaoLogin;
   final Future<void> Function(String accessToken)? onKakaoAccessToken;
   final String? assetPackage;
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  static const double _carrierWidth = 231.3;
+  static const double _carrierAspectRatio = 257 / 176;
+
+  bool _isLoggingIn = false;
+
   Future<void> _handleKakaoLogin(BuildContext context) async {
-    if (onKakaoLogin != null) {
-      onKakaoLogin!();
-      return;
-    }
+    if (_isLoggingIn) return;
+    setState(() => _isLoggingIn = true);
 
     try {
+      if (widget.onKakaoLogin case final callback?) {
+        await callback();
+        return;
+      }
+
       final accessToken = await const KakaoLoginService().login();
-      if (onKakaoAccessToken case final callback?) {
+      if (widget.onKakaoAccessToken case final callback?) {
         await callback(accessToken);
       } else {
         await AuthRepository().loginWithKakaoAccessToken(accessToken);
@@ -55,6 +67,10 @@ class LoginScreen extends StatelessWidget {
       _reportLoginError(error, stackTrace);
       if (context.mounted) {
         _showLoginError(context, '카카오 로그인에 실패했어요. 다시 시도해 주세요.');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoggingIn = false);
       }
     }
   }
@@ -104,7 +120,7 @@ class LoginScreen extends StatelessWidget {
                           child: Center(
                             child: Image.asset(
                               AppImages.miniLogo,
-                              package: assetPackage,
+                              package: widget.assetPackage,
                               width: 70,
                               height: 32,
                               fit: BoxFit.contain,
@@ -119,7 +135,7 @@ class LoginScreen extends StatelessWidget {
                           aspectRatio: _carrierAspectRatio,
                           child: Image.asset(
                             AppImages.posongCarrier,
-                            package: assetPackage,
+                            package: widget.assetPackage,
                             fit: BoxFit.contain,
                           ),
                         ),
@@ -131,7 +147,7 @@ class LoginScreen extends StatelessWidget {
                         style: AppTextStyles.subTitle.copyWith(
                           color: AppColors.text,
                           fontWeight: FontWeight.w500,
-                          package: assetPackage,
+                          package: widget.assetPackage,
                         ),
                       ),
                       SizedBox(height: 14 * verticalScale),
@@ -141,7 +157,7 @@ class LoginScreen extends StatelessWidget {
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.gray5,
                           fontWeight: FontWeight.w500,
-                          package: assetPackage,
+                          package: widget.assetPackage,
                         ),
                       ),
                     ],
@@ -162,7 +178,7 @@ class LoginScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         const SizedBox(height: 15),
-                        _LoginGuideBadge(assetPackage: assetPackage),
+                        _LoginGuideBadge(assetPackage: widget.assetPackage),
                         const SizedBox(height: 30),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -171,15 +187,18 @@ class LoginScreen extends StatelessWidget {
                             _SocialLoginButton(
                               semanticLabel: 'Apple로 로그인',
                               asset: AppImages.apple,
-                              assetPackage: assetPackage,
-                              onTap: onAppleLogin,
+                              assetPackage: widget.assetPackage,
+                              onTap: _isLoggingIn ? null : widget.onAppleLogin,
                             ),
                             const SizedBox(width: 50),
                             _SocialLoginButton(
                               semanticLabel: '카카오로 로그인',
                               asset: AppImages.kakao,
-                              assetPackage: assetPackage,
-                              onTap: () => _handleKakaoLogin(context),
+                              assetPackage: widget.assetPackage,
+                              isLoading: _isLoggingIn,
+                              onTap: _isLoggingIn
+                                  ? null
+                                  : () => _handleKakaoLogin(context),
                             ),
                           ],
                         ),
@@ -232,40 +251,63 @@ class _SocialLoginButton extends StatelessWidget {
     required this.asset,
     required this.assetPackage,
     required this.onTap,
+    this.isLoading = false,
   });
 
   final String semanticLabel;
   final String asset;
   final String? assetPackage;
   final VoidCallback? onTap;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: semanticLabel,
+      enabled: onTap != null,
+      label: isLoading ? '$semanticLabel 처리 중' : semanticLabel,
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: SizedBox.square(
           dimension: 60,
-          child: DecoratedBox(
-            decoration: const ShapeDecoration(
-              shape: CircleBorder(),
-              shadows: [
-                BoxShadow(
-                  color: AppColors.socialLoginShadow,
-                  blurRadius: 4,
-                  offset: Offset(0, 4),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Image.asset(asset, package: assetPackage, width: 60, height: 60),
+              if (isLoading)
+                Positioned.fill(
+                  child: Transform.translate(
+                    offset: const Offset(0, -4),
+                    child: Center(
+                      child: SizedBox.square(
+                        dimension: 52,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            const Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: ShapeDecoration(
+                                  color: AppColors.white20,
+                                  shape: CircleBorder(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox.square(
+                              dimension: 24,
+                              child: CircularProgressIndicator(
+                                key: Key('social-login-progress'),
+                                strokeWidth: 2.5,
+                                color: AppColors.purple3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            child: Image.asset(
-              asset,
-              package: assetPackage,
-              width: 60,
-              height: 60,
-            ),
+            ],
           ),
         ),
       ),
@@ -283,6 +325,25 @@ Widget loginScreenPreview() {
         padding: EdgeInsets.only(top: 59, bottom: 34),
       ),
       child: LoginScreen(assetPackage: 'pozit'),
+    ),
+  );
+}
+
+@Preview(group: 'hycho', name: 'Login Loading', size: Size(393, 852))
+Widget loginLoadingPreview() {
+  final pendingLogin = Completer<void>();
+
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: MediaQuery(
+      data: const MediaQueryData(
+        size: Size(393, 852),
+        padding: EdgeInsets.only(top: 59, bottom: 34),
+      ),
+      child: LoginScreen(
+        assetPackage: 'pozit',
+        onKakaoLogin: () => pendingLogin.future,
+      ),
     ),
   );
 }
