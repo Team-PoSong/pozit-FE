@@ -25,21 +25,21 @@ class TravelInfoCardModel {
 
   int get nights => totalDays - 1;
 
-  String get durationText => nights <= 0 ? '당일치기' : '$nights박 $totalDays일';
+  String get durationText => nights <= 0 ? '당일치기' : '$nights박$totalDays일';
 
   String get dateRangeText =>
-      '${startDate.month}.${startDate.day} - ${endDate.month}.${endDate.day}';
+      '${startDate.month}/${startDate.day}-${endDate.month}/${endDate.day}';
 
   factory TravelInfoCardModel.fromJson(Map<String, dynamic> json) {
     return TravelInfoCardModel(
-      destination:      json['destination']      as String,
-      startDate:         DateTime.parse(json['startDate'] as String),
-      endDate:           DateTime.parse(json['endDate'] as String),
-      companionCount:    json['companionCount']    as int,
-      tags:              (json['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
+      destination: json['destination'] as String,
+      startDate: DateTime.parse(json['startDate'] as String),
+      endDate: DateTime.parse(json['endDate'] as String),
+      companionCount: json['companionCount'] as int,
+      tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
       visitedPlaceCount: json['visitedPlaceCount'] as int,
-      recordCount:       json['recordCount']       as int,
-      completionRate:    (json['completionRate'] as num).toDouble(),
+      recordCount: json['recordCount'] as int,
+      completionRate: (json['completionRate'] as num).toDouble(),
     );
   }
 }
