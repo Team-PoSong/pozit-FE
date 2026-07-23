@@ -36,6 +36,7 @@ class AppIcons {
   static const String arrowLeft = '$_basePath/ic_arrow_left_black.svg';
   static const String arrowLeftWhite = '$_basePath/ic_arrow_left_white.svg';
   static const String check = '$_basePath/ic_check.svg';
+  static const String checkUnactive = '$_basePath/ic_check_unactive.svg';
   static const String wish = '$_basePath/ic_wish.svg';
   static const String heartLarge = '$_basePath/ic_heart_large.svg';
   static const String heartLargeGray = '$_basePath/ic_heart_large_gray.svg';

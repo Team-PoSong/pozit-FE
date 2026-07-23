@@ -44,7 +44,12 @@ class PermissionPrimerDialog extends StatelessWidget {
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0, bottom: 33.0),
+            padding: const EdgeInsets.only(
+              top: 50.0,
+              left: 20.0,
+              right: 20.0,
+              bottom: 33.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
@@ -76,11 +81,7 @@ class PermissionPrimerDialog extends StatelessWidget {
                 const SizedBox(height: 12.0),
                 const _PermissionCard(
                   title: '카메라 및 사진',
-                  bulletLines: [
-                    'Pozing 촬영',
-                    '여행 로그 사진 업로드',
-                    '사진 저장',
-                  ],
+                  bulletLines: ['Pozing 촬영', '여행 로그 사진 업로드', '사진 저장'],
                   isRequired: false,
                 ),
                 const SizedBox(height: 12.0),
@@ -89,10 +90,7 @@ class PermissionPrimerDialog extends StatelessWidget {
                   style: _footerStyle,
                 ),
                 const SizedBox(height: 64.0),
-                AppButton(
-                  text: '확인',
-                  onPressed: onConfirm,
-                ),
+                AppButton(text: '확인', onPressed: onConfirm),
               ],
             ),
           ),
@@ -110,7 +108,10 @@ class PermissionPrimerDialog extends StatelessWidget {
                     AppIcons.x,
                     width: 24.0,
                     height: 24.0,
-                    colorFilter: const ColorFilter.mode(AppColors.text, BlendMode.srcIn),
+                    colorFilter: const ColorFilter.mode(
+                      AppColors.text,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ),
@@ -137,7 +138,12 @@ class _PermissionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints(minHeight: 101.0),
-      padding: const EdgeInsets.only(left: 26.0, right: 16.0, top: 14.0, bottom: 14.0),
+      padding: const EdgeInsets.only(
+        left: 26.0,
+        right: 16.0,
+        top: 14.0,
+        bottom: 14.0,
+      ),
       decoration: BoxDecoration(
         color: AppColors.gray1,
         borderRadius: BorderRadius.circular(4.0),
@@ -151,7 +157,10 @@ class _PermissionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(title, style: AppTextStyles.caption2.copyWith(color: Colors.black)),
+                Text(
+                  title,
+                  style: AppTextStyles.caption2.copyWith(color: Colors.black),
+                ),
                 const SizedBox(height: 11.0),
                 Text(
                   bulletLines.map((line) => '• $line').join('\n'),
@@ -193,16 +202,19 @@ class _PermissionBadge extends StatelessWidget {
 }
 
 Future<void> showPermissionPrimerDialog(
-    BuildContext context, {
-      required VoidCallback onClose,
-      required VoidCallback onConfirm,
-    }) {
+  BuildContext context, {
+  required VoidCallback onClose,
+  required VoidCallback onConfirm,
+}) {
   return showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) => Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 20.0,
+        vertical: 24.0,
+      ),
       child: SingleChildScrollView(
         child: PermissionPrimerDialog(
           onClose: () {
@@ -221,8 +233,5 @@ Future<void> showPermissionPrimerDialog(
 
 @Preview(group: 'haerim', name: 'PermissionPrimerDialog')
 Widget permissionPrimerDialogPreview() {
-  return PermissionPrimerDialog(
-    onClose: () {},
-    onConfirm: () {},
-  );
+  return PermissionPrimerDialog(onClose: () {}, onConfirm: () {});
 }
