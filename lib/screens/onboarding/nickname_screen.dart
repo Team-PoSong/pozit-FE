@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
@@ -103,7 +102,6 @@ class _NicknameScreenState extends State<NicknameScreen> {
               AppInputField(
                 controller: _nicknameController,
                 maxLength: _nicknameMaxLength,
-                inputFormatters: [LengthLimitingTextInputFormatter(5)],
                 isError: isError,
                 onChanged: _handleNicknameChanged,
               ),
