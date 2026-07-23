@@ -35,22 +35,40 @@ class TravelInfoCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              info.destination,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.headline.copyWith(color: AppColors.white),
-            ),
-            const SizedBox(width: 22),
-            Flexible(
-              child: Text(
-                '${info.dateRangeText} · ${info.durationText}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.body.copyWith(color: AppColors.white),
+            // destination과 date를 하나의 Expanded 안에 함께 넣어 이 블록이
+            // 남는 공간을 전부 차지하게 합니다. 그래야 아래쪽 완주율
+            // 퍼센티지와 오른쪽 끝이 정확히 맞고(뒤 아이콘/인원수가 항상
+            // 카드 끝에 붙음), 여행지 이름이 길어져도 이 블록 안에서만
+            // 줄어들어 카드 밖으로 오버플로우되지 않습니다.
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(
+                    flex: 3,
+                    child: Text(
+                      info.destination,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.headline.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 22),
+                  Flexible(
+                    flex: 2,
+                    child: Text(
+                      '${info.dateRangeText} · ${info.durationText}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const Spacer(),
             SvgPicture.asset(
               AppIcons.mypageFilled,
               width: 24,
@@ -126,8 +144,13 @@ class _InfoTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = label.startsWith('#') ? label : '# $label';
+    // 네, 내부 padding 값이 칩의 가로세로 비율을 그대로 좌우합니다. 세로
+    // padding이 가로에 비해 크면 칩이 통통한 타원처럼 보이는데, 기존
+    // (10, 5)는 세로 비중이 커서 그렇게 보였습니다. 세로를 줄이고 가로를
+    // 늘려 더 얇고 넓은 필(pill) 형태로 조정했습니다. 디자인에 정확한
+    // 수치가 있다면 그 값으로 다시 맞춰주세요.
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: const ShapeDecoration(
         color: AppColors.white,
         shape: StadiumBorder(

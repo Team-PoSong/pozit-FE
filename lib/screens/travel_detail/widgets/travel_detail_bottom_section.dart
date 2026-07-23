@@ -11,8 +11,14 @@ import '../../../core/design_system/widgets/button/app_button.dart';
 const double _kHorizontalPadding = 24.0;
 const double _kStatusToContentGap = 15.0;
 const double _kPosingGap = 12.0;
-const double _kPosingToButtonGap = 33.0;
-const double _kBottomTextPadding = 14.0;
+const double _kPosingToButtonGap = 30.0;
+// 탑승권 이미지와 안내 문구 사이 간격입니다.
+const double _kTicketToTextGap = 21.0;
+// 탑승권 이미지의 원본 크기(363x555)에서 대폭 축소한 너비입니다.
+const double _kCarrierTicketWidth = 121.0;
+// 화면 최하단(시스템 세이프 영역 하단)으로부터 마지막 posing/버튼까지
+// 추가로 두는 여백입니다. 시스템 인셋 자체는 SafeArea가 처리합니다.
+const double _kBottomSafeGap = 7.0;
 
 /// 여행 상세 화면에서 [status]에 따라 달라지는 하단 영역입니다.
 ///
@@ -35,28 +41,30 @@ class TravelDetailBottomSection extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (status) {
       case AppTravelStatus.upcoming:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: _kStatusToContentGap),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: _kHorizontalPadding),
-              child: Center(child: Image(image: AssetImage(AppImages.carrierTicket))),
-            ),
-            const Expanded(child: SizedBox()),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                _kHorizontalPadding,
-                0,
-                _kHorizontalPadding,
-                _kBottomTextPadding,
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+            _kHorizontalPadding,
+            _kStatusToContentGap,
+            _kHorizontalPadding,
+            _kBottomSafeGap,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Image(
+                  image: const AssetImage(AppImages.carrierTicket),
+                  width: _kCarrierTicketWidth,
+                ),
               ),
-              child: Text(
+              const SizedBox(height: _kTicketToTextGap),
+              Text(
                 '여행이 시작되면 기록할 수 있어요.',
+                textAlign: TextAlign.center,
                 style: AppTextStyles.subTitle.copyWith(color: AppColors.gray5),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       case AppTravelStatus.inProgress:
         return Padding(
@@ -64,7 +72,7 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            0,
+            _kBottomSafeGap,
           ),
           child: _PosingColumn(companionCount: companionCount),
         );
@@ -74,7 +82,7 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            0,
+            _kBottomSafeGap,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
