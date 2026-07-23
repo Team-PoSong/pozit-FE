@@ -1,58 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
-import '../app_colors.dart';
-import '../app_text_styles.dart';
+import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/app_text_styles.dart';
 
-enum AppTopNavigateTab { incomplete, complete }
+enum TravelCompletionStatus { incomplete, complete }
 
-class AppTopNavigateBar extends StatefulWidget {
-  const AppTopNavigateBar({
+class TravelCompletionToggle extends StatefulWidget {
+  const TravelCompletionToggle({
     super.key,
     required this.incompleteCount,
     required this.completeCount,
-    this.selectedTab,
-    this.initialTab = AppTopNavigateTab.incomplete,
+    this.selectedStatus,
+    this.initialStatus = TravelCompletionStatus.incomplete,
     this.onChanged,
   });
 
   final int incompleteCount;
   final int completeCount;
-  final AppTopNavigateTab? selectedTab;
-  final AppTopNavigateTab initialTab;
-  final ValueChanged<AppTopNavigateTab>? onChanged;
+  final TravelCompletionStatus? selectedStatus;
+  final TravelCompletionStatus initialStatus;
+  final ValueChanged<TravelCompletionStatus>? onChanged;
 
   @override
-  State<AppTopNavigateBar> createState() => _AppTopNavigateBarState();
+  State<TravelCompletionToggle> createState() => _TravelCompletionToggleState();
 }
 
-class _AppTopNavigateBarState extends State<AppTopNavigateBar> {
-  late AppTopNavigateTab _selectedTab;
+class _TravelCompletionToggleState extends State<TravelCompletionToggle> {
+  late TravelCompletionStatus _selectedStatus;
 
   @override
   void initState() {
     super.initState();
-    _selectedTab = widget.selectedTab ?? widget.initialTab;
+    _selectedStatus = widget.selectedStatus ?? widget.initialStatus;
   }
 
   @override
-  void didUpdateWidget(AppTopNavigateBar oldWidget) {
+  void didUpdateWidget(TravelCompletionToggle oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.selectedTab != null &&
-        widget.selectedTab != oldWidget.selectedTab) {
-      _selectedTab = widget.selectedTab!;
+    if (widget.selectedStatus != null &&
+        widget.selectedStatus != oldWidget.selectedStatus) {
+      _selectedStatus = widget.selectedStatus!;
     }
   }
 
-  void _handleTap(AppTopNavigateTab tab) {
-    if (_selectedTab == tab) return;
+  void _handleTap(TravelCompletionStatus status) {
+    if (_selectedStatus == status) return;
 
-    if (widget.selectedTab == null) {
-      setState(() => _selectedTab = tab);
+    if (widget.selectedStatus == null) {
+      setState(() => _selectedStatus = status);
     }
 
-    widget.onChanged?.call(tab);
+    widget.onChanged?.call(status);
   }
 
   @override
@@ -63,7 +63,7 @@ class _AppTopNavigateBarState extends State<AppTopNavigateBar> {
       child: LayoutBuilder(
         builder: (context, _) {
           final isIncompleteSelected =
-              _selectedTab == AppTopNavigateTab.incomplete;
+              _selectedStatus == TravelCompletionStatus.incomplete;
 
           return DecoratedBox(
             decoration: const ShapeDecoration(
@@ -128,7 +128,7 @@ class _AppTopNavigateBarState extends State<AppTopNavigateBar> {
                           label: '미완료 ${widget.incompleteCount}',
                           child: GestureDetector(
                             onTap: () =>
-                                _handleTap(AppTopNavigateTab.incomplete),
+                                _handleTap(TravelCompletionStatus.incomplete),
                             behavior: HitTestBehavior.opaque,
                           ),
                         ),
@@ -139,7 +139,8 @@ class _AppTopNavigateBarState extends State<AppTopNavigateBar> {
                           selected: !isIncompleteSelected,
                           label: '완료 ${widget.completeCount}',
                           child: GestureDetector(
-                            onTap: () => _handleTap(AppTopNavigateTab.complete),
+                            onTap: () =>
+                                _handleTap(TravelCompletionStatus.complete),
                             behavior: HitTestBehavior.opaque,
                           ),
                         ),
@@ -177,13 +178,13 @@ class _TabText extends StatelessWidget {
   }
 }
 
-@Preview(group: 'hycho', name: 'Top Navigate Bar')
-Widget appTopNavigateBarPreview() {
+@Preview(group: 'hycho', name: 'Travel Completion Toggle')
+Widget travelCompletionTogglePreview() {
   return const MaterialApp(
     home: Scaffold(
       body: Padding(
         padding: EdgeInsets.all(20),
-        child: AppTopNavigateBar(incompleteCount: 0, completeCount: 1),
+        child: TravelCompletionToggle(incompleteCount: 0, completeCount: 1),
       ),
     ),
   );
