@@ -33,6 +33,7 @@ class AppIcons {
   static const String pinFilter = '$_basePath/ic_pin_filter.svg';
   static const String more = '$_basePath/ic_more.svg';
   static const String mypage = '$_basePath/ic_mypage.svg';
+  static const String mypageFilled = '$_basePath/ic_mypage_filled.svg';
   static const String arrowLeft = '$_basePath/ic_arrow_left_black.svg';
   static const String arrowLeftWhite = '$_basePath/ic_arrow_left_white.svg';
   static const String check = '$_basePath/ic_check.svg';

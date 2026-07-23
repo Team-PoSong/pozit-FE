@@ -10,6 +10,10 @@ class TravelInfoCardModel {
   final int recordCount;
   final double completionRate;
 
+  /// 일차별 방문 코스입니다. `course[i]`는 (i + 1)일차에 방문하는 여행지
+  /// 이름을 방문 순서대로 담습니다.
+  final List<List<String>> course;
+
   const TravelInfoCardModel({
     required this.destination,
     required this.startDate,
@@ -19,6 +23,7 @@ class TravelInfoCardModel {
     required this.visitedPlaceCount,
     required this.recordCount,
     required this.completionRate,
+    this.course = const [],
   });
 
   int get totalDays => endDate.difference(startDate).inDays + 1;
@@ -30,6 +35,14 @@ class TravelInfoCardModel {
   String get dateRangeText =>
       '${startDate.month}/${startDate.day}-${endDate.month}/${endDate.day}';
 
+  /// [day]일차에 가장 먼저 방문하는 여행지 이름입니다. 정보가 없으면 빈 문자열입니다.
+  String firstPlaceOfDay(int day) {
+    final dayIndex = day - 1;
+    if (dayIndex < 0 || dayIndex >= course.length) return '';
+    final places = course[dayIndex];
+    return places.isEmpty ? '' : places.first;
+  }
+
   factory TravelInfoCardModel.fromJson(Map<String, dynamic> json) {
     return TravelInfoCardModel(
       destination: json['destination'] as String,
@@ -40,6 +53,11 @@ class TravelInfoCardModel {
       visitedPlaceCount: json['visitedPlaceCount'] as int,
       recordCount: json['recordCount'] as int,
       completionRate: (json['completionRate'] as num).toDouble(),
+      course:
+          (json['course'] as List<dynamic>?)
+              ?.map((day) => (day as List<dynamic>).cast<String>())
+              .toList() ??
+          const [],
     );
   }
 }

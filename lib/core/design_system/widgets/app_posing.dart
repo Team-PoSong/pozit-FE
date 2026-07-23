@@ -7,7 +7,7 @@ import '../app_icons.dart';
 import '../app_text_styles.dart';
 
 class AppPosing extends StatelessWidget {
-  const AppPosing({super.key, required String name, required bool isCameraOn})
+  const AppPosing({super.key, String? name, required bool isCameraOn})
     : _name = name,
       _isCameraOn = isCameraOn,
       _isTravelPhoto = false;

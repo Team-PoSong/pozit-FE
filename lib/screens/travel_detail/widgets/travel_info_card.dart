@@ -37,16 +37,22 @@ class TravelInfoCard extends StatelessWidget {
           children: [
             Text(
               info.destination,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: AppTextStyles.headline.copyWith(color: AppColors.white),
             ),
             const SizedBox(width: 22),
-            Text(
-              '${info.dateRangeText} · ${info.durationText}',
-              style: AppTextStyles.body.copyWith(color: AppColors.white),
+            Flexible(
+              child: Text(
+                '${info.dateRangeText} · ${info.durationText}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.body.copyWith(color: AppColors.white),
+              ),
             ),
             const Spacer(),
             SvgPicture.asset(
-              AppIcons.mypage,
+              AppIcons.mypageFilled,
               width: 24,
               height: 24,
               colorFilter: const ColorFilter.mode(
@@ -97,8 +103,10 @@ class TravelInfoCard extends StatelessWidget {
               style: AppTextStyles.body.copyWith(color: AppColors.white),
             ),
             const SizedBox(width: 15),
-            AppCompletionProgressBar(progress: info.completionRate),
-            const Spacer(),
+            Expanded(
+              child: AppCompletionProgressBar(progress: info.completionRate),
+            ),
+            const SizedBox(width: 8),
             Text(
               '${(info.completionRate * 100).round()}%',
               style: AppTextStyles.body.copyWith(color: AppColors.white),
