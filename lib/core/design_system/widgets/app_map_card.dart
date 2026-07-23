@@ -7,6 +7,24 @@ import '../app_icons.dart';
 import '../app_images.dart';
 import '../app_text_styles.dart';
 
+const Duration _kTransitionDuration = Duration(milliseconds: 260);
+
+/// 제목/지도/인디케이터가 공통으로 쓰는 전환 효과입니다. 위치나 크기를
+/// 바꾸지 않고, 있는 그대로의 위젯을 옆에서 미끄러져 들어오며 페이드인
+/// 하는 것처럼만 보이게 감싸줍니다.
+Widget _slideFadeTransition(Widget child, Animation<double> animation) {
+  return FadeTransition(
+    opacity: animation,
+    child: SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(0.3, 0),
+        end: Offset.zero,
+      ).animate(animation),
+      child: child,
+    ),
+  );
+}
+
 /// 여행 코스의 지도 미리보기를 보여주는 카드입니다.
 ///
 /// 실제 지도 연동 전에는 [mapImage]에 정적 이미지를 사용하고, 연동 후에는
@@ -52,13 +70,25 @@ class AppMapCard extends StatelessWidget {
                   height: 20,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 64),
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.subTitle.copyWith(
-                        color: AppColors.gray5,
+                    // 지도를 옆으로 넘기면 코스가 바뀌었다는 걸 체감할 수
+                    // 있도록, 제목 텍스트만 옆으로 미끄러지듯 전환합니다.
+                    // 인디케이터 점은 원래 모양 그대로 유지합니다.
+                    child: ClipRect(
+                      child: AnimatedSwitcher(
+                        duration: _kTransitionDuration,
+                        switchInCurve: Curves.easeInOutCubic,
+                        switchOutCurve: Curves.easeInOutCubic,
+                        transitionBuilder: _slideFadeTransition,
+                        child: Text(
+                          title,
+                          key: ValueKey(title),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.subTitle.copyWith(
+                            color: AppColors.gray5,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -128,22 +158,54 @@ class _PageIndicator extends StatelessWidget {
   final int currentPage;
   final int pageCount;
 
+  static const double _dotSize = 8;
+  static const double _dotGap = 12;
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-        pageCount,
-        (index) => Padding(
-          padding: EdgeInsets.only(right: index == pageCount - 1 ? 0 : 12),
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: index == currentPage ? AppColors.primary : AppColors.gray3,
-              shape: BoxShape.circle,
+    final trackWidth = pageCount * _dotSize + (pageCount - 1) * _dotGap;
+    // AppDateDetailSelect의 슬라이딩 인디케이터와 동일한 -1~1 보간식입니다.
+    final alignmentX = pageCount == 1
+        ? 0.0
+        : -1 + 2 * (currentPage / (pageCount - 1));
+
+    // 부모 Column이 crossAxisAlignment.stretch라 여기 바로 SizedBox를 두면
+    // 카드 전체 너비로 강제로 늘어나 점 간격이 벌어져 보였던 게 지난번
+    // 문제였습니다. Center로 한 번 감싸 느슨한 제약을 준 다음 그 안에서
+    // SizedBox가 실제로 원하는 trackWidth만큼만 차지하도록 합니다.
+    return Center(
+      child: SizedBox(
+        width: trackWidth,
+        height: _dotSize,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(
+                pageCount,
+                (_) => const DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: AppColors.gray3,
+                    shape: BoxShape.circle,
+                  ),
+                  child: SizedBox(width: _dotSize, height: _dotSize),
+                ),
+              ),
             ),
-          ),
+            AnimatedAlign(
+              duration: _kTransitionDuration,
+              curve: Curves.easeInOutCubic,
+              alignment: Alignment(alignmentX, 0),
+              child: const DecoratedBox(
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: SizedBox(width: _dotSize, height: _dotSize),
+              ),
+            ),
+          ],
         ),
       ),
     );
