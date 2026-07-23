@@ -6,6 +6,14 @@ class AppImages {
   static const String _basePath = 'assets/images';
 
   static const String appLogo = '$_basePath/img_app_logo.png';
+  static const String bottomNavTravelOn =
+      '$_basePath/ic_bottom_nav_travel_on.png';
+  static const String bottomNavTravelOff =
+      '$_basePath/ic_bottom_nav_travel_off.png';
+  static const String bottomNavSearchOn =
+      '$_basePath/ic_bottom_nav_search_on.png';
+  static const String bottomNavSearchOff =
+      '$_basePath/ic_bottom_nav_search_off.png';
   static const String miniLogo = '$_basePath/img_logo_mini.png';
   static const String carrierTicket = '$_basePath/img_carrier_ticket.png';
   static const String carrier = '$_basePath/img_carrier.png';
