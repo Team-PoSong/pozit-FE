@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/widgets/app_button.dart';
+import '../../core/design_system/widgets/button/app_button.dart';
 
 const TextStyle _cardDescriptionStyle = TextStyle(
   fontFamily: 'Pretendard',

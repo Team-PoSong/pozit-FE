@@ -23,6 +23,8 @@ class AppIcons {
 
   static const String hasNotification = '$_basePath/ic_notification_has.svg';
   static const String noNotification = '$_basePath/ic_notification_no.svg';
+  static const String headerHeart = '$_basePath/ic_header_heart.svg';
+  static const String travelPlus = '$_basePath/ic_travel_plus.svg';
 
   static const String travel = '$_basePath/ic_travel.svg';
   static const String search = '$_basePath/ic_search.svg';
