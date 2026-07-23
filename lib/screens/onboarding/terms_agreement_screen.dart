@@ -146,43 +146,52 @@ class _AgreementRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Semantics(
-          checked: isChecked,
-          label: label,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox.square(
-                    dimension: 24,
-                    child: Center(
-                      child: SvgPicture.asset(
-                        isChecked ? AppIcons.check : AppIcons.checkUnactive,
-                        package: assetPackage,
-                        width: isAll ? 24 : 22,
-                        height: isAll ? 24 : 22,
-                        excludeFromSemantics: true,
+        Expanded(
+          child: Semantics(
+            checked: isChecked,
+            label: label,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    SizedBox.square(
+                      dimension: 24,
+                      child: Center(
+                        child: SvgPicture.asset(
+                          isChecked ? AppIcons.check : AppIcons.checkUnactive,
+                          package: assetPackage,
+                          width: isAll ? 24 : 22,
+                          height: isAll ? 24 : 22,
+                          excludeFromSemantics: true,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 20),
-                  Text(
-                    label,
-                    style: (isAll ? AppTextStyles.subTitle : AppTextStyles.body)
-                        .copyWith(
-                          color: isAll ? AppColors.text : AppColors.gray5,
-                        ),
-                  ),
-                ],
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            (isAll
+                                    ? AppTextStyles.subTitle
+                                    : AppTextStyles.body)
+                                .copyWith(
+                                  color: isAll
+                                      ? AppColors.text
+                                      : AppColors.gray5,
+                                ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-        const Spacer(),
         if (showView)
           Semantics(
             button: true,
