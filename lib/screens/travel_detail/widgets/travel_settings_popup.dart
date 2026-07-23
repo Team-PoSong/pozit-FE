@@ -115,7 +115,7 @@ class TravelSettingsPopup extends StatelessWidget {
                     ),
                     for (var i = 0; i < _items.length; i++) ...[
                       if (i > 0) const _PopupDivider(),
-                      _PopupMenuRow(data: _items[i]),
+                      _PopupMenuRow(data: _items[i], isFirst: i == 0),
                     ],
                   ],
                 ),
@@ -160,8 +160,9 @@ class _PopupDivider extends StatelessWidget {
 
 class _PopupMenuRow extends StatelessWidget {
   final _MenuItemData data;
+  final bool isFirst;
 
-  const _PopupMenuRow({required this.data});
+  const _PopupMenuRow({required this.data, this.isFirst = false});
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +170,12 @@ class _PopupMenuRow extends StatelessWidget {
       onTap: data.onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: EdgeInsets.only(
+          left: 16.0,
+          right: 16.0,
+          top: isFirst ? 0.0 : 12.0,
+          bottom: 12.0,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -183,10 +189,11 @@ class _PopupMenuRow extends StatelessWidget {
   }
 }
 
-/// 여행 설정 팝업을 [anchorLink]가 붙은 트리거 버튼 바로 아래에 띄웁니다.
+/// 여행 설정 팝업을 [anchorLink]가 붙은 트리거 버튼(설정 아이콘) 위에 겹쳐 띄웁니다.
 ///
 /// 호출하는 쪽에서는 트리거 버튼을 `CompositedTransformTarget(link: anchorLink, ...)`
-/// 로 감싸두면, 팝업이 그 버튼의 실제 레이아웃 위치를 기준으로 따라붙습니다.
+/// 로 감싸두면, 팝업의 'X' 아이콘이 트리거의 설정 아이콘과 같은 위치에 오도록
+/// 붙습니다.
 Future<void> showTravelSettingsPopup(
   BuildContext context, {
   required LayerLink anchorLink,
@@ -224,8 +231,12 @@ Future<void> showTravelSettingsPopup(
         ),
         CompositedTransformFollower(
           link: anchorLink,
-          targetAnchor: Alignment.bottomRight,
+          // 트리거의 설정 아이콘(44x44 탭 영역, 10px 인셋)과 팝업의 'X' 아이콘
+          // (top 20 / right 11 인셋)이 정확히 겹치도록 오른쪽 상단 모서리를
+          // 기준으로 맞추고 두 인셋 차이만큼 offset으로 보정합니다.
+          targetAnchor: Alignment.topRight,
           followerAnchor: Alignment.topRight,
+          offset: const Offset(1, -10),
           child: TravelSettingsPopup(
             status: status,
             onClose: close,
