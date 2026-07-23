@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/dio_client.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
 import '../home/temporary_home_screen.dart';
 import 'login_screen.dart';
 
-enum _AuthGateStatus { checking, signedOut, signedIn, error }
+enum _AuthGateStatus { checking, signedOut, signedIn }
 
 class AuthGate extends StatefulWidget {
   const AuthGate({
@@ -18,19 +15,24 @@ class AuthGate extends StatefulWidget {
     this.readAccessToken,
     this.clearToken,
     this.validateSession,
+    this.retryDelay = const Duration(milliseconds: 300),
   });
 
   final Future<String?> Function()? readAccessToken;
   final Future<void> Function()? clearToken;
   final Future<void> Function()? validateSession;
+  final Duration retryDelay;
 
   @override
   State<AuthGate> createState() => _AuthGateState();
 }
 
 class _AuthGateState extends State<AuthGate> {
+  static const int _maxRetryCount = 2;
+  static const String _sessionCheckFailureMessage =
+      '로그인 상태를 확인하지 못했어요. 다시 로그인해 주세요.';
+
   _AuthGateStatus _status = _AuthGateStatus.checking;
-  String _errorMessage = '로그인 상태를 확인하지 못했어요.';
 
   @override
   void initState() {
@@ -56,7 +58,7 @@ class _AuthGateState extends State<AuthGate> {
         return;
       }
 
-      await validateSession();
+      await _validateSessionWithRetry(validateSession);
       _setStatus(_AuthGateStatus.signedIn);
     } on ApiException catch (error) {
       if (error.statusCode == 401 || error.statusCode == 403) {
@@ -64,10 +66,43 @@ class _AuthGateState extends State<AuthGate> {
         _setStatus(_AuthGateStatus.signedOut);
         return;
       }
-      _setError(error.message);
+
+      await _clearTokenAndReturnToLogin(clearToken);
     } catch (_) {
-      _setError('로그인 상태를 확인하지 못했어요. 다시 시도해 주세요.');
+      await _clearTokenAndReturnToLogin(clearToken);
     }
+  }
+
+  Future<void> _validateSessionWithRetry(
+    Future<void> Function() validateSession,
+  ) async {
+    for (var attempt = 0; ; attempt++) {
+      try {
+        await validateSession();
+        return;
+      } on ApiException catch (error) {
+        if (error.statusCode == 401 || error.statusCode == 403) rethrow;
+        if (attempt >= _maxRetryCount) rethrow;
+      } catch (_) {
+        if (attempt >= _maxRetryCount) rethrow;
+      }
+
+      await Future<void>.delayed(widget.retryDelay);
+    }
+  }
+
+  Future<void> _clearTokenAndReturnToLogin(
+    Future<void> Function() clearToken,
+  ) async {
+    await clearToken();
+    _setStatus(_AuthGateStatus.signedOut);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(_sessionCheckFailureMessage)),
+      );
+    });
   }
 
   Future<void> _validateSession() async {
@@ -79,14 +114,6 @@ class _AuthGateState extends State<AuthGate> {
     setState(() => _status = status);
   }
 
-  void _setError(String message) {
-    if (!mounted) return;
-    setState(() {
-      _errorMessage = message;
-      _status = _AuthGateStatus.error;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return switch (_status) {
@@ -96,44 +123,6 @@ class _AuthGateState extends State<AuthGate> {
       ),
       _AuthGateStatus.signedOut => const LoginScreen(),
       _AuthGateStatus.signedIn => const TemporaryHomeScreen(),
-      _AuthGateStatus.error => Scaffold(
-        backgroundColor: AppColors.white,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _errorMessage,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.body.copyWith(color: AppColors.text),
-                ),
-                const SizedBox(height: 16),
-                AppButton(
-                  text: '다시 시도',
-                  width: 160,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  textStyle: AppTextStyles.body,
-                  onPressed: _checkSession,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     };
   }
-}
-
-@Preview(group: 'hycho', name: 'Auth Gate Error', size: Size(393, 852))
-Widget authGateErrorPreview() {
-  return MaterialApp(
-    home: AuthGate(
-      readAccessToken: () async => 'preview-token',
-      validateSession: () async {
-        throw const ApiException('네트워크 연결을 확인해 주세요.');
-      },
-    ),
-  );
 }
