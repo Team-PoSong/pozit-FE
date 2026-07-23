@@ -4,7 +4,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/dio_client.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
-import '../home/temporary_home_screen.dart';
+import '../home/home_screen.dart';
 import 'login_screen.dart';
 
 enum _AuthGateStatus { checking, signedOut, signedIn }
@@ -122,7 +122,7 @@ class _AuthGateState extends State<AuthGate> {
         body: Center(child: CircularProgressIndicator()),
       ),
       _AuthGateStatus.signedOut => const LoginScreen(),
-      _AuthGateStatus.signedIn => const TemporaryHomeScreen(),
+      _AuthGateStatus.signedIn => const HomeScreen(),
     };
   }
 }

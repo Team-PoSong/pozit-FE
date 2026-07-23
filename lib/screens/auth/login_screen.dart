@@ -9,7 +9,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/datasources/auth/kakao_login_service.dart';
 import '../../data/repositories/auth/auth_repository.dart';
-import '../home/temporary_home_screen.dart';
+import '../onboarding/onboarding_flow_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!context.mounted) return;
       await Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const TemporaryHomeScreen()),
+        MaterialPageRoute<void>(builder: (_) => const OnboardingFlowScreen()),
       );
     } on KakaoLoginCanceledException {
       return;

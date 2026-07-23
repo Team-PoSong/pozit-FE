@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/network/api_exception.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
+import 'package:pozit/screens/home/home_screen.dart';
 
 void main() {
   testWidgets('저장된 토큰이 없으면 로그인 화면을 표시한다', (tester) async {
@@ -24,7 +25,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('로그인 성공'), findsOneWidget);
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('만료된 토큰은 삭제하고 로그인 화면을 표시한다', (tester) async {
@@ -66,7 +67,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(validationCount, 3);
-    expect(find.text('로그인 성공'), findsOneWidget);
+    expect(find.byType(HomeScreen), findsOneWidget);
   });
 
   testWidgets('세션 확인이 세 번 실패하면 토큰을 삭제하고 로그인 화면을 표시한다', (tester) async {
