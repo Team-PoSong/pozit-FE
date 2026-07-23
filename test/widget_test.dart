@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:pozit/main.dart';
 
 void main() {
   testWidgets('앱을 실행하면 로그인 화면을 표시한다', (tester) async {
+    FlutterSecureStorage.setMockInitialValues({});
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 

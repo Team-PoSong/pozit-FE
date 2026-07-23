@@ -18,8 +18,6 @@ class AppImages {
   static const String kakao = '$_basePath/img_kakao.png';
 
   static const String posongCarrier = '$_basePath/img_posong_carrier.png';
-  static const String posongCarrierMini =
-      '$_basePath/img_posong_carrier_mini.png';
   static const String posongPlain = '$_basePath/img_posong_plain.png';
   static const String posongPlainMini = '$_basePath/img_posong_plain_mini.png';
   static const String posongSleeping = '$_basePath/img_posong_sleeping.png';

@@ -32,8 +32,9 @@ class ApiException implements Exception {
     return switch (error.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout =>
-        const ApiException('서버 응답이 지연되고 있어요. 잠시 후 다시 시도해 주세요.'),
+      DioExceptionType.receiveTimeout => const ApiException(
+        '서버 응답이 지연되고 있어요. 잠시 후 다시 시도해 주세요.',
+      ),
       DioExceptionType.connectionError => const ApiException(
         '네트워크 연결을 확인해 주세요.',
       ),

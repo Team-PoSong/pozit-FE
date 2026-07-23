@@ -46,18 +46,19 @@ class _AppChatInputFieldState extends State<AppChatInputField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 299.0,
-      height: 49.0,
-      padding: const EdgeInsets.only(left: 26.0),
+      constraints: const BoxConstraints(minHeight: 49.0),
+      padding: const EdgeInsets.symmetric(horizontal: 26.0, vertical: 12.0),
       alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: AppColors.gray2,
-        borderRadius: BorderRadius.circular(999.0),
-        border: Border.all(color: AppColors.gray5, width: 0.5),
+        shape: StadiumBorder(
+          side: const BorderSide(color: AppColors.gray5, width: 0.5),
+        ),
       ),
       child: TextField(
         controller: _controller,
         onSubmitted: widget.onSubmitted,
+        maxLines: 1,
         style: AppTextStyles.body.copyWith(color: AppColors.text),
         decoration: InputDecoration(
           hintText: widget.hintText,
@@ -71,8 +72,14 @@ class _AppChatInputFieldState extends State<AppChatInputField> {
 }
 
 @Preview(group: 'haerim', name: 'AppChatInputField - 빈 상태')
-Widget appChatInputFieldEmptyPreview() => const AppChatInputField();
+Widget appChatInputFieldEmptyPreview() =>
+    const SizedBox(width: 299.0, child: AppChatInputField());
 
 @Preview(group: 'haerim', name: 'AppChatInputField - 입력됨')
-Widget appChatInputFieldFilledPreview() =>
-    const AppChatInputField(initialText: '2일차가 너무 빡빡해.');
+Widget appChatInputFieldFilledPreview() => const SizedBox(
+  width: 299.0,
+  child: AppChatInputField(initialText: '2일차가 너무 빡빡해.'),
+);
+
+@Preview(group: 'haerim', name: 'AppChatInputField - 반응형')
+Widget appChatInputFieldResponsivePreview() => const AppChatInputField();

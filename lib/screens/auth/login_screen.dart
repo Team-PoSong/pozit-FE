@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
-import '../../core/auth/auth_repository.dart';
-import '../../core/auth/kakao_login_service.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
+import '../../core/network/api_exception.dart';
+import '../../data/datasources/auth/kakao_login_service.dart';
+import '../../data/repositories/auth/auth_repository.dart';
+import '../home/temporary_home_screen.dart';
 
 class LoginScreen extends StatelessWidget {
+  static const double _carrierWidth = 231.3;
+  static const double _carrierAspectRatio = 257 / 176;
+
   const LoginScreen({
     super.key,
     this.onAppleLogin,
@@ -35,28 +40,40 @@ class LoginScreen extends StatelessWidget {
         await AuthRepository().loginWithKakaoAccessToken(accessToken);
       }
 
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('카카오 로그인에 성공했어요.')));
-      }
+      if (!context.mounted) return;
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(builder: (_) => const TemporaryHomeScreen()),
+      );
     } on KakaoLoginCanceledException {
       return;
-    } catch (error, stackTrace) {
-      FlutterError.reportError(
-        FlutterErrorDetails(
-          exception: error,
-          stack: stackTrace,
-          library: 'Kakao Login',
-          context: ErrorDescription('카카오 로그인 처리 중'),
-        ),
-      );
+    } on ApiException catch (error, stackTrace) {
+      _reportLoginError(error, stackTrace);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('카카오 로그인에 실패했어요. 다시 시도해 주세요.')),
-        );
+        _showLoginError(context, error.message);
+      }
+    } catch (error, stackTrace) {
+      _reportLoginError(error, stackTrace);
+      if (context.mounted) {
+        _showLoginError(context, '카카오 로그인에 실패했어요. 다시 시도해 주세요.');
       }
     }
+  }
+
+  void _reportLoginError(Object error, StackTrace stackTrace) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'Kakao Login',
+        context: ErrorDescription('카카오 로그인 처리 중'),
+      ),
+    );
+  }
+
+  void _showLoginError(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -66,114 +83,113 @@ class LoginScreen extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final screenHeight = constraints.maxHeight;
-          final panelHeight = screenHeight < 760 ? 196.0 : 211.0;
-          final verticalScale = (screenHeight / 852).clamp(0.85, 1.15);
+          final contentHeight = screenHeight < 700 ? 700.0 : screenHeight;
+          final panelHeight = contentHeight < 760 ? 196.0 : 211.0;
+          final verticalScale = (contentHeight / 852).clamp(0.85, 1.15);
 
-          return Stack(
-            alignment: Alignment.center,
-            children: [
-              Positioned(
-                top: 60 * verticalScale,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Image.asset(
-                    AppImages.miniLogo,
-                    package: assetPackage,
-                    width: 70 * verticalScale,
-                    height: 32 * verticalScale,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 242 * verticalScale,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Image.asset(
-                    AppImages.posongCarrier,
-                    package: assetPackage,
-                    width: 257 * 0.9 * verticalScale,
-                    height: 176 * 0.9 * verticalScale,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 453 * verticalScale,
-                left: 0,
-                right: 0,
-                child: Text(
-                  '지금 포짓과 함께 여행을 떠나볼까요?',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.subTitle.copyWith(
-                    color: AppColors.text,
-                    fontWeight: FontWeight.w500,
-                    package: assetPackage,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 487 * verticalScale,
-                left: 0,
-                right: 0,
-                child: Text(
-                  '여행의 순간을 남기는 가장 쉬운 방법',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.gray5,
-                    fontWeight: FontWeight.w500,
-                    package: assetPackage,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 17,
-                right: 16,
-                bottom: 0,
-                height: panelHeight,
-                child: const DecoratedBox(
-                  decoration: ShapeDecoration(
-                    color: AppColors.loginPanelBackground,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(50),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: panelHeight - 51,
-                child: _LoginGuideBadge(assetPackage: assetPackage),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 70,
-                child: Center(
-                  child: Row(
+          return SingleChildScrollView(
+            child: SizedBox(
+              width: constraints.maxWidth,
+              height: contentHeight,
+              child: Column(
+                children: [
+                  Column(
+                    key: const Key('login-intro'),
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _SocialLoginButton(
-                        semanticLabel: 'Apple로 로그인',
-                        asset: AppImages.apple,
-                        assetPackage: assetPackage,
-                        onTap: onAppleLogin,
+                      SafeArea(
+                        bottom: false,
+                        child: SizedBox(
+                          height: 44,
+                          child: Center(
+                            child: Image.asset(
+                              AppImages.miniLogo,
+                              package: assetPackage,
+                              width: 70,
+                              height: 32,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
                       ),
-                      const SizedBox(width: 50),
-                      _SocialLoginButton(
-                        semanticLabel: '카카오로 로그인',
-                        asset: AppImages.kakao,
-                        assetPackage: assetPackage,
-                        onTap: () => _handleKakaoLogin(context),
+                      SizedBox(height: 150 * verticalScale),
+                      SizedBox(
+                        width: _carrierWidth * verticalScale,
+                        child: AspectRatio(
+                          aspectRatio: _carrierAspectRatio,
+                          child: Image.asset(
+                            AppImages.posongCarrier,
+                            package: assetPackage,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 52.6 * verticalScale),
+                      Text(
+                        '지금 포짓과 함께 여행을 떠나볼까요?',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.subTitle.copyWith(
+                          color: AppColors.text,
+                          fontWeight: FontWeight.w500,
+                          package: assetPackage,
+                        ),
+                      ),
+                      SizedBox(height: 14 * verticalScale),
+                      Text(
+                        '여행의 순간을 남기는 가장 쉬운 방법',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.gray5,
+                          fontWeight: FontWeight.w500,
+                          package: assetPackage,
+                        ),
                       ),
                     ],
                   ),
-                ),
+                  const Spacer(),
+                  Container(
+                    width: double.infinity,
+                    height: panelHeight,
+                    margin: const EdgeInsets.only(left: 17, right: 16),
+                    decoration: const ShapeDecoration(
+                      color: AppColors.loginPanelBackground,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(50),
+                        ),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 15),
+                        _LoginGuideBadge(assetPackage: assetPackage),
+                        const SizedBox(height: 30),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _SocialLoginButton(
+                              semanticLabel: 'Apple로 로그인',
+                              asset: AppImages.apple,
+                              assetPackage: assetPackage,
+                              onTap: onAppleLogin,
+                            ),
+                            const SizedBox(width: 50),
+                            _SocialLoginButton(
+                              semanticLabel: '카카오로 로그인',
+                              asset: AppImages.kakao,
+                              assetPackage: assetPackage,
+                              onTap: () => _handleKakaoLogin(context),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           );
         },
       ),
@@ -189,9 +205,9 @@ class _LoginGuideBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 170,
-      height: 36,
-      alignment: Alignment.center,
+      key: const Key('login-guide-badge'),
+      constraints: const BoxConstraints(minWidth: 170),
+      padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 11),
       decoration: const ShapeDecoration(
         color: AppColors.white,
         shape: StadiumBorder(),
@@ -233,7 +249,17 @@ class _SocialLoginButton extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: SizedBox.square(
           dimension: 60,
-          child: Center(
+          child: DecoratedBox(
+            decoration: const ShapeDecoration(
+              shape: CircleBorder(),
+              shadows: [
+                BoxShadow(
+                  color: AppColors.socialLoginShadow,
+                  blurRadius: 4,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
             child: Image.asset(
               asset,
               package: assetPackage,
@@ -251,6 +277,12 @@ class _SocialLoginButton extends StatelessWidget {
 Widget loginScreenPreview() {
   return const MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: LoginScreen(assetPackage: 'pozit'),
+    home: MediaQuery(
+      data: MediaQueryData(
+        size: Size(393, 852),
+        padding: EdgeInsets.only(top: 59, bottom: 34),
+      ),
+      child: LoginScreen(assetPackage: 'pozit'),
+    ),
   );
 }

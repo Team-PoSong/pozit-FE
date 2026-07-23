@@ -24,9 +24,6 @@ class AppIcons {
   static const String hasNotification = '$_basePath/ic_notification_has.svg';
   static const String noNotification = '$_basePath/ic_notification_no.svg';
 
-  static const String apple = '$_basePath/ic_apple.svg';
-  static const String kakao = '$_basePath/ic_kakao.svg';
-
   static const String travel = '$_basePath/ic_travel.svg';
   static const String search = '$_basePath/ic_search.svg';
   static const String pin = '$_basePath/ic_pin_gray.svg';
@@ -37,6 +34,7 @@ class AppIcons {
   static const String arrowLeft = '$_basePath/ic_arrow_left_black.svg';
   static const String arrowLeftWhite = '$_basePath/ic_arrow_left_white.svg';
   static const String check = '$_basePath/ic_check.svg';
+  static const String checkUnactive = '$_basePath/ic_check_unactive.svg';
   static const String wish = '$_basePath/ic_wish.svg';
   static const String heartLarge = '$_basePath/ic_heart_large.svg';
   static const String heartLargeGray = '$_basePath/ic_heart_large_gray.svg';
@@ -70,6 +68,7 @@ class AppIcons {
   static const String group = '$_basePath/ic_group.svg';
   static const String groupGray = '$_basePath/ic_group_gray.svg';
   static const String trash = '$_basePath/ic_trash.svg';
+  static const String trashBlack = '$_basePath/ic_trash_black.svg';
   static const String exit = '$_basePath/ic_exit.svg';
   static const String cameraOff = '$_basePath/ic_off_camera.svg';
   static const String cameraOn = '$_basePath/ic_on_camera.svg';

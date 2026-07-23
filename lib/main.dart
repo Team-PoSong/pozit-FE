@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
-// TODO: import 경로 변경 필요!!!!!!!
-import 'package:pozit/core/auth/auth_token_storage.dart';
 import 'package:pozit/core/config/app_config.dart';
 import 'package:pozit/core/design_system/app_colors.dart';
 import 'package:pozit/core/network/dio_client.dart';
-import 'package:pozit/screens/auth/login_screen.dart';
+import 'package:pozit/data/datasources/auth/auth_token_storage.dart';
+import 'package:pozit/screens/auth/auth_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +30,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.white,
         fontFamily: 'Pretendard',
       ),
-      home: const LoginScreen(),
+      home: const AuthGate(),
     );
   }
 }

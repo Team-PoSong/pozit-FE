@@ -1,7 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import 'login_token.dart';
-
 class AuthTokenStorage {
   const AuthTokenStorage({FlutterSecureStorage? storage})
     : _storage = storage ?? const FlutterSecureStorage();
@@ -11,10 +9,13 @@ class AuthTokenStorage {
 
   final FlutterSecureStorage _storage;
 
-  Future<void> save(LoginToken token) async {
+  Future<void> save({
+    required String accessToken,
+    required String tokenType,
+  }) async {
     await Future.wait([
-      _storage.write(key: _accessTokenKey, value: token.accessToken),
-      _storage.write(key: _tokenTypeKey, value: token.tokenType),
+      _storage.write(key: _accessTokenKey, value: accessToken),
+      _storage.write(key: _tokenTypeKey, value: tokenType),
     ]);
   }
 
