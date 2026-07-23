@@ -206,8 +206,10 @@ Future<void> showTravelSettingsPopup(
   final overlay = Overlay.of(context);
   final completer = Completer<void>();
   late final OverlayEntry entry;
+  AnimationController? controller;
 
-  void close() {
+  Future<void> close() async {
+    await controller?.reverse();
     entry.remove();
     completer.complete();
   }
@@ -237,13 +239,16 @@ Future<void> showTravelSettingsPopup(
           targetAnchor: Alignment.topRight,
           followerAnchor: Alignment.topRight,
           offset: const Offset(1, -10),
-          child: TravelSettingsPopup(
-            status: status,
-            onClose: close,
-            onSettingsTap: wrap(onSettingsTap),
-            onMemberTap: wrap(onMemberTap),
-            onLeaveTap: wrap(onLeaveTap),
-            onDeleteTap: wrap(onDeleteTap),
+          child: _PopupTransition(
+            onControllerReady: (c) => controller = c,
+            child: TravelSettingsPopup(
+              status: status,
+              onClose: close,
+              onSettingsTap: wrap(onSettingsTap),
+              onMemberTap: wrap(onMemberTap),
+              onLeaveTap: wrap(onLeaveTap),
+              onDeleteTap: wrap(onDeleteTap),
+            ),
           ),
         ),
       ],
@@ -252,6 +257,55 @@ Future<void> showTravelSettingsPopup(
 
   overlay.insert(entry);
   return completer.future;
+}
+
+/// 팝업이 앵커(오른쪽 상단, 설정 아이콘 위치)를 기준으로 페이드인+스케일업 되며
+/// 나타나도록 감싸는 위젯입니다.
+class _PopupTransition extends StatefulWidget {
+  const _PopupTransition({required this.child, required this.onControllerReady});
+
+  final Widget child;
+  final ValueChanged<AnimationController> onControllerReady;
+
+  @override
+  State<_PopupTransition> createState() => _PopupTransitionState();
+}
+
+class _PopupTransitionState extends State<_PopupTransition>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 180),
+  );
+  late final Animation<double> _scale = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeOut,
+  ).drive(Tween<double>(begin: 0.9, end: 1.0));
+
+  @override
+  void initState() {
+    super.initState();
+    widget.onControllerReady(_controller);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _controller,
+      child: ScaleTransition(
+        scale: _scale,
+        alignment: Alignment.topRight,
+        child: widget.child,
+      ),
+    );
+  }
 }
 
 class _TravelSettingsPopupPreview extends StatefulWidget {
