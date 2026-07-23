@@ -93,17 +93,24 @@ class LoginScreen extends StatelessWidget {
               height: contentHeight,
               child: Column(
                 children: [
-                  SizedBox(height: 60 * verticalScale),
                   Column(
                     key: const Key('login-intro'),
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset(
-                        AppImages.miniLogo,
-                        package: assetPackage,
-                        width: 70 * verticalScale,
-                        height: 32 * verticalScale,
-                        fit: BoxFit.contain,
+                      SafeArea(
+                        bottom: false,
+                        child: SizedBox(
+                          height: 44,
+                          child: Center(
+                            child: Image.asset(
+                              AppImages.miniLogo,
+                              package: assetPackage,
+                              width: 70,
+                              height: 32,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
                       ),
                       SizedBox(height: 150 * verticalScale),
                       SizedBox(
@@ -270,6 +277,12 @@ class _SocialLoginButton extends StatelessWidget {
 Widget loginScreenPreview() {
   return const MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: LoginScreen(assetPackage: 'pozit'),
+    home: MediaQuery(
+      data: MediaQueryData(
+        size: Size(393, 852),
+        padding: EdgeInsets.only(top: 59, bottom: 34),
+      ),
+      child: LoginScreen(assetPackage: 'pozit'),
+    ),
   );
 }
