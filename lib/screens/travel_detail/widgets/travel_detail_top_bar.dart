@@ -11,10 +11,12 @@ const double _kHeight = 56.0;
 const double _kHorizontalPadding = 16.0;
 const double _kTapTargetPadding = 10.0;
 const double _kIconSize = 24.0;
-const double _kLockIconSize = 16.0;
-const double _kLockTextGap = 6.0;
-const double _kTravelStatusScale = 0.8;
-const double _kTitleSidePadding = 56.0;
+const double _kLockTextGap = 13.0;
+const double _kTitleSidePadding = 60.0;
+const double _kIconTop = (_kHeight - _kIconSize) / 2;
+
+const double _kTravelStatusWidth = 210.0;
+const double _kTravelStatusHeight = 31.0;
 
 /// 여행 상세 화면 전용 탑 바입니다.
 ///
@@ -78,8 +80,8 @@ class TravelDetailTopBar extends StatelessWidget {
                   if (showLock) ...[
                     SvgPicture.asset(
                       AppIcons.lockClosed,
-                      width: _kLockIconSize,
-                      height: _kLockIconSize,
+                      width: _kIconSize,
+                      height: _kIconSize,
                       colorFilter: ColorFilter.mode(
                         iconColor,
                         BlendMode.srcIn,
@@ -92,7 +94,7 @@ class TravelDetailTopBar extends StatelessWidget {
                       title!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.subTitle.copyWith(color: textColor),
+                      style: AppTextStyles.headline.copyWith(color: textColor),
                     ),
                   ),
                 ],
@@ -100,6 +102,7 @@ class TravelDetailTopBar extends StatelessWidget {
             ),
           Positioned(
             left: _kHorizontalPadding - _kTapTargetPadding,
+            top: _kIconTop - _kTapTargetPadding,
             child: _IconButton(
               icon: AppIcons.arrowLeft,
               iconColor: iconColor,
@@ -109,14 +112,17 @@ class TravelDetailTopBar extends StatelessWidget {
           if (travelStatusMode != null)
             Positioned(
               right: _kHorizontalPadding,
-              child: Transform.scale(
-                scale: _kTravelStatusScale,
+              top: _kIconTop,
+              child: SizedBox(
+                width: _kTravelStatusWidth,
+                height: _kTravelStatusHeight,
                 child: TravelStatusIndicator(mode: travelStatusMode!),
               ),
             )
           else if (showSettingsButton)
             Positioned(
               right: _kHorizontalPadding - _kTapTargetPadding,
+              top: _kIconTop - _kTapTargetPadding,
               child: _IconButton(
                 icon: AppIcons.more,
                 iconColor: iconColor,
