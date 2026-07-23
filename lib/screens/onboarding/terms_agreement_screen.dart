@@ -67,7 +67,7 @@ class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 46),
+              const SizedBox(height: 56),
               _AgreementRow(
                 label: '모두 동의합니다',
                 isChecked: _areAllAgreed,

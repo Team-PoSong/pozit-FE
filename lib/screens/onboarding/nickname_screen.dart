@@ -94,7 +94,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
                   letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 46),
+              const SizedBox(height: 56),
               Text(
                 '닉네임',
                 style: AppTextStyles.subTitle.copyWith(color: AppColors.text),
