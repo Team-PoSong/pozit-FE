@@ -67,7 +67,7 @@ class _AppMakeTravelState extends State<AppMakeTravel> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           constraints: const BoxConstraints(minWidth: 189),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: _isSelected ? AppColors.primary : AppColors.gray2,
