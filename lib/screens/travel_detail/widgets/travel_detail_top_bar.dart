@@ -5,6 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_icons.dart';
 import '../../../core/design_system/app_text_styles.dart';
+import '../../../core/design_system/app_travel_status.dart';
+import 'travel_settings_popup.dart';
 import 'travel_status.dart';
 
 const double _kHeight = 56.0;
@@ -31,13 +33,21 @@ class TravelDetailTopBar extends StatelessWidget {
     this.showLock = false,
     this.showSettingsButton = false,
     this.travelStatusMode,
+    this.travelStatus,
     this.onBackTap,
     this.onSettingsTap,
+    this.onMemberTap,
+    this.onLeaveTap,
+    this.onDeleteTap,
     this.iconColor = AppColors.text,
     this.textColor = AppColors.text,
   }) : assert(
          travelStatusMode == null || !showSettingsButton,
          'travelStatusMode와 showSettingsButton은 동시에 사용할 수 없습니다.',
+       ),
+       assert(
+         !showSettingsButton || travelStatus != null,
+         'showSettingsButton이 true면 travelStatus가 필요합니다.',
        );
 
   /// 중앙에 표시할 제목. null이면 제목 대신 [travelStatusMode]가 표시됩니다.
@@ -52,8 +62,23 @@ class TravelDetailTopBar extends StatelessWidget {
   /// 오른쪽 끝에 표시할 여행 상태. 지정하면 [title]과 [showSettingsButton]은 무시됩니다.
   final TravelStatusMode? travelStatusMode;
 
+  /// 설정 버튼을 눌렀을 때 뜨는 [TravelSettingsPopup]에 표시할 항목을 결정하는
+  /// 여행 진행 상태입니다. [showSettingsButton]이 true이면 필수입니다.
+  final AppTravelStatus? travelStatus;
+
   final VoidCallback? onBackTap;
+
+  /// 설정 팝업의 '여행 설정' 항목을 눌렀을 때 호출됩니다.
   final VoidCallback? onSettingsTap;
+
+  /// 설정 팝업의 '멤버' 항목을 눌렀을 때 호출됩니다.
+  final VoidCallback? onMemberTap;
+
+  /// 설정 팝업의 '여행 나가기' 항목을 눌렀을 때 호출됩니다.
+  final VoidCallback? onLeaveTap;
+
+  /// 설정 팝업의 '여행 삭제' 항목을 눌렀을 때 호출됩니다.
+  final VoidCallback? onDeleteTap;
 
   /// 뒤로가기·설정·자물쇠 아이콘의 색상입니다.
   final Color iconColor;
@@ -123,13 +148,65 @@ class TravelDetailTopBar extends StatelessWidget {
             Positioned(
               right: _kHorizontalPadding - _kTapTargetPadding,
               top: _kIconTop - _kTapTargetPadding,
-              child: _IconButton(
-                icon: AppIcons.more,
+              child: _SettingsButton(
                 iconColor: iconColor,
-                onTap: onSettingsTap,
+                travelStatus: travelStatus!,
+                onSettingsTap: onSettingsTap,
+                onMemberTap: onMemberTap,
+                onLeaveTap: onLeaveTap,
+                onDeleteTap: onDeleteTap,
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _SettingsButton extends StatefulWidget {
+  const _SettingsButton({
+    required this.iconColor,
+    required this.travelStatus,
+    this.onSettingsTap,
+    this.onMemberTap,
+    this.onLeaveTap,
+    this.onDeleteTap,
+  });
+
+  final Color iconColor;
+  final AppTravelStatus travelStatus;
+  final VoidCallback? onSettingsTap;
+  final VoidCallback? onMemberTap;
+  final VoidCallback? onLeaveTap;
+  final VoidCallback? onDeleteTap;
+
+  @override
+  State<_SettingsButton> createState() => _SettingsButtonState();
+}
+
+class _SettingsButtonState extends State<_SettingsButton> {
+  final LayerLink _anchorLink = LayerLink();
+
+  void _handleTap() {
+    showTravelSettingsPopup(
+      context,
+      anchorLink: _anchorLink,
+      status: widget.travelStatus,
+      onSettingsTap: widget.onSettingsTap,
+      onMemberTap: widget.onMemberTap,
+      onLeaveTap: widget.onLeaveTap,
+      onDeleteTap: widget.onDeleteTap,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _anchorLink,
+      child: _IconButton(
+        icon: AppIcons.more,
+        iconColor: widget.iconColor,
+        onTap: _handleTap,
       ),
     );
   }
@@ -177,7 +254,11 @@ Widget travelDetailTopBarTitleOnlyPreview() {
 Widget travelDetailTopBarWithSettingsPreview() {
   return const MaterialApp(
     home: Scaffold(
-      body: TravelDetailTopBar(title: '경주 여행!!', showSettingsButton: true),
+      body: TravelDetailTopBar(
+        title: '경주 여행!!',
+        showSettingsButton: true,
+        travelStatus: AppTravelStatus.upcoming,
+      ),
     ),
   );
 }
@@ -190,6 +271,7 @@ Widget travelDetailTopBarWithLockPreview() {
         title: '경주 여행!!',
         showLock: true,
         showSettingsButton: true,
+        travelStatus: AppTravelStatus.completed,
       ),
     ),
   );
