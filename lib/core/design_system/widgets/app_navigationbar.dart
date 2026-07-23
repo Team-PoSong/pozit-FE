@@ -88,6 +88,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 35),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 SizedBox(
                                   width: 30,
@@ -104,9 +105,6 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                                         _handleTabTap(AppNavigationTab.travel),
                                   ),
                                 ),
-                                const Spacer(),
-                                const SizedBox(width: 94),
-                                const Spacer(),
                                 SizedBox(
                                   width: 30,
                                   child: _NavigationItem(
