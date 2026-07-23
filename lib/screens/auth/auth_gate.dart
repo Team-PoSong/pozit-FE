@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
@@ -123,4 +124,16 @@ class _AuthGateState extends State<AuthGate> {
       ),
     };
   }
+}
+
+@Preview(group: 'hycho', name: 'Auth Gate Error', size: Size(393, 852))
+Widget authGateErrorPreview() {
+  return MaterialApp(
+    home: AuthGate(
+      readAccessToken: () async => 'preview-token',
+      validateSession: () async {
+        throw const ApiException('네트워크 연결을 확인해 주세요.');
+      },
+    ),
+  );
 }
