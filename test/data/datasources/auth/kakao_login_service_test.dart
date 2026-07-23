@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/data/datasources/auth/kakao_login_service.dart';
 
 void main() {
-  test('카카오톡 앱 로그인에 기술적 오류가 나면 웹 로그인으로 전환한다', () async {
+  test('카카오톡 앱 로그인에 오류가 나면 웹 로그인 없이 오류를 전달한다', () async {
     var accountLoginCallCount = 0;
     final service = KakaoLoginService(
       isTalkInstalled: () async => true,
@@ -14,8 +14,8 @@ void main() {
       },
     );
 
-    expect(await service.login(), 'account-token');
-    expect(accountLoginCallCount, 1);
+    await expectLater(service.login(), throwsA(isA<StateError>()));
+    expect(accountLoginCallCount, 0);
   });
 
   test('카카오톡 앱 로그인이 성공하면 웹 로그인을 시도하지 않는다', () async {
