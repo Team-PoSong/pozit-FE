@@ -150,7 +150,7 @@ class _InfoTag extends StatelessWidget {
     // 늘려 더 얇고 넓은 필(pill) 형태로 조정했습니다. 디자인에 정확한
     // 수치가 있다면 그 값으로 다시 맞춰주세요.
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: const ShapeDecoration(
         color: AppColors.white,
         shape: StadiumBorder(
