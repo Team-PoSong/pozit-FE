@@ -116,10 +116,10 @@ class _AppMapCardState extends State<AppMapCard> {
     bool isSelected,
   ) async {
     // '방문중'은 travel_status.dart의 _VisitingItem 스타일(흰 원 + 그림자 +
-    // 포솜 아이콘)을 그대로 가져오되 30x30으로 키운 것이라, 선택 강조 테두리를
-    // 따로 겹치지 않습니다.
+    // 포솜 아이콘)을 그대로 가져오되 30x30으로 키운 것입니다. 선택된
+    // 경우에는 다른 상태와 동일하게 Purple3/1.5px 테두리를 추가합니다.
     if (status == MapMarkerStatus.visiting) {
-      return _buildVisitingStyle();
+      return _buildVisitingStyle(isSelected);
     }
 
     final isVisited = status == MapMarkerStatus.visited;
@@ -152,15 +152,20 @@ class _AppMapCardState extends State<AppMapCard> {
     );
   }
 
-  static Future<PoiStyle> _buildVisitingStyle() async {
+  static Future<PoiStyle> _buildVisitingStyle(bool isSelected) async {
     final icon = await KImage.fromWidget(
       Container(
         width: _kVisitingMarkerSize,
         height: _kVisitingMarkerSize,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: AppColors.white,
-          boxShadow: [BoxShadow(color: Color(0x669FA1FF), blurRadius: 4)],
+          border: isSelected
+              ? Border.all(color: AppColors.purple3, width: 1.5)
+              : null,
+          boxShadow: const [
+            BoxShadow(color: Color(0x669FA1FF), blurRadius: 4),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(3.0, 3.999, 3.066, 3.44) *
