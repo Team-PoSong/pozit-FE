@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
+import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
@@ -104,6 +105,55 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     final courses = _coursesForSelectedDay;
     if (courses.isEmpty) return null;
     return courses[_selectedCourseIndex.clamp(0, courses.length - 1)];
+  }
+
+  /// 선택된 일차에 속한 "모든" 코스의 여행지를 touristSpotId 기준으로 하나로
+  /// 합칩니다. 같은 일차 안에서 코스를 스와이프해도 지도의 원+연결선은
+  /// 이 고정된 집합 그대로이고, 오직 어떤 원이 강조(isSelected)되는지만
+  /// 바뀝니다.
+  ///
+  /// 합친 순서는 "코스 목록에서 가장 먼저 나오는 코스"의 orderIndex 순서를
+  /// 기준으로 하고, 거기 없는 장소(다른 코스에만 있는 장소)는 뒤에
+  /// 덧붙입니다. 여러 코스에 같은 장소가 orderIndex/상태만 다르게 들어있는
+  /// 경우, 가장 먼저 등장한 값을 그대로 씁니다.
+  List<MapMarker> _mergedMarkersForSelectedDay() {
+    final coursesForDay = _coursesForSelectedDay;
+    if (coursesForDay.isEmpty) return const [];
+
+    final seenSpotIds = <int>{};
+    final merged = <CourseSpotModel>[];
+    for (final course in coursesForDay) {
+      final sorted = [...course.spots]
+        ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+      for (final spot in sorted) {
+        if (seenSpotIds.add(spot.touristSpotId)) {
+          merged.add(spot);
+        }
+      }
+    }
+
+    // 현재 보고 있는 코스(=지도 카드 제목)의 첫 번째 여행지만 강조합니다.
+    int? selectedSpotId;
+    final selected = _selectedCourse;
+    if (selected != null && selected.spots.isNotEmpty) {
+      final sortedSelected = [...selected.spots]
+        ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+      selectedSpotId = sortedSelected.first.touristSpotId;
+    }
+
+    return [
+      for (final spot in merged)
+        MapMarker(
+          position: LatLng(spot.latitude, spot.longitude),
+          label: spot.name,
+          status: switch (spot.status) {
+            'visited' => MapMarkerStatus.visited,
+            'visiting' => MapMarkerStatus.visiting,
+            _ => MapMarkerStatus.notVisited,
+          },
+          isSelected: spot.touristSpotId == selectedSpotId,
+        ),
+    ];
   }
 
   void _handleDayChanged(int day) {
@@ -232,6 +282,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                       onHorizontalDragEnd: _handleMapSwipe,
                       child: AppMapCard(
                         title: _selectedCourse?.firstSpotName ?? '',
+                        markers: _mergedMarkersForSelectedDay(),
                         currentPage: coursePageIndex,
                         pageCount: coursePageCount,
                         onCourseTap: widget.onCourseTap,
