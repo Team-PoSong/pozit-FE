@@ -12,13 +12,11 @@ import '../../../core/design_system/app_text_styles.dart';
 import '../../../core/design_system/app_travel_status.dart';
 
 class _MenuItemData {
-  final String icon;
   final String label;
   final Color color;
   final VoidCallback? onTap;
 
   const _MenuItemData({
-    required this.icon,
     required this.label,
     required this.color,
     required this.onTap,
@@ -29,7 +27,6 @@ class _MenuItemData {
 
 class TravelSettingsPopup extends StatelessWidget {
   final AppTravelStatus status;
-  final VoidCallback? onClose;
   final VoidCallback? onSettingsTap;
   final VoidCallback? onMemberTap;
   final VoidCallback? onLeaveTap;
@@ -38,7 +35,6 @@ class TravelSettingsPopup extends StatelessWidget {
   const TravelSettingsPopup({
     super.key,
     required this.status,
-    this.onClose,
     this.onSettingsTap,
     this.onMemberTap,
     this.onLeaveTap,
@@ -47,25 +43,21 @@ class TravelSettingsPopup extends StatelessWidget {
 
   List<_MenuItemData> get _items {
     final settings = _MenuItemData(
-      icon: AppIcons.travelLuggage,
       label: '여행 설정',
       color: AppColors.text,
       onTap: onSettingsTap,
     );
     final member = _MenuItemData(
-      icon: AppIcons.group,
       label: '멤버',
       color: AppColors.text,
       onTap: onMemberTap,
     );
     final leave = _MenuItemData(
-      icon: AppIcons.exit,
       label: '여행 나가기',
       color: AppColors.text,
       onTap: onLeaveTap,
     );
     final delete = _MenuItemData(
-      icon: AppIcons.trash,
       label: '여행 삭제',
       color: AppColors.error,
       onTap: onDeleteTap,
@@ -81,7 +73,7 @@ class TravelSettingsPopup extends StatelessWidget {
     }
   }
 
-  static const double _minWidth = 213.0;
+  static const double _minWidth = 150.0;
 
   @override
   Widget build(BuildContext context) {
@@ -105,42 +97,27 @@ class TravelSettingsPopup extends StatelessWidget {
               filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
               child: Container(
                 color: AppColors.white.withValues(alpha: 0.85),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: _CloseButton(onTap: onClose),
-                    ),
-                    for (var i = 0; i < _items.length; i++) ...[
-                      if (i > 0) const _PopupDivider(),
-                      _PopupMenuRow(data: _items[i], isFirst: i == 0),
+                // 이 팝업은 Overlay.of(context).insert(...)로 Scaffold의
+                // Material 밖(오버레이 레이어)에 직접 그려집니다. Material
+                // 조상이 없으면 디버그 빌드에서 Text에 노란 밑줄 경고가
+                // 붙으므로, transparency 타입의 Material로 감싸 해결합니다.
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var i = 0; i < _items.length; i++) ...[
+                        if (i > 0) const _PopupDivider(),
+                        _PopupMenuRow(data: _items[i]),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _CloseButton extends StatelessWidget {
-  final VoidCallback? onTap;
-
-  const _CloseButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 20.0, right: 11.0, left: 11.0),
-        child: SvgPicture.asset(AppIcons.close, width: 24.0, height: 24.0),
       ),
     );
   }
@@ -160,9 +137,8 @@ class _PopupDivider extends StatelessWidget {
 
 class _PopupMenuRow extends StatelessWidget {
   final _MenuItemData data;
-  final bool isFirst;
 
-  const _PopupMenuRow({required this.data, this.isFirst = false});
+  const _PopupMenuRow({required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -170,30 +146,18 @@ class _PopupMenuRow extends StatelessWidget {
       onTap: data.onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: EdgeInsets.only(
-          left: 16.0,
-          right: 16.0,
-          top: isFirst ? 0.0 : 12.0,
-          bottom: 12.0,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SvgPicture.asset(data.icon, width: 24.0, height: 24.0),
-            const SizedBox(width: 18.0),
-            Text(data.label, style: AppTextStyles.body.copyWith(color: data.color)),
-          ],
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: Text(data.label, style: AppTextStyles.body.copyWith(color: data.color)),
       ),
     );
   }
 }
 
-/// 여행 설정 팝업을 [anchorLink]가 붙은 트리거 버튼(설정 아이콘) 위에 겹쳐 띄웁니다.
+/// 여행 설정 팝업을 [anchorLink]가 붙은 트리거 버튼(설정 아이콘) 바로 아래에 띄웁니다.
 ///
 /// 호출하는 쪽에서는 트리거 버튼을 `CompositedTransformTarget(link: anchorLink, ...)`
-/// 로 감싸두면, 팝업의 'X' 아이콘이 트리거의 설정 아이콘과 같은 위치에 오도록
-/// 붙습니다.
+/// 로 감싸두면, 팝업의 오른쪽 상단 모서리가 트리거의 오른쪽 하단 모서리에
+/// 맞춰집니다.
 Future<void> showTravelSettingsPopup(
   BuildContext context, {
   required LayerLink anchorLink,
@@ -233,17 +197,15 @@ Future<void> showTravelSettingsPopup(
         ),
         CompositedTransformFollower(
           link: anchorLink,
-          // 트리거의 설정 아이콘(44x44 탭 영역, 10px 인셋)과 팝업의 'X' 아이콘
-          // (top 20 / right 11 인셋)이 정확히 겹치도록 오른쪽 상단 모서리를
-          // 기준으로 맞추고 두 인셋 차이만큼 offset으로 보정합니다.
-          targetAnchor: Alignment.topRight,
+          // 트리거(설정 아이콘)의 오른쪽 하단 모서리에 팝업의 오른쪽 상단
+          // 모서리를 붙여서, 팝업이 트리거 바로 아래에 오도록 합니다.
+          targetAnchor: Alignment.bottomRight,
           followerAnchor: Alignment.topRight,
-          offset: const Offset(1, -10),
+          offset: const Offset(-10, 0),
           child: _PopupTransition(
             onControllerReady: (c) => controller = c,
             child: TravelSettingsPopup(
               status: status,
-              onClose: close,
               onSettingsTap: wrap(onSettingsTap),
               onMemberTap: wrap(onMemberTap),
               onLeaveTap: wrap(onLeaveTap),
