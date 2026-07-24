@@ -351,7 +351,7 @@ class _TravelCardContent extends StatelessWidget {
           else
             Row(
               children: [
-                SvgPicture.asset(AppIcons.groupGray, width: 14, height: 14),
+                SvgPicture.asset(AppIcons.groupGray, width: 16, height: 16),
                 const SizedBox(width: 5),
                 Text(
                   participantCount == null
