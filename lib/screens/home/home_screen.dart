@@ -81,9 +81,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (tab == AppNavigationTab.explore) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: (_) => const ExploreScreen()));
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ExploreScreen(
+            hasNotification: widget.hasNotification,
+            onNotificationTap: widget.onNotificationTap,
+            onWishTap: widget.onWishTap,
+            onMyPageTap: widget.onMyPageTap,
+            onNavigationChanged: widget.onNavigationChanged,
+            onPosongTap: widget.onPosongTap,
+            isCameraReady: widget.isCameraReady,
+            assetPackage: widget.assetPackage,
+          ),
+        ),
+      );
     }
   }
 

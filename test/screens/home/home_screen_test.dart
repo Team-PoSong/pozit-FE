@@ -82,4 +82,41 @@ void main() {
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.byType(ExploreScreen), findsNothing);
   });
+
+  testWidgets('탐색 화면에 공통 화면 의존성을 전달한다', (tester) async {
+    void onNotificationTap() {}
+    void onWishTap() {}
+    void onMyPageTap() {}
+    void onPosongTap() {}
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeScreen(
+          hasNotification: true,
+          onNotificationTap: onNotificationTap,
+          onWishTap: onWishTap,
+          onMyPageTap: onMyPageTap,
+          onPosongTap: onPosongTap,
+          isCameraReady: true,
+          assetPackage: 'pozit',
+        ),
+      ),
+    );
+
+    await tester.tap(find.bySemanticsLabel('탐색'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final exploreScreen = tester.widget<ExploreScreen>(
+      find.byType(ExploreScreen),
+    );
+
+    expect(exploreScreen.hasNotification, isTrue);
+    expect(exploreScreen.onNotificationTap, same(onNotificationTap));
+    expect(exploreScreen.onWishTap, same(onWishTap));
+    expect(exploreScreen.onMyPageTap, same(onMyPageTap));
+    expect(exploreScreen.onPosongTap, same(onPosongTap));
+    expect(exploreScreen.isCameraReady, isTrue);
+    expect(exploreScreen.assetPackage, 'pozit');
+  });
 }
