@@ -141,6 +141,12 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
       selectedSpotId = sortedSelected.first.touristSpotId;
     }
 
+    // TravelStatusIndicator와 동일하게, '방문중' 개념은 여행이 실제로
+    // 진행 중일 때만 존재합니다(여행 전/후에는 지도 아래 인디케이터에도
+    // '방문중' 항목이 없습니다). 그래서 여행 중이 아니면 status가
+    // 'visiting'이어도 미방문으로 취급합니다.
+    final allowVisiting = widget.status == AppTravelStatus.inProgress;
+
     return [
       for (final spot in merged)
         MapMarker(
@@ -148,7 +154,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
           label: spot.name,
           status: switch (spot.status) {
             'visited' => MapMarkerStatus.visited,
-            'visiting' => MapMarkerStatus.visiting,
+            'visiting' when allowVisiting => MapMarkerStatus.visiting,
             _ => MapMarkerStatus.notVisited,
           },
           isSelected: spot.touristSpotId == selectedSpotId,
