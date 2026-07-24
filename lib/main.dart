@@ -28,7 +28,7 @@ Future<void> main() async {
 
   // TODO(임시): 지도 마커 연동을 실기로 확인하기 위한 임시 진입점입니다.
   // 확인이 끝나면 아래를 `runApp(const MyApp());`로 되돌려주세요.
-  runApp(const _MapMarkerPreviewApp());
+  runApp(const MyApp());
 }
 
 class _MapMarkerPreviewApp extends StatelessWidget {
@@ -262,7 +262,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
       title: '지도 마커 연동 확인',
       home: TravelDetailScreen(
         info: info,
-        status: AppTravelStatus.inProgress,
+        status: AppTravelStatus.completed,
         courses: courses,
       ),
     );
