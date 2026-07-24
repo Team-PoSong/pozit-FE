@@ -10,6 +10,7 @@ import '../../core/design_system/widgets/app_bottom_gradient.dart';
 import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
+import '../explore/explore_screen.dart';
 import 'widgets/travel_completion_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -73,6 +74,19 @@ class _HomeScreenState extends State<HomeScreen> {
     widget.onJoinWithInviteCodeTap?.call();
   }
 
+  void _handleNavigationChanged(AppNavigationTab tab) {
+    if (widget.onNavigationChanged != null) {
+      widget.onNavigationChanged?.call(tab);
+      return;
+    }
+
+    if (tab == AppNavigationTab.explore) {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => const ExploreScreen()));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
               right: 0,
               child: AppNavigationBar(
                 selectedTab: AppNavigationTab.travel,
-                onChanged: widget.onNavigationChanged,
+                onChanged: _handleNavigationChanged,
                 onPosongTap: widget.onPosongTap,
                 isCameraReady: widget.isCameraReady,
                 assetPackage: widget.assetPackage,
