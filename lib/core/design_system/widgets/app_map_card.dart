@@ -279,8 +279,33 @@ class _AppMapCardState extends State<AppMapCard> {
   @override
   void didUpdateWidget(covariant AppMapCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!listEquals(oldWidget.markers, widget.markers)) {
+    if (listEquals(oldWidget.markers, widget.markers)) return;
+
+    if (_samePositions(oldWidget.markers, widget.markers)) {
+      // 좌표 집합(=원과 연결선의 모양)은 그대로고 상태/선택 표시만 바뀐
+      // 경우입니다(예: 코스 스와이프로 강조 원만 이동). 전체를 지웠다가
+      // 다시 그리면 그 찰나에 원들이 사라져, 계속 떠 있던 연결선이 잠깐
+      // 위로 비쳐 보이는 깜빡임이 생겼습니다. 해당 마커만 제자리에서
+      // 스타일을 바꿔치기하고, 선은 손대지 않습니다.
+      _updateMarkerStyles();
+    } else {
       _renderOverlays();
+    }
+  }
+
+  bool _samePositions(List<MapMarker> a, List<MapMarker> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].position != b[i].position) return false;
+    }
+    return true;
+  }
+
+  Future<void> _updateMarkerStyles() async {
+    for (var i = 0; i < widget.markers.length && i < _pois.length; i++) {
+      final marker = widget.markers[i];
+      final style = await _styleFor(marker.status, marker.isSelected);
+      await _pois[i].changeStyles(style);
     }
   }
 
