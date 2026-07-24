@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pozit/core/design_system/widgets/app_bottom_gradient.dart';
 import 'package:pozit/core/design_system/widgets/app_main_header.dart';
 import 'package:pozit/core/design_system/widgets/app_navigationbar.dart';
+import 'package:pozit/screens/explore/explore_screen.dart';
 import 'package:pozit/screens/home/home_screen.dart';
 import 'package:pozit/screens/home/widgets/travel_completion_toggle.dart';
 
@@ -65,5 +66,20 @@ void main() {
 
     expect(find.text('여행 만들기'), findsNothing);
     expect(find.bySemanticsLabel('여행 메뉴 열기'), findsOneWidget);
+  });
+
+  testWidgets('하단 네비게이션으로 여행 홈과 탐색 화면을 왕복한다', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    await tester.tap(find.bySemanticsLabel('탐색'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExploreScreen), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('여행'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.byType(ExploreScreen), findsNothing);
   });
 }
