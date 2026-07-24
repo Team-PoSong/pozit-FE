@@ -151,9 +151,9 @@ class _InfoTag extends StatelessWidget {
     // 수치가 있다면 그 값으로 다시 맞춰주세요.
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: const ShapeDecoration(
-        color: AppColors.white,
-        shape: StadiumBorder(
+      decoration: ShapeDecoration(
+        color: AppColors.white.withValues(alpha: 0.9),
+        shape: const StadiumBorder(
           side: BorderSide(color: AppColors.gray5, width: 0.5),
         ),
       ),

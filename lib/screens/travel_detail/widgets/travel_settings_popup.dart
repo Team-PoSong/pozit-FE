@@ -96,7 +96,7 @@ class TravelSettingsPopup extends StatelessWidget {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
               child: Container(
-                color: AppColors.white.withValues(alpha: 0.85),
+                color: AppColors.white.withValues(alpha: 0.65),
                 // 이 팝업은 Overlay.of(context).insert(...)로 Scaffold의
                 // Material 밖(오버레이 레이어)에 직접 그려집니다. Material
                 // 조상이 없으면 디버그 빌드에서 Text에 노란 밑줄 경고가
