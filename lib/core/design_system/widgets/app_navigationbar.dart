@@ -280,8 +280,8 @@ class _CenterButtonState extends State<_CenterButton>
                 boxShadow: [
                   BoxShadow(
                     color: widget.isCameraReady
-                        ? AppColors.purple2.withValues(alpha: 0.65)
-                        : AppColors.navigationBorderStart,
+                        ? const Color(0xFFC7C8FF).withValues(alpha: 0.72)
+                        : const Color(0xFFECEBFF),
                     blurRadius: glowBlur,
                   ),
                 ],
@@ -300,22 +300,34 @@ class _CenterButtonState extends State<_CenterButton>
                           gradient: widget.isCameraReady
                               ? const SweepGradient(
                                   colors: [
-                                    AppColors.purple1,
-                                    AppColors.navigationBorderEnd,
-                                    AppColors.purple3,
-                                    AppColors.navigationBorderEnd,
-                                    AppColors.purple1,
-                                    AppColors.white,
-                                    AppColors.purple1,
+                                    Color(0xFFC7C8FF),
+                                    Color(0xFFF2F0FF),
+                                    Color(0xFFF6DDFB),
+                                    Color(0xFFF6DDFB),
+                                    Color(0xFFC7C8FF),
+                                    Color(0xFFF2F0FF),
+                                    Color(0xFFF6DDFB),
+                                    Color(0xFFF6DDFB),
+                                    Color(0xFFC7C8FF),
                                   ],
-                                  stops: [0, 0.18, 0.38, 0.58, 0.72, 0.84, 1],
+                                  stops: [
+                                    0,
+                                    0.12,
+                                    0.22,
+                                    0.3,
+                                    0.5,
+                                    0.62,
+                                    0.72,
+                                    0.8,
+                                    1,
+                                  ],
                                 )
                               : const LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    AppColors.navigationBorderStart,
-                                    AppColors.navigationBorderEnd,
+                                    Color(0xFFECEBFF),
+                                    Color(0xFFC7C8FF),
                                   ],
                                 ),
                         ),
