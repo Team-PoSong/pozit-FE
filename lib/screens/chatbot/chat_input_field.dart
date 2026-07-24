@@ -46,8 +46,8 @@ class _AppChatInputFieldState extends State<AppChatInputField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 49.0),
-      padding: const EdgeInsets.symmetric(horizontal: 26.0, vertical: 12.0),
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       alignment: Alignment.centerLeft,
       decoration: ShapeDecoration(
         color: AppColors.gray2,

@@ -30,7 +30,8 @@ class AppSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(28, 17, 20, 17),
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: AppColors.gray2,
         borderRadius: BorderRadius.circular(4),
