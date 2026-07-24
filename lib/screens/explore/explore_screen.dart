@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/widgets/app_bottom_gradient.dart';
+import '../../core/design_system/widgets/app_filter_chip.dart';
 import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
@@ -20,6 +22,10 @@ class ExploreScreen extends StatelessWidget {
     this.onSearchChanged,
     this.onSearchSubmitted,
     this.onSearchTap,
+    this.onRegionFilterTap,
+    this.onDateFilterTap,
+    this.onCategoryFilterTap,
+    this.onFilterResetTap,
     this.isCameraReady = false,
     this.assetPackage,
   });
@@ -33,6 +39,10 @@ class ExploreScreen extends StatelessWidget {
   final ValueChanged<String>? onSearchChanged;
   final ValueChanged<String>? onSearchSubmitted;
   final VoidCallback? onSearchTap;
+  final VoidCallback? onRegionFilterTap;
+  final VoidCallback? onDateFilterTap;
+  final VoidCallback? onCategoryFilterTap;
+  final VoidCallback? onFilterResetTap;
   final bool isCameraReady;
   final String? assetPackage;
 
@@ -86,10 +96,42 @@ class ExploreScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: AppSearchBar(
-                onChanged: onSearchChanged,
-                onSubmitted: onSearchSubmitted,
-                onSearchTap: onSearchTap,
+              child: Column(
+                children: [
+                  AppSearchBar(
+                    onChanged: onSearchChanged,
+                    onSubmitted: onSearchSubmitted,
+                    onSearchTap: onSearchTap,
+                  ),
+                  const SizedBox(height: 9),
+                  Row(
+                    children: [
+                      AppFilterChip(
+                        label: '지역',
+                        onTap: onRegionFilterTap,
+                        assetPackage: assetPackage,
+                      ),
+                      const SizedBox(width: 8),
+                      AppFilterChip(
+                        label: '날짜',
+                        onTap: onDateFilterTap,
+                        assetPackage: assetPackage,
+                      ),
+                      const SizedBox(width: 8),
+                      AppFilterChip(
+                        label: '카테고리',
+                        onTap: onCategoryFilterTap,
+                        assetPackage: assetPackage,
+                      ),
+                      const SizedBox(width: 8),
+                      AppFilterChip.icon(
+                        iconAsset: AppIcons.turnBack,
+                        onTap: onFilterResetTap,
+                        assetPackage: assetPackage,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
