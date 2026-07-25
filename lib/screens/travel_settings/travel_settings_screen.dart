@@ -153,6 +153,10 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
       context: context,
       builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 4,
+          vertical: 24,
+        ),
         child: AppCalendar(
           initialMonth: _startDate ?? DateTime.now(),
           onRangeSelected: (start, end) {
@@ -203,81 +207,87 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TravelDetailTopBar(title: '여행 설정', onBackTap: _handleBack),
-              const SizedBox(height: _kTopBarToFirstGap),
-              if (_isCompleted) ...[
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TravelDetailTopBar(title: '여행 설정', onBackTap: _handleBack),
+                const SizedBox(height: _kTopBarToFirstGap),
+                if (_isCompleted) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: _kHorizontalPadding,
+                    ),
+                    child: _VisibilitySection(
+                      isPublic: _isPublic,
+                      onChanged: (value) => setState(() => _isPublic = value),
+                    ),
+                  ),
+                  const SizedBox(height: _kVisibilityToggleToCommonGap),
+                ],
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: _kHorizontalPadding,
                   ),
-                  child: _VisibilitySection(
-                    isPublic: _isPublic,
-                    onChanged: (value) => setState(() => _isPublic = value),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const _SectionLabel('배경사진 추가하기'),
+                      const SizedBox(height: _kLabelToFieldGap),
+                      GestureDetector(
+                        onTap: _handlePickBackgroundImage,
+                        child: _backgroundImage == null
+                            ? const AppPosing.travelPhoto()
+                            : _BackgroundPhotoPreview(
+                                image: _backgroundImage!,
+                              ),
+                      ),
+                      const SizedBox(height: _kPhotoToNameLabelGap),
+                      const _SectionLabel('여행명'),
+                      const SizedBox(height: _kLabelToFieldGap),
+                      AppInputField(
+                        controller: _travelNameController,
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      const SizedBox(height: _kFieldToNextLabelGap),
+                      const _SectionLabel('어디로 떠나시나요?'),
+                      const SizedBox(height: _kLabelToFieldGap),
+                      AppInputField(
+                        controller: _destinationController,
+                        readOnly: true,
+                        textColor: AppColors.gray5,
+                      ),
+                      const SizedBox(height: _kFieldToNextLabelGap),
+                      const _SectionLabel('여행이 언제인가요?'),
+                      const SizedBox(height: _kLabelToFieldGap),
+                      AppInputField(
+                        controller: _dateController,
+                        readOnly: true,
+                        hintText: '8/18 - 8/21',
+                        onTap: _handlePickDateRange,
+                      ),
+                      const SizedBox(height: _kFieldToNextLabelGap),
+                      const _SectionLabel('어떤 여행인가요?(최대 2개 선택)'),
+                      const SizedBox(height: _kLabelToFieldGap),
+                      _TagGrid(
+                        selectedTags: _selectedTags,
+                        onToggle: _handleToggleTag,
+                      ),
+                      const SizedBox(height: _kTagGridToButtonGap),
+                      AppButton(
+                        text: '저장하기',
+                        isEnabled: _isFormValid,
+                        onPressed: _handleSave,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: _kVisibilityToggleToCommonGap),
               ],
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: _kHorizontalPadding,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _SectionLabel('배경사진 추가하기'),
-                    const SizedBox(height: _kLabelToFieldGap),
-                    GestureDetector(
-                      onTap: _handlePickBackgroundImage,
-                      child: _backgroundImage == null
-                          ? const AppPosing.travelPhoto()
-                          : _BackgroundPhotoPreview(image: _backgroundImage!),
-                    ),
-                    const SizedBox(height: _kPhotoToNameLabelGap),
-                    const _SectionLabel('여행명'),
-                    const SizedBox(height: _kLabelToFieldGap),
-                    AppInputField(
-                      controller: _travelNameController,
-                      onChanged: (_) => setState(() {}),
-                    ),
-                    const SizedBox(height: _kFieldToNextLabelGap),
-                    const _SectionLabel('어디로 떠나시나요?'),
-                    const SizedBox(height: _kLabelToFieldGap),
-                    AppInputField(
-                      controller: _destinationController,
-                      readOnly: true,
-                      textColor: AppColors.gray5,
-                    ),
-                    const SizedBox(height: _kFieldToNextLabelGap),
-                    const _SectionLabel('여행이 언제인가요?'),
-                    const SizedBox(height: _kLabelToFieldGap),
-                    AppInputField(
-                      controller: _dateController,
-                      readOnly: true,
-                      hintText: '8/18 - 8/21',
-                      onTap: _handlePickDateRange,
-                    ),
-                    const SizedBox(height: _kFieldToNextLabelGap),
-                    const _SectionLabel('어떤 여행인가요?(최대 2개 선택)'),
-                    const SizedBox(height: _kLabelToFieldGap),
-                    _TagGrid(
-                      selectedTags: _selectedTags,
-                      onToggle: _handleToggleTag,
-                    ),
-                    const SizedBox(height: _kTagGridToButtonGap),
-                    AppButton(
-                      text: '저장하기',
-                      isEnabled: _isFormValid,
-                      onPressed: _handleSave,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -358,38 +368,60 @@ class _VisibilitySection extends StatelessWidget {
   }
 }
 
+/// 태그를 2행 4열 고정 그리드로 배치합니다. 텍스트 길이에 따라 줄바꿈
+/// 개수가 바뀌는 [Wrap] 대신 한 행에 4개씩 직접 묶고, 각 칸을 [Expanded]로
+/// 균등 분할해 전체 가로 너비(좌우 기본 패딩 제외)를 채우도록 합니다.
 class _TagGrid extends StatelessWidget {
   const _TagGrid({required this.selectedTags, required this.onToggle});
 
   final Set<String> selectedTags;
   final ValueChanged<String> onToggle;
 
+  static const int _columns = 4;
+
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 9,
-      runSpacing: 10,
+    final rows = [
+      for (var i = 0; i < _kTravelTagOptions.length; i += _columns)
+        _kTravelTagOptions.sublist(
+          i,
+          (i + _columns).clamp(0, _kTravelTagOptions.length),
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final tag in _kTravelTagOptions)
-          AppTagChip(
-            label: tag,
-            isSelected: selectedTags.contains(tag),
-            onTap: () => onToggle(tag),
+        for (var r = 0; r < rows.length; r++) ...[
+          if (r > 0) const SizedBox(height: 10),
+          Row(
+            children: [
+              for (var c = 0; c < rows[r].length; c++) ...[
+                if (c > 0) const SizedBox(width: 9),
+                Expanded(
+                  child: AppTagChip(
+                    label: '# ${rows[r][c]}',
+                    isSelected: selectedTags.contains(rows[r][c]),
+                    onTap: () => onToggle(rows[r][c]),
+                    // 기본 padding(좌우 24)은 4칸 그리드 폭 안에서 라벨이
+                    // 줄바꿈되므로, 이 화면에서만 좌우를 줄입니다.
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10.0,
+                      horizontal: 12.0,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
+        ],
       ],
     );
   }
 }
 
 TravelSettingsScreen _previewScreen(AppTravelStatus status) {
-  return TravelSettingsScreen(
-    status: status,
-    destination: '경주',
-    initialTravelName: '경주 여행',
-    initialStartDate: DateTime(2026, 6, 5),
-    initialEndDate: DateTime(2026, 6, 7),
-    initialTags: const ['기록', '미식'],
-  );
+  return TravelSettingsScreen(status: status, destination: '경주');
 }
 
 @Preview(

@@ -10,12 +10,14 @@ class AppTagChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback? onTap;
+  final EdgeInsetsGeometry padding;
 
   const AppTagChip({
     super.key,
     required this.label,
     this.isSelected = false,
     this.onTap,
+    this.padding = const EdgeInsets.symmetric(vertical: 10.0, horizontal: 24.0),
   });
 
   @override
@@ -23,7 +25,8 @@ class AppTagChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 24.0),
+        padding: padding,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.purple1 : AppColors.gray2,
           borderRadius: BorderRadius.circular(9999.0),
@@ -33,6 +36,7 @@ class AppTagChip extends StatelessWidget {
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
           style: isSelected
               ? AppTextStyles.caption2.copyWith(color: AppColors.purple3)
               : AppTextStyles.caption.copyWith(color: AppColors.gray5),
