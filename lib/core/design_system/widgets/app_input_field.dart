@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../app_colors.dart';
+import '../app_dimensions.dart';
 import '../app_text_styles.dart';
 
 class AppInputField extends StatefulWidget {
@@ -93,7 +94,9 @@ class _AppInputFieldState extends State<AppInputField> {
         : BorderSide.none;
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 48),
+      constraints: const BoxConstraints(
+        minHeight: AppDimensions.inputMinHeight,
+      ),
       child: TextField(
         controller: _controller,
         focusNode: widget.focusNode,

@@ -120,26 +120,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      bottomNavigationBar: SizedBox(
-        height: AppBottomGradient.height,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            const Positioned.fill(child: AppBottomGradient()),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: AppNavigationBar(
-                selectedTab: _selectedTab,
-                onChanged: _handleNavigationChanged,
-                onPosongTap: widget.onPosongTap,
-                isCameraReady: widget.isCameraReady,
-                assetPackage: widget.assetPackage,
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Positioned.fill(child: AppBottomGradient()),
+          AppNavigationBar(
+            selectedTab: _selectedTab,
+            onChanged: _handleNavigationChanged,
+            onPosongTap: widget.onPosongTap,
+            isCameraReady: widget.isCameraReady,
+            assetPackage: widget.assetPackage,
+          ),
+        ],
       ),
       body: SafeArea(
         bottom: false,

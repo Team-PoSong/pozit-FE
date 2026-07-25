@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 
 class AppChatInputField extends StatefulWidget {
@@ -46,7 +47,9 @@ class _AppChatInputFieldState extends State<AppChatInputField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 48),
+      constraints: const BoxConstraints(
+        minHeight: AppDimensions.inputMinHeight,
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: ShapeDecoration(
         color: AppColors.gray2,

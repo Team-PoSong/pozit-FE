@@ -36,4 +36,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('이미 사용중인 아이디입니다.'), findsOneWidget);
   });
+
+  testWidgets('키보드가 표시되어도 다음 버튼 위치를 유지한다', (tester) async {
+    Widget buildScreen(double keyboardHeight) {
+      return MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(
+            size: const Size(393, 852),
+            padding: EdgeInsets.only(bottom: keyboardHeight > 0 ? 0 : 34),
+            viewPadding: const EdgeInsets.only(bottom: 34),
+            viewInsets: EdgeInsets.only(bottom: keyboardHeight),
+          ),
+          child: const NicknameScreen(),
+        ),
+      );
+    }
+
+    await tester.pumpWidget(buildScreen(0));
+    final buttonTopBeforeKeyboard = tester.getTopLeft(find.text('다음')).dy;
+
+    await tester.pumpWidget(buildScreen(300));
+    await tester.pump();
+    final buttonTopAfterKeyboard = tester.getTopLeft(find.text('다음')).dy;
+
+    expect(buttonTopAfterKeyboard, buttonTopBeforeKeyboard);
+  });
 }

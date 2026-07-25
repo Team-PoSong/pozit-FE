@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pozit/core/design_system/app_dimensions.dart';
 import 'package:pozit/core/design_system/widgets/app_navigationbar.dart';
 
 void main() {
@@ -15,6 +16,23 @@ void main() {
     expect(find.bySemanticsLabel('포짓'), findsOneWidget);
     expect(find.bySemanticsLabel('여행'), findsOneWidget);
     expect(find.bySemanticsLabel('탐색'), findsOneWidget);
+  });
+
+  testWidgets('여행과 탐색 탭은 최소 터치 영역을 보장한다', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(bottomNavigationBar: AppNavigationBar()),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.bySemanticsLabel('여행')).width,
+      AppDimensions.minimumTapTargetSize,
+    );
+    expect(
+      tester.getSize(find.bySemanticsLabel('탐색')).width,
+      AppDimensions.minimumTapTargetSize,
+    );
   });
 
   testWidgets('탐색 탭과 포송이 버튼 콜백을 호출한다', (tester) async {
@@ -49,6 +67,6 @@ void main() {
       ),
     );
 
-    expect(tester.getSize(find.byType(AppNavigationBar)).height, 97);
+    expect(tester.getSize(find.byType(AppNavigationBar)).height, 107);
   });
 }

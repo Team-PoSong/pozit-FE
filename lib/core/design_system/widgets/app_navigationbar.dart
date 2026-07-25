@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../app_colors.dart';
+import '../app_dimensions.dart';
 import '../app_images.dart';
 import '../app_text_styles.dart';
 
@@ -62,8 +63,12 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      minimum: const EdgeInsets.only(bottom: 12),
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: bottomInset + AppDimensions.bottomNavigationSpacing,
+      ),
       child: Align(
         widthFactor: 1,
         heightFactor: 1,
@@ -86,12 +91,12 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                         child: ColoredBox(
                           color: AppColors.white,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 35),
+                            padding: const EdgeInsets.symmetric(horizontal: 26),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 SizedBox(
-                                  width: 30,
+                                  width: AppDimensions.minimumTapTargetSize,
                                   child: _NavigationItem(
                                     label: '여행',
                                     iconAsset:
@@ -106,7 +111,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                                   ),
                                 ),
                                 SizedBox(
-                                  width: 30,
+                                  width: AppDimensions.minimumTapTargetSize,
                                   child: _NavigationItem(
                                     label: '탐색',
                                     iconAsset:

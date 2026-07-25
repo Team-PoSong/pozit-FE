@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../app_colors.dart';
+import '../app_dimensions.dart';
 import '../app_icons.dart';
 import '../app_text_styles.dart';
 
@@ -30,7 +31,9 @@ class AppSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 48),
+      constraints: const BoxConstraints(
+        minHeight: AppDimensions.inputMinHeight,
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: AppColors.gray2,
