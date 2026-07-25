@@ -18,6 +18,7 @@ class AppInputField extends StatefulWidget {
     this.isError = false,
     this.maxLength,
     this.inputFormatters,
+    this.textColor,
   });
 
   final TextEditingController? controller;
@@ -30,6 +31,9 @@ class AppInputField extends StatefulWidget {
   final bool isError;
   final int? maxLength;
   final List<TextInputFormatter>? inputFormatters;
+
+  /// 입력된 텍스트의 색상입니다. 지정하지 않으면 [AppColors.text]를 사용합니다.
+  final Color? textColor;
 
   @override
   State<AppInputField> createState() => _AppInputFieldState();
@@ -112,7 +116,7 @@ class _AppInputFieldState extends State<AppInputField> {
       textAlignVertical: TextAlignVertical.center,
       cursorColor: AppColors.text,
       style: AppTextStyles.body.copyWith(
-        color: AppColors.text,
+        color: widget.textColor ?? AppColors.text,
         height: 20 / 14,
         letterSpacing: -0.5,
       ),

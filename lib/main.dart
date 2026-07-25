@@ -11,6 +11,7 @@ import 'package:pozit/data/models/travel_course_model.dart';
 import 'package:pozit/data/models/travel_info_card_model.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
 import 'package:pozit/screens/travel_detail/travel_detail_screen.dart';
+import 'package:pozit/screens/travel_settings/travel_settings_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,9 +27,9 @@ Future<void> main() async {
     () => const AuthTokenStorage().readAccessToken(),
   );
 
-  // TODO(임시): 지도 마커 연동을 실기로 확인하기 위한 임시 진입점입니다.
+  // TODO(임시): 여행 설정 화면을 실기로 확인하기 위한 임시 진입점입니다.
   // 확인이 끝나면 아래를 `runApp(const MyApp());`로 되돌려주세요.
-  runApp(const MyApp());
+  runApp(const _MapMarkerPreviewApp());
 }
 
 class _MapMarkerPreviewApp extends StatelessWidget {
@@ -260,10 +261,33 @@ class _MapMarkerPreviewApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: '지도 마커 연동 확인',
-      home: TravelDetailScreen(
-        info: info,
-        status: AppTravelStatus.completed,
-        courses: courses,
+      home: Builder(
+        builder: (context) => TravelDetailScreen(
+          info: info,
+          status: AppTravelStatus.completed,
+          courses: courses,
+          onSettingsTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TravelSettingsScreen(
+                  status: AppTravelStatus.completed,
+                  destination: info.destination,
+                  initialTravelName: info.destination,
+                  initialStartDate: info.startDate,
+                  initialEndDate: info.endDate,
+                  initialTags: info.tags,
+                  onSave: (result) {
+                    debugPrint(
+                      '여행 설정 저장: ${result.travelName}, '
+                      '${result.startDate}~${result.endDate}, '
+                      '${result.tags}, 공개=${result.isPublic}',
+                    );
+                  },
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
