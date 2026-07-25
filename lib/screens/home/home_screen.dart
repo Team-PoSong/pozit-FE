@@ -10,7 +10,7 @@ import '../../core/design_system/widgets/app_bottom_gradient.dart';
 import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
-import '../explore/explore_screen.dart';
+import '../explore/explore_content.dart';
 import 'widgets/travel_completion_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,6 +26,14 @@ class HomeScreen extends StatefulWidget {
     this.onJoinWithInviteCodeTap,
     this.onNavigationChanged,
     this.onPosongTap,
+    this.onSearchChanged,
+    this.onSearchSubmitted,
+    this.onSearchTap,
+    this.onRegionFilterTap,
+    this.onDateFilterTap,
+    this.onCategoryFilterTap,
+    this.onFilterResetTap,
+    this.initialTab = AppNavigationTab.travel,
     this.isCameraReady = false,
     this.assetPackage,
   });
@@ -40,6 +48,14 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onJoinWithInviteCodeTap;
   final ValueChanged<AppNavigationTab>? onNavigationChanged;
   final VoidCallback? onPosongTap;
+  final ValueChanged<String>? onSearchChanged;
+  final ValueChanged<String>? onSearchSubmitted;
+  final VoidCallback? onSearchTap;
+  final VoidCallback? onRegionFilterTap;
+  final VoidCallback? onDateFilterTap;
+  final VoidCallback? onCategoryFilterTap;
+  final VoidCallback? onFilterResetTap;
+  final AppNavigationTab initialTab;
   final bool isCameraReady;
   final String? assetPackage;
 
@@ -52,8 +68,22 @@ class _HomeScreenState extends State<HomeScreen> {
   final _travelMenuButtonKey = GlobalKey();
 
   TravelCompletionStatus _selectedStatus = TravelCompletionStatus.incomplete;
-  AppNavigationTab _selectedTab = AppNavigationTab.travel;
+  late AppNavigationTab _selectedTab;
   bool _isTravelMenuOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.initialTab;
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTab != oldWidget.initialTab) {
+      _selectedTab = widget.initialTab;
+    }
+  }
 
   void _toggleTravelMenu() {
     setState(() => _isTravelMenuOpen = !_isTravelMenuOpen);
@@ -260,7 +290,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ] else
               Expanded(
-                child: ExploreContent(assetPackage: widget.assetPackage),
+                child: ExploreContent(
+                  onSearchChanged: widget.onSearchChanged,
+                  onSearchSubmitted: widget.onSearchSubmitted,
+                  onSearchTap: widget.onSearchTap,
+                  onRegionFilterTap: widget.onRegionFilterTap,
+                  onDateFilterTap: widget.onDateFilterTap,
+                  onCategoryFilterTap: widget.onCategoryFilterTap,
+                  onFilterResetTap: widget.onFilterResetTap,
+                  assetPackage: widget.assetPackage,
+                ),
               ),
           ],
         ),

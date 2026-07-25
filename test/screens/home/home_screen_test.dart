@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pozit/core/design_system/widgets/app_bottom_gradient.dart';
 import 'package:pozit/core/design_system/widgets/app_main_header.dart';
 import 'package:pozit/core/design_system/widgets/app_navigationbar.dart';
+import 'package:pozit/screens/explore/explore_content.dart';
 import 'package:pozit/screens/explore/explore_screen.dart';
 import 'package:pozit/screens/home/home_screen.dart';
 import 'package:pozit/screens/home/widgets/travel_completion_toggle.dart';
@@ -85,6 +86,24 @@ void main() {
 
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.byType(ExploreContent), findsNothing);
+  });
+
+  testWidgets('탐색 화면으로 직접 진입해도 공통 shell에서 여행 화면으로 전환한다', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: ExploreScreen()));
+
+    expect(find.byType(ExploreContent), findsOneWidget);
+    expect(find.byType(AppMainHeader), findsOneWidget);
+    expect(find.byType(AppNavigationBar), findsOneWidget);
+    expect(find.byType(Scaffold), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('여행'));
+    await tester.pump();
+
+    expect(find.byType(ExploreContent), findsNothing);
+    expect(find.byType(TravelCompletionToggle), findsOneWidget);
+    expect(find.byType(AppMainHeader), findsOneWidget);
+    expect(find.byType(AppNavigationBar), findsOneWidget);
+    expect(find.byType(Scaffold), findsOneWidget);
   });
 
   testWidgets('탐색 화면에 공통 화면 의존성을 전달한다', (tester) async {
