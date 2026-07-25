@@ -74,13 +74,17 @@ void main() {
     await tester.tap(find.bySemanticsLabel('탐색'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ExploreScreen), findsOneWidget);
+    expect(find.byType(ExploreContent), findsOneWidget);
+    expect(find.byType(ExploreScreen), findsNothing);
+    expect(find.byType(AppMainHeader), findsOneWidget);
+    expect(find.byType(AppNavigationBar), findsOneWidget);
+    expect(find.byType(Scaffold), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('여행'));
     await tester.pumpAndSettle();
 
     expect(find.byType(HomeScreen), findsOneWidget);
-    expect(find.byType(ExploreScreen), findsNothing);
+    expect(find.byType(ExploreContent), findsNothing);
   });
 
   testWidgets('탐색 화면에 공통 화면 의존성을 전달한다', (tester) async {
@@ -105,18 +109,22 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('탐색'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
 
-    final exploreScreen = tester.widget<ExploreScreen>(
-      find.byType(ExploreScreen),
+    final header = tester.widget<AppMainHeader>(find.byType(AppMainHeader));
+    final navigationBar = tester.widget<AppNavigationBar>(
+      find.byType(AppNavigationBar),
+    );
+    final exploreContent = tester.widget<ExploreContent>(
+      find.byType(ExploreContent),
     );
 
-    expect(exploreScreen.hasNotification, isTrue);
-    expect(exploreScreen.onNotificationTap, same(onNotificationTap));
-    expect(exploreScreen.onWishTap, same(onWishTap));
-    expect(exploreScreen.onMyPageTap, same(onMyPageTap));
-    expect(exploreScreen.onPosongTap, same(onPosongTap));
-    expect(exploreScreen.isCameraReady, isTrue);
-    expect(exploreScreen.assetPackage, 'pozit');
+    expect(header.hasNotification, isTrue);
+    expect(header.onNotificationTap, same(onNotificationTap));
+    expect(header.onWishTap, same(onWishTap));
+    expect(header.onMyPageTap, same(onMyPageTap));
+    expect(navigationBar.onPosongTap, same(onPosongTap));
+    expect(navigationBar.isCameraReady, isTrue);
+    expect(navigationBar.assetPackage, 'pozit');
+    expect(exploreContent.assetPackage, 'pozit');
   });
 }

@@ -27,4 +27,17 @@ void main() {
 
     expect(submittedQuery, '경주');
   });
+
+  testWidgets('글자 크기가 커지면 검색창 높이도 늘어난다', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(3)),
+          child: Scaffold(body: AppSearchBar()),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(AppSearchBar)).height, greaterThan(48));
+  });
 }

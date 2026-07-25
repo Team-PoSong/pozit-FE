@@ -52,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _travelMenuButtonKey = GlobalKey();
 
   TravelCompletionStatus _selectedStatus = TravelCompletionStatus.incomplete;
+  AppNavigationTab _selectedTab = AppNavigationTab.travel;
   bool _isTravelMenuOpen = false;
 
   void _toggleTravelMenu() {
@@ -80,21 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    if (tab == AppNavigationTab.explore) {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => ExploreScreen(
-            hasNotification: widget.hasNotification,
-            onNotificationTap: widget.onNotificationTap,
-            onWishTap: widget.onWishTap,
-            onMyPageTap: widget.onMyPageTap,
-            onNavigationChanged: widget.onNavigationChanged,
-            onPosongTap: widget.onPosongTap,
-            isCameraReady: widget.isCameraReady,
-            assetPackage: widget.assetPackage,
-          ),
-        ),
-      );
+    if (_selectedTab != tab) {
+      setState(() => _selectedTab = tab);
     }
   }
 
@@ -113,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
               left: 0,
               right: 0,
               child: AppNavigationBar(
-                selectedTab: AppNavigationTab.travel,
+                selectedTab: _selectedTab,
                 onChanged: _handleNavigationChanged,
                 onPosongTap: widget.onPosongTap,
                 isCameraReady: widget.isCameraReady,
@@ -135,100 +123,103 @@ class _HomeScreenState extends State<HomeScreen> {
               assetPackage: widget.assetPackage,
             ),
             const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: TravelCompletionToggle(
-                      incompleteCount: widget.incompleteCount,
-                      completeCount: widget.completeCount,
-                      selectedStatus: _selectedStatus,
-                      onChanged: (status) {
-                        setState(() => _selectedStatus = status);
-                      },
+            if (_selectedTab == AppNavigationTab.travel) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: TravelCompletionToggle(
+                        incompleteCount: widget.incompleteCount,
+                        completeCount: widget.completeCount,
+                        selectedStatus: _selectedStatus,
+                        onChanged: (status) {
+                          setState(() => _selectedStatus = status);
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 11),
-                  OverlayPortal(
-                    controller: _travelMenuController,
-                    overlayChildBuilder: (context) {
-                      final buttonContext = _travelMenuButtonKey.currentContext;
-                      final buttonRenderObject = buttonContext
-                          ?.findRenderObject();
+                    const SizedBox(width: 11),
+                    OverlayPortal(
+                      controller: _travelMenuController,
+                      overlayChildBuilder: (context) {
+                        final buttonContext =
+                            _travelMenuButtonKey.currentContext;
+                        final buttonRenderObject = buttonContext
+                            ?.findRenderObject();
 
-                      if (buttonRenderObject is! RenderBox ||
-                          !buttonRenderObject.hasSize) {
-                        return const SizedBox.shrink();
-                      }
+                        if (buttonRenderObject is! RenderBox ||
+                            !buttonRenderObject.hasSize) {
+                          return const SizedBox.shrink();
+                        }
 
-                      final overlayRenderObject = Overlay.of(
-                        context,
-                      ).context.findRenderObject();
-                      if (overlayRenderObject is! RenderBox ||
-                          !overlayRenderObject.hasSize) {
-                        return const SizedBox.shrink();
-                      }
+                        final overlayRenderObject = Overlay.of(
+                          context,
+                        ).context.findRenderObject();
+                        if (overlayRenderObject is! RenderBox ||
+                            !overlayRenderObject.hasSize) {
+                          return const SizedBox.shrink();
+                        }
 
-                      final buttonBox = buttonRenderObject;
-                      final buttonOffset = buttonBox.localToGlobal(
-                        Offset.zero,
-                        ancestor: overlayRenderObject,
-                      );
-                      final overlayWidth = overlayRenderObject.size.width;
+                        final buttonBox = buttonRenderObject;
+                        final buttonOffset = buttonBox.localToGlobal(
+                          Offset.zero,
+                          ancestor: overlayRenderObject,
+                        );
+                        final overlayWidth = overlayRenderObject.size.width;
 
-                      return Stack(
-                        children: [
-                          Positioned.fill(
-                            child: ExcludeSemantics(
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.translucent,
-                                onTap: _toggleTravelMenu,
+                        return Stack(
+                          children: [
+                            Positioned.fill(
+                              child: ExcludeSemantics(
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.translucent,
+                                  onTap: _toggleTravelMenu,
+                                ),
                               ),
                             ),
-                          ),
-                          Positioned(
-                            top: buttonOffset.dy + buttonBox.size.height + 10,
-                            right:
-                                overlayWidth -
-                                buttonOffset.dx -
-                                buttonBox.size.width,
-                            child: _TravelMenuPopover(
-                              onCreateTravelTap: _handleCreateTravel,
-                              onJoinWithInviteCodeTap:
-                                  _handleJoinWithInviteCode,
+                            Positioned(
+                              top: buttonOffset.dy + buttonBox.size.height + 10,
+                              right:
+                                  overlayWidth -
+                                  buttonOffset.dx -
+                                  buttonBox.size.width,
+                              child: _TravelMenuPopover(
+                                onCreateTravelTap: _handleCreateTravel,
+                                onJoinWithInviteCodeTap:
+                                    _handleJoinWithInviteCode,
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    },
-                    child: Semantics(
-                      key: _travelMenuButtonKey,
-                      button: true,
-                      expanded: _isTravelMenuOpen,
-                      label: _isTravelMenuOpen ? '여행 메뉴 닫기' : '여행 메뉴 열기',
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _toggleTravelMenu,
-                        child: DecoratedBox(
-                          decoration: const ShapeDecoration(
-                            color: AppColors.purple3,
-                            shape: CircleBorder(),
-                          ),
-                          child: SizedBox.square(
-                            dimension: 43,
-                            child: Center(
-                              child: AnimatedRotation(
-                                turns: _isTravelMenuOpen ? 0.125 : 0,
-                                duration: const Duration(milliseconds: 180),
-                                curve: Curves.easeOut,
-                                child: SvgPicture.asset(
-                                  AppIcons.travelPlus,
-                                  package: widget.assetPackage,
-                                  width: 24,
-                                  height: 24,
-                                  excludeFromSemantics: true,
+                          ],
+                        );
+                      },
+                      child: Semantics(
+                        key: _travelMenuButtonKey,
+                        button: true,
+                        expanded: _isTravelMenuOpen,
+                        label: _isTravelMenuOpen ? '여행 메뉴 닫기' : '여행 메뉴 열기',
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _toggleTravelMenu,
+                          child: DecoratedBox(
+                            decoration: const ShapeDecoration(
+                              color: AppColors.purple3,
+                              shape: CircleBorder(),
+                            ),
+                            child: SizedBox.square(
+                              dimension: 43,
+                              child: Center(
+                                child: AnimatedRotation(
+                                  turns: _isTravelMenuOpen ? 0.125 : 0,
+                                  duration: const Duration(milliseconds: 180),
+                                  curve: Curves.easeOut,
+                                  child: SvgPicture.asset(
+                                    AppIcons.travelPlus,
+                                    package: widget.assetPackage,
+                                    width: 24,
+                                    height: 24,
+                                    excludeFromSemantics: true,
+                                  ),
                                 ),
                               ),
                             ),
@@ -236,38 +227,41 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: Column(
-                children: [
-                  const Spacer(flex: 7),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        AppImages.posongCarrier,
-                        package: widget.assetPackage,
-                        width: 219,
-                        height: 150,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        '여행이 없어요! 포짓과 함께 떠나볼까요?',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.body.copyWith(
-                          color: AppColors.gray5,
+              Expanded(
+                child: Column(
+                  children: [
+                    const Spacer(flex: 7),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          AppImages.posongCarrier,
+                          package: widget.assetPackage,
+                          width: 219,
+                          height: 150,
+                          fit: BoxFit.contain,
                         ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(flex: 9),
-                ],
+                        const SizedBox(height: 20),
+                        Text(
+                          '여행이 없어요! 포짓과 함께 떠나볼까요?',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.gray5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(flex: 9),
+                  ],
+                ),
               ),
-            ),
+            ] else
+              Expanded(
+                child: ExploreContent(assetPackage: widget.assetPackage),
+              ),
           ],
         ),
       ),

@@ -35,9 +35,11 @@ class AppFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = _label;
+    final isInteractive = onTap != null;
 
     return Semantics(
-      button: true,
+      button: isInteractive,
+      enabled: isInteractive,
       label: label ?? '필터 초기화',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,

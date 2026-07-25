@@ -92,8 +92,8 @@ class _AppInputFieldState extends State<AppInputField> {
         ? const BorderSide(width: 1, color: AppColors.purple3)
         : BorderSide.none;
 
-    return SizedBox(
-      height: 48,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 48),
       child: TextField(
         controller: _controller,
         focusNode: widget.focusNode,

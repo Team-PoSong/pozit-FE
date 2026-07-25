@@ -22,4 +22,22 @@ void main() {
     expect(inputRect.height, 48);
     expect(container.padding, const EdgeInsets.symmetric(horizontal: 20));
   });
+
+  testWidgets('글자 크기가 커지면 챗봇 입력창 높이도 늘어난다', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(3)),
+          child: Scaffold(
+            body: SizedBox(width: 299, child: AppChatInputField()),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byType(AppChatInputField)).height,
+      greaterThan(48),
+    );
+  });
 }
