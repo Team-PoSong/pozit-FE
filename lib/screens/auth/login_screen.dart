@@ -7,7 +7,9 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/network/api_exception.dart';
+import '../../data/datasources/auth/apple_login_service.dart';
 import '../../data/datasources/auth/kakao_login_service.dart';
+import '../../data/models/auth/apple_login_request.dart';
 import '../../data/repositories/auth/auth_repository.dart';
 import '../onboarding/onboarding_flow_screen.dart';
 
@@ -15,12 +17,14 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({
     super.key,
     this.onAppleLogin,
+    this.onAppleLoginRequest,
     this.onKakaoLogin,
     this.onKakaoAccessToken,
     this.assetPackage,
   });
 
-  final VoidCallback? onAppleLogin;
+  final FutureOr<void> Function()? onAppleLogin;
+  final Future<void> Function(AppleLoginRequest request)? onAppleLoginRequest;
   final FutureOr<void> Function()? onKakaoLogin;
   final Future<void> Function(String accessToken)? onKakaoAccessToken;
   final String? assetPackage;
@@ -33,11 +37,61 @@ class _LoginScreenState extends State<LoginScreen> {
   static const double _carrierWidth = 231.3;
   static const double _carrierAspectRatio = 257 / 176;
 
-  bool _isLoggingIn = false;
+  _LoginMethod? _activeLogin;
+
+  bool get _isLoggingIn => _activeLogin != null;
+
+  Future<void> _handleAppleLogin(BuildContext context) async {
+    if (_isLoggingIn) return;
+    setState(() => _activeLogin = _LoginMethod.apple);
+
+    try {
+      if (widget.onAppleLogin case final callback?) {
+        await callback();
+        return;
+      }
+
+      final request = await const AppleLoginService().login();
+      if (widget.onAppleLoginRequest case final callback?) {
+        await callback(request);
+      } else {
+        await AuthRepository().loginWithApple(request);
+      }
+
+      if (!context.mounted) return;
+      await _openOnboarding(context);
+    } on AppleLoginCanceledException {
+      return;
+    } on ApiException catch (error, stackTrace) {
+      _reportLoginError(
+        error,
+        stackTrace,
+        library: 'Apple Login',
+        context: 'Apple 로그인 처리 중',
+      );
+      if (context.mounted) {
+        _showLoginError(context, error.message);
+      }
+    } catch (error, stackTrace) {
+      _reportLoginError(
+        error,
+        stackTrace,
+        library: 'Apple Login',
+        context: 'Apple 로그인 처리 중',
+      );
+      if (context.mounted) {
+        _showLoginError(context, 'Apple 로그인에 실패했어요. 다시 시도해 주세요.');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _activeLogin = null);
+      }
+    }
+  }
 
   Future<void> _handleKakaoLogin(BuildContext context) async {
     if (_isLoggingIn) return;
-    setState(() => _isLoggingIn = true);
+    setState(() => _activeLogin = _LoginMethod.kakao);
 
     try {
       if (widget.onKakaoLogin case final callback?) {
@@ -53,35 +107,54 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (!context.mounted) return;
-      await Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const OnboardingFlowScreen()),
-      );
+      await _openOnboarding(context);
     } on KakaoLoginCanceledException {
       return;
     } on ApiException catch (error, stackTrace) {
-      _reportLoginError(error, stackTrace);
+      _reportLoginError(
+        error,
+        stackTrace,
+        library: 'Kakao Login',
+        context: '카카오 로그인 처리 중',
+      );
       if (context.mounted) {
         _showLoginError(context, error.message);
       }
     } catch (error, stackTrace) {
-      _reportLoginError(error, stackTrace);
+      _reportLoginError(
+        error,
+        stackTrace,
+        library: 'Kakao Login',
+        context: '카카오 로그인 처리 중',
+      );
       if (context.mounted) {
         _showLoginError(context, '카카오 로그인에 실패했어요. 다시 시도해 주세요.');
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoggingIn = false);
+        setState(() => _activeLogin = null);
       }
     }
   }
 
-  void _reportLoginError(Object error, StackTrace stackTrace) {
+  Future<void> _openOnboarding(BuildContext context) {
+    return Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(builder: (_) => const OnboardingFlowScreen()),
+    );
+  }
+
+  void _reportLoginError(
+    Object error,
+    StackTrace stackTrace, {
+    required String library,
+    required String context,
+  }) {
     FlutterError.reportError(
       FlutterErrorDetails(
         exception: error,
         stack: stackTrace,
-        library: 'Kakao Login',
-        context: ErrorDescription('카카오 로그인 처리 중'),
+        library: library,
+        context: ErrorDescription(context),
       ),
     );
   }
@@ -188,14 +261,17 @@ class _LoginScreenState extends State<LoginScreen> {
                               semanticLabel: 'Apple로 로그인',
                               asset: AppImages.apple,
                               assetPackage: widget.assetPackage,
-                              onTap: _isLoggingIn ? null : widget.onAppleLogin,
+                              isLoading: _activeLogin == _LoginMethod.apple,
+                              onTap: _isLoggingIn
+                                  ? null
+                                  : () => _handleAppleLogin(context),
                             ),
                             const SizedBox(width: 50),
                             _SocialLoginButton(
                               semanticLabel: '카카오로 로그인',
                               asset: AppImages.kakao,
                               assetPackage: widget.assetPackage,
-                              isLoading: _isLoggingIn,
+                              isLoading: _activeLogin == _LoginMethod.kakao,
                               onTap: _isLoggingIn
                                   ? null
                                   : () => _handleKakaoLogin(context),
@@ -215,6 +291,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+enum _LoginMethod { apple, kakao }
 
 class _LoginGuideBadge extends StatelessWidget {
   const _LoginGuideBadge({required this.assetPackage});

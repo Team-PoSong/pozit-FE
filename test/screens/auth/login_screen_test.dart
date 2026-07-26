@@ -66,4 +66,35 @@ void main() {
     loginCompleter.complete();
     await tester.pump();
   });
+
+  testWidgets('로그인 처리 중 Apple 버튼을 연속으로 눌러도 한 번만 실행한다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(393, 852));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    var loginCallCount = 0;
+    final loginCompleter = Completer<void>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginScreen(
+          onAppleLogin: () {
+            loginCallCount++;
+            return loginCompleter.future;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final appleButton = find.bySemanticsLabel('Apple로 로그인');
+    await tester.tap(appleButton);
+    await tester.tap(appleButton);
+
+    expect(loginCallCount, 1);
+    await tester.pump();
+    expect(find.byKey(const Key('social-login-progress')), findsOneWidget);
+
+    loginCompleter.complete();
+    await tester.pump();
+  });
 }
