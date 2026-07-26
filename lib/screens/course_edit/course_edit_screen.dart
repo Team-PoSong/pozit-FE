@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location.dart';
@@ -258,8 +259,11 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _kHorizontalPadding,
+              padding: const EdgeInsets.fromLTRB(
+                _kHorizontalPadding,
+                0,
+                _kHorizontalPadding,
+                AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
                 text: '저장하기',

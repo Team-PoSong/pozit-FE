@@ -8,4 +8,9 @@ abstract final class AppDimensions {
 
   /// 하단 안전 영역 위에 추가로 확보하는 여백입니다.
   static const double bottomNavigationSpacing = 10;
+
+  /// 하단 고정 버튼 등, 화면 맨 아래 콘텐츠와 안전 영역 사이에 추가로 두는
+  /// 여백입니다. 바텀 네비게이션이 없는 화면에서 [bottomNavigationSpacing]과
+  /// 같은 값으로 통일해 씁니다.
+  static const double screenBottomPadding = 10;
 }

@@ -5,6 +5,7 @@ import 'package:flutter/widget_previews.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_calendar.dart';
@@ -235,8 +236,11 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                   const SizedBox(height: _kVisibilityToggleToCommonGap),
                 ],
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: _kHorizontalPadding,
+                  padding: const EdgeInsets.fromLTRB(
+                    _kHorizontalPadding,
+                    0,
+                    _kHorizontalPadding,
+                    AppDimensions.screenBottomPadding,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

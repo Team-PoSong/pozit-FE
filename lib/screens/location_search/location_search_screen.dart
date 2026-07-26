@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_chip.dart';
@@ -244,8 +245,11 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               const SizedBox(height: _kChipsToButtonGap),
             ],
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _kHorizontalPadding,
+              padding: const EdgeInsets.fromLTRB(
+                _kHorizontalPadding,
+                0,
+                _kHorizontalPadding,
+                AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
                 text: '장소 추가하기',
