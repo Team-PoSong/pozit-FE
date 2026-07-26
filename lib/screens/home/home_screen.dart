@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     this.incompleteCount = 0,
-    this.completeCount = 1,
+    this.completeCount = 0,
     this.hasNotification = false,
     this.onNotificationTap,
     this.onWishTap,
