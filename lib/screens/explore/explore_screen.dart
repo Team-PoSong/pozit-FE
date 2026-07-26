@@ -8,10 +8,14 @@ import '../home/home_screen.dart';
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({
     super.key,
+    this.incompleteCount = 0,
+    this.completeCount = 1,
     this.hasNotification = false,
     this.onNotificationTap,
     this.onWishTap,
     this.onMyPageTap,
+    this.onCreateTravelTap,
+    this.onJoinWithInviteCodeTap,
     this.onNavigationChanged,
     this.onPosongTap,
     this.onSearchChanged,
@@ -25,10 +29,14 @@ class ExploreScreen extends StatelessWidget {
     this.assetPackage,
   });
 
+  final int incompleteCount;
+  final int completeCount;
   final bool hasNotification;
   final VoidCallback? onNotificationTap;
   final VoidCallback? onWishTap;
   final VoidCallback? onMyPageTap;
+  final VoidCallback? onCreateTravelTap;
+  final VoidCallback? onJoinWithInviteCodeTap;
   final ValueChanged<AppNavigationTab>? onNavigationChanged;
   final VoidCallback? onPosongTap;
   final ValueChanged<String>? onSearchChanged;
@@ -45,10 +53,14 @@ class ExploreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return HomeScreen(
       initialTab: AppNavigationTab.explore,
+      incompleteCount: incompleteCount,
+      completeCount: completeCount,
       hasNotification: hasNotification,
       onNotificationTap: onNotificationTap,
       onWishTap: onWishTap,
       onMyPageTap: onMyPageTap,
+      onCreateTravelTap: onCreateTravelTap,
+      onJoinWithInviteCodeTap: onJoinWithInviteCodeTap,
       onNavigationChanged: onNavigationChanged,
       onPosongTap: onPosongTap,
       onSearchChanged: onSearchChanged,
