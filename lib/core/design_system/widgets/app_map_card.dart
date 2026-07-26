@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
@@ -67,36 +69,50 @@ Widget _slideFadeTransition(Widget child, Animation<double> animation) {
   );
 }
 
-/// 여행 코스의 지도를 보여주는 카드입니다.
+/// 카카오맵 위에 [markers]를 그리는, 카드 장식이 없는 순수 지도 뷰입니다.
 ///
-/// [markers]에 담긴 위/경도·방문 상태를 실제 카카오맵 위에 마커로 표시합니다.
-/// [markers]가 바뀌면(코스 전환) 기존 마커를 지우고 새로 찍은 뒤, 모든 마커가
-/// 보이도록 카메라를 자동으로 맞춥니다.
-class AppMapCard extends StatefulWidget {
-  const AppMapCard({
+/// [AppMapCard](카드형)와 코스 보기 화면(전체 화면형)이 마커·동선 렌더링
+/// 로직을 공유하기 위한 하위 위젯입니다. 부모가 준 영역을 그대로 채우므로,
+/// 카드처럼 고정 비율이 필요하면 [AspectRatio] 등으로 바깥에서 감싸야 합니다.
+class AppMapView extends StatefulWidget {
+  const AppMapView({
     super.key,
-    required this.title,
     this.markers = const [],
-    this.currentPage = 0,
-    this.pageCount = 4,
-    this.onCourseTap,
-  }) : assert(pageCount > 0, 'pageCount는 1 이상이어야 합니다.'),
-       assert(
-         currentPage >= 0 && currentPage < pageCount,
-         'currentPage는 pageCount 범위 안이어야 합니다.',
+    this.onMarkerTap,
+    this.enableGestures = false,
+    this.fitVisibleFraction = 1.0,
+  }) : assert(
+         fitVisibleFraction > 0 && fitVisibleFraction <= 1,
+         'fitVisibleFraction은 0보다 크고 1 이하여야 합니다.',
        );
 
-  final String title;
   final List<MapMarker> markers;
-  final int currentPage;
-  final int pageCount;
-  final VoidCallback? onCourseTap;
+
+  /// 마커(원)를 탭했을 때, [markers] 안에서의 인덱스와 함께 호출됩니다.
+  final ValueChanged<int>? onMarkerTap;
+
+  /// 손가락으로 지도를 직접 이동/확대/회전할 수 있게 할지 여부입니다.
+  ///
+  /// [AppMapCard]처럼 좌우 스와이프로 코스를 전환하는 용도라면 지도 자체
+  /// 제스처와 충돌하므로 꺼둡니다(기본값). 코스 보기 화면처럼 지도 자체가
+  /// 화면 전체를 채우는 경우에는 true로 켜서 지도를 직접 움직일 수 있게
+  /// 합니다.
+  final bool enableGestures;
+
+  /// 마커에 자동으로 카메라를 맞출 때(fitMapPoints), 실제로 마커가 들어와야
+  /// 하는 위쪽 영역의 비율입니다.
+  ///
+  /// 이 지도 위에 바텀 시트 등으로 아래쪽 일부가 가려지는 경우, 기본값
+  /// 1.0(화면 전체에 맞춤)을 쓰면 마커들이 화면 정중앙 근처, 즉 가려지는
+  /// 영역 언저리에 몰릴 수 있습니다. 예를 들어 아래쪽 50%가 가려진다면
+  /// 0.5를 넘겨서, 마커들이 위쪽 절반 안에 들어오도록 카메라를 맞춥니다.
+  final double fitVisibleFraction;
 
   @override
-  State<AppMapCard> createState() => _AppMapCardState();
+  State<AppMapView> createState() => _AppMapViewState();
 }
 
-class _AppMapCardState extends State<AppMapCard> {
+class _AppMapViewState extends State<AppMapView> {
   // 마커 아이콘은 (상태, 선택 여부) 조합별로 몇 종류뿐이라, 앱 전체에서 한 번만
   // 생성해 재사용합니다. KImage.fromWidget이 비동기라 Future로 캐싱합니다.
   static final Map<(MapMarkerStatus, bool), Future<PoiStyle>> _styleCache = {};
@@ -184,13 +200,15 @@ class _AppMapCardState extends State<AppMapCard> {
 
   void _handleMapReady(KakaoMapController controller) {
     _controller = controller;
-    // 지도 카드는 좌우로 스와이프해서 코스를 전환하는 용도라, 지도 자체를
-    // 손가락으로 이동/확대/회전할 수 있으면 그 제스처와 충돌합니다. 지도의
-    // 모든 제스처를 꺼서 카메라는 오직 코드([_renderOverlays])로만
-    // 움직이게 합니다.
-    for (final gesture in GestureType.values) {
-      if (gesture == GestureType.unknown) continue;
-      controller.setGesture(gesture, false);
+    if (!widget.enableGestures) {
+      // 지도 카드는 좌우로 스와이프해서 코스를 전환하는 용도라, 지도 자체를
+      // 손가락으로 이동/확대/회전할 수 있으면 그 제스처와 충돌합니다. 지도의
+      // 모든 제스처를 꺼서 카메라는 오직 코드([_renderOverlays])로만
+      // 움직이게 합니다.
+      for (final gesture in GestureType.values) {
+        if (gesture == GestureType.unknown) continue;
+        controller.setGesture(gesture, false);
+      }
     }
     _renderOverlays();
   }
@@ -218,6 +236,63 @@ class _AppMapCardState extends State<AppMapCard> {
         CameraUpdate.fitMapPoints(points, padding: 80),
       );
     }
+    await _biasCameraTowardVisibleArea(controller);
+  }
+
+  /// [widget.fitVisibleFraction]이 1.0 미만이면(예: 바텀 시트가 화면 아래쪽
+  /// 일부를 가리는 경우), 지금 화면 정중앙에 있는 지점이 화면 전체가 아니라
+  /// 위쪽 [fitVisibleFraction] 영역의 세로 중앙에 오도록 카메라를 다시
+  /// 옮깁니다. fitMapPoints로 맞춘 직후는 물론, 마커를 눌러 포커스로
+  /// 이동시킨 직후에도 똑같이 씁니다.
+  ///
+  /// 위/경도 범위를 직접 계산해 미리 늘리는 방식은 마커들이 같은 위도(정
+  /// 동서 방향)에 있는 경우 기준으로 삼을 범위가 없어 어긋났습니다. 대신
+  /// 방금 잡힌 화면 좌표 기준으로 "지금 화면 중앙에 있는 지점"이 대신
+  /// "보이는 영역의 세로 중앙"에 오도록, 실제 화면 픽셀 좌표를 위/경도로
+  /// 변환해주는 [KakaoMapController.fromScreenPoint]로 옮길 지점을 구합니다.
+  Future<void> _biasCameraTowardVisibleArea(
+    KakaoMapController controller,
+  ) async {
+    final fraction = widget.fitVisibleFraction;
+    if (fraction >= 1.0 || !mounted) return;
+
+    // moveCamera의 Future는 네이티브가 fitMapPoints/newCenterPosition의
+    // 실제 카메라 이동 계산을 마치기 전에 먼저 완료되는 경우가 있어(실기
+    // 로그로 확인: fromScreenPoint 호출이 fitMapPoints보다 먼저 처리됨),
+    // 곧바로 fromScreenPoint를 호출하면 이동 전 위치 기준으로 좌표가
+    // 계산됩니다. 카메라가 실제로 자리잡을 시간을 짧게 확보합니다.
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (!mounted) return;
+
+    final size = context.size;
+    if (size == null) return;
+    // fromScreenPoint는 Flutter의 논리적 픽셀이 아니라 기기의 실제(물리)
+    // 픽셀 좌표를 기대합니다(실기 로그로 확인: 화면 중앙에서 세로로만
+    // 옮긴 논리 좌표를 넘겼는데도 위도·경도가 함께 크게 어긋나는 결과가
+    // 나왔고, devicePixelRatio를 곱해 물리 픽셀로 보정하니 세로로만
+    // 어긋난 결과가 나왔습니다).
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+
+    // 화면 정중앙에 있던 지점이 "보이는 영역의 세로 중앙"에 오려면, 카메라
+    // 중심을 지금보다 이만큼(픽셀) 남쪽에 있던 지점으로 옮겨야 합니다.
+    final deltaY = size.height / 2 * (1 - fraction);
+    final queryX = (size.width / 2 * dpr).round();
+    final queryY = ((size.height / 2 + deltaY) * dpr).round();
+    final target = await controller.fromScreenPoint(queryX, queryY);
+    if (target == null || !mounted) return;
+    await controller.moveCamera(CameraUpdate.newCenterPosition(target));
+  }
+
+  /// 마커를 눌렀을 때 그 위치로 카메라를 이동해 포커스합니다.
+  Future<void> _focusOnMarker(
+    KakaoMapController controller,
+    LatLng position,
+  ) async {
+    await controller.moveCamera(
+      CameraUpdate.newCenterPosition(position, zoomLevel: 16),
+      animation: const CameraAnimation(300),
+    );
+    await _biasCameraTowardVisibleArea(controller);
   }
 
   Future<void> _renderMarkers(KakaoMapController controller) async {
@@ -230,13 +305,56 @@ class _AppMapCardState extends State<AppMapCard> {
 
     if (widget.markers.isEmpty) return;
 
+    final onMarkerTap = widget.onMarkerTap;
     final newPois = <Poi>[];
-    for (final marker in widget.markers) {
+    for (var i = 0; i < widget.markers.length; i++) {
+      final marker = widget.markers[i];
       final style = await _styleFor(marker.status, marker.isSelected);
-      newPois.add(await layer.addPoi(marker.position, style: style));
+      void Function()? onClick;
+      if (onMarkerTap != null) {
+        onClick = () {
+          // 마커를 누르면 그 위치로 카메라가 이동해 포커스됩니다.
+          unawaited(_focusOnMarker(controller, marker.position));
+          onMarkerTap(i);
+        };
+      }
+      final poi = await _addPoiWithRetry(layer, marker, style, onClick);
+      if (poi != null) newPois.add(poi);
     }
     if (!mounted) return;
     _pois = newPois;
+  }
+
+  // kakao_map_sdk 1.2.6에는, 스타일을 등록한 직후 곧바로 그 스타일로 Poi를
+  // 추가하면 네이티브 쪽에서 아직 스타일 등록이 끝나지 않은 것으로 보여
+  // "LabelStyles is null"과 함께 OverlayRegistrationFailedError가 발생하는
+  // 레이스 컨디션이 있습니다(실기 로그로 확인. 특히 여러 마커를 한 번에 찍는
+  // 화면 진입 직후에 재현됩니다). 짧게 기다렸다가 다시 시도하면 대부분
+  // 통과하고, 그래도 계속 실패하면 그 마커만 건너뛰어 나머지 마커·동선
+  // 렌더링에는 영향이 없게 합니다.
+  Future<Poi?> _addPoiWithRetry(
+    LabelController layer,
+    MapMarker marker,
+    PoiStyle style,
+    void Function()? onClick,
+  ) async {
+    const maxAttempts = 3;
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await layer.addPoi(
+          marker.position,
+          style: style,
+          onClick: onClick,
+        );
+      } on OverlayRegistrationFailedError {
+        if (attempt == maxAttempts) {
+          debugPrint('마커(${marker.label}) 추가 실패: 재시도 초과');
+          return null;
+        }
+        await Future.delayed(const Duration(milliseconds: 80));
+      }
+    }
+    return null;
   }
 
   // 여행 전/중 상관없이(사용자 확인 완료) 코스 순서를 Purple2→Purple3
@@ -282,7 +400,7 @@ class _AppMapCardState extends State<AppMapCard> {
   }
 
   @override
-  void didUpdateWidget(covariant AppMapCard oldWidget) {
+  void didUpdateWidget(covariant AppMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (listEquals(oldWidget.markers, widget.markers)) return;
 
@@ -316,6 +434,63 @@ class _AppMapCardState extends State<AppMapCard> {
 
   @override
   Widget build(BuildContext context) {
+    if (_hasError) {
+      return const ColoredBox(
+        color: AppColors.gray2,
+        child: Center(
+          child: Text(
+            '지도를 불러오지 못했어요',
+            style: TextStyle(color: AppColors.gray5),
+          ),
+        ),
+      );
+    }
+
+    return KakaoMap(
+      option: KakaoMapOption(
+        position: widget.markers.isNotEmpty
+            ? widget.markers.first.position
+            : const KakaoMapOption().position,
+        zoomLevel: 16,
+      ),
+      // enableGestures가 false면(카드형) 지도 자체 제스처도 꺼둔 상태이므로,
+      // 이 화면을 감싼 GestureDetector(코스 스와이프 등)가 터치를 우선
+      // 받을 수 있도록 지도가 제스처를 가로채지 않게 합니다. enableGestures가
+      // true면(전체 화면형) 반대로 지도가 직접 제스처를 받아야 손가락으로
+      // 움직일 수 있습니다.
+      forceGesture: widget.enableGestures,
+      onMapReady: _handleMapReady,
+      onMapError: _handleMapError,
+    );
+  }
+}
+
+/// 여행 코스의 지도를 보여주는 카드입니다.
+///
+/// [markers]에 담긴 위/경도·방문 상태를 실제 카카오맵 위에 마커로 표시합니다.
+/// 실제 마커·동선 렌더링은 [AppMapView]에 위임합니다.
+class AppMapCard extends StatelessWidget {
+  const AppMapCard({
+    super.key,
+    required this.title,
+    this.markers = const [],
+    this.currentPage = 0,
+    this.pageCount = 4,
+    this.onCourseTap,
+  }) : assert(pageCount > 0, 'pageCount는 1 이상이어야 합니다.'),
+       assert(
+         currentPage >= 0 && currentPage < pageCount,
+         'currentPage는 pageCount 범위 안이어야 합니다.',
+       );
+
+  final String title;
+  final List<MapMarker> markers;
+  final int currentPage;
+  final int pageCount;
+  final VoidCallback? onCourseTap;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       clipBehavior: Clip.antiAlias,
@@ -346,8 +521,8 @@ class _AppMapCardState extends State<AppMapCard> {
                         switchOutCurve: Curves.easeInOutCubic,
                         transitionBuilder: _slideFadeTransition,
                         child: Text(
-                          widget.title,
-                          key: ValueKey(widget.title),
+                          title,
+                          key: ValueKey(title),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
@@ -364,46 +539,15 @@ class _AppMapCardState extends State<AppMapCard> {
                   aspectRatio: 319 / 156,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: _hasError
-                        ? const ColoredBox(
-                            color: AppColors.gray2,
-                            child: Center(
-                              child: Text(
-                                '지도를 불러오지 못했어요',
-                                style: TextStyle(color: AppColors.gray5),
-                              ),
-                            ),
-                          )
-                        : KakaoMap(
-                            option: KakaoMapOption(
-                              position: widget.markers.isNotEmpty
-                                  ? widget.markers.first.position
-                                  : const KakaoMapOption().position,
-                              zoomLevel: 16,
-                            ),
-                            // 지도 자체 제스처를 끄는 것과 함께, 이 화면을
-                            // 감싼 GestureDetector(코스 스와이프)가 터치를
-                            // 우선 받을 수 있도록 지도가 제스처를 가로채지
-                            // 않게 합니다.
-                            forceGesture: false,
-                            onMapReady: _handleMapReady,
-                            onMapError: _handleMapError,
-                          ),
+                    child: AppMapView(markers: markers),
                   ),
                 ),
                 const SizedBox(height: 10),
-                _PageIndicator(
-                  currentPage: widget.currentPage,
-                  pageCount: widget.pageCount,
-                ),
+                _PageIndicator(currentPage: currentPage, pageCount: pageCount),
               ],
             ),
           ),
-          Positioned(
-            top: 2,
-            right: 12,
-            child: _CourseAction(onTap: widget.onCourseTap),
-          ),
+          Positioned(top: 2, right: 12, child: _CourseAction(onTap: onCourseTap)),
         ],
       ),
     );

@@ -13,6 +13,7 @@ import 'package:pozit/data/models/travel_member_model.dart';
 import 'package:pozit/data/models/tourist_spot_model.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
 import 'package:pozit/screens/course_edit/course_edit_screen.dart';
+import 'package:pozit/screens/travel_course_map/travel_course_map_screen.dart';
 import 'package:pozit/screens/travel_detail/travel_detail_screen.dart';
 import 'package:pozit/screens/travel_member/travel_member_screen.dart';
 import 'package:pozit/screens/travel_settings/travel_settings_screen.dart';
@@ -373,6 +374,16 @@ class _MapMarkerPreviewApp extends StatelessWidget {
           },
           onLeaveTap: () => debugPrint('여행 나가기 확정'),
           onDeleteTap: () => debugPrint('여행 삭제 확정'),
+          onCourseTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TravelCourseMapScreen(
+                  courses: courses,
+                  status: AppTravelStatus.inProgress,
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
