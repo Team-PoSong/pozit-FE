@@ -29,6 +29,7 @@ class TravelSettingsPopup extends StatelessWidget {
   final AppTravelStatus status;
   final bool isLeader;
   final VoidCallback? onSettingsTap;
+  final VoidCallback? onCourseEditTap;
   final VoidCallback? onMemberTap;
   final VoidCallback? onLeaveTap;
   final VoidCallback? onDeleteTap;
@@ -38,6 +39,7 @@ class TravelSettingsPopup extends StatelessWidget {
     required this.status,
     required this.isLeader,
     this.onSettingsTap,
+    this.onCourseEditTap,
     this.onMemberTap,
     this.onLeaveTap,
     this.onDeleteTap,
@@ -48,6 +50,11 @@ class TravelSettingsPopup extends StatelessWidget {
       label: '여행 설정',
       color: AppColors.text,
       onTap: onSettingsTap,
+    );
+    final courseEdit = _MenuItemData(
+      label: '코스 수정',
+      color: AppColors.text,
+      onTap: onCourseEditTap,
     );
     final member = _MenuItemData(
       label: '멤버',
@@ -69,9 +76,10 @@ class TravelSettingsPopup extends StatelessWidget {
     if (!isLeader) return [member, leave];
 
     switch (status) {
+      // '코스 수정'은 여행 전/중에만, 팀장에게만 보입니다.
       case AppTravelStatus.upcoming:
       case AppTravelStatus.inProgress:
-        return [settings, member, delete];
+        return [settings, courseEdit, member, delete];
       case AppTravelStatus.completed:
         return [settings, member, leave];
     }
@@ -168,6 +176,7 @@ Future<void> showTravelSettingsPopup(
   required AppTravelStatus status,
   required bool isLeader,
   VoidCallback? onSettingsTap,
+  VoidCallback? onCourseEditTap,
   VoidCallback? onMemberTap,
   VoidCallback? onLeaveTap,
   VoidCallback? onDeleteTap,
@@ -213,6 +222,7 @@ Future<void> showTravelSettingsPopup(
               status: status,
               isLeader: isLeader,
               onSettingsTap: wrap(onSettingsTap),
+              onCourseEditTap: wrap(onCourseEditTap),
               onMemberTap: wrap(onMemberTap),
               onLeaveTap: wrap(onLeaveTap),
               onDeleteTap: wrap(onDeleteTap),

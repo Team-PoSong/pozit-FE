@@ -39,6 +39,7 @@ class TravelDetailScreen extends StatefulWidget {
     this.initialDay = 1,
     this.onBackTap,
     this.onSettingsTap,
+    this.onCourseEditTap,
     this.onMemberTap,
     this.onLeaveTap,
     this.onDeleteTap,
@@ -63,6 +64,7 @@ class TravelDetailScreen extends StatefulWidget {
   final int initialDay;
   final VoidCallback? onBackTap;
   final VoidCallback? onSettingsTap;
+  final VoidCallback? onCourseEditTap;
   final VoidCallback? onMemberTap;
   final VoidCallback? onLeaveTap;
   final VoidCallback? onDeleteTap;
@@ -247,6 +249,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                             textColor: AppColors.white,
                             onBackTap: widget.onBackTap,
                             onSettingsTap: widget.onSettingsTap,
+                            onCourseEditTap: widget.onCourseEditTap,
                             onMemberTap: widget.onMemberTap,
                             onLeaveTap: widget.onLeaveTap,
                             onDeleteTap: widget.onDeleteTap,
@@ -358,6 +361,7 @@ List<TravelCourseModel> _previewCourses() {
           courseSpotId: 1,
           touristSpotId: 1,
           name: '동궁과 월지',
+          address: '경북 경주시 원화로 102',
           latitude: 35.8347,
           longitude: 129.2247,
           orderIndex: 0,
@@ -367,6 +371,7 @@ List<TravelCourseModel> _previewCourses() {
           courseSpotId: 2,
           touristSpotId: 2,
           name: '첨성대',
+          address: '경북 경주시 인왕동 839-1',
           latitude: 35.8347,
           longitude: 129.2194,
           orderIndex: 1,
@@ -384,6 +389,7 @@ List<TravelCourseModel> _previewCourses() {
           courseSpotId: 3,
           touristSpotId: 3,
           name: '대릉원',
+          address: '경북 경주시 계림로 9',
           latitude: 35.8351,
           longitude: 129.2118,
           orderIndex: 0,
@@ -400,6 +406,7 @@ List<TravelCourseModel> _previewCourses() {
           courseSpotId: 4,
           touristSpotId: 4,
           name: '불국사',
+          address: '경북 경주시 불국로 385',
           latitude: 35.7898,
           longitude: 129.3320,
           orderIndex: 0,
@@ -409,6 +416,7 @@ List<TravelCourseModel> _previewCourses() {
           courseSpotId: 5,
           touristSpotId: 5,
           name: '석굴암',
+          address: '경북 경주시 석굴로 238',
           latitude: 35.7947,
           longitude: 129.3492,
           orderIndex: 1,
@@ -425,6 +433,7 @@ List<TravelCourseModel> _previewCourses() {
           courseSpotId: 6,
           touristSpotId: 6,
           name: '보문관광단지',
+          address: '경북 경주시 보문로 132',
           latitude: 35.8484,
           longitude: 129.2712,
           orderIndex: 0,

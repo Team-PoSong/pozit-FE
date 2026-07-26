@@ -38,6 +38,7 @@ class TravelDetailTopBar extends StatelessWidget {
     this.isLeader,
     this.onBackTap,
     this.onSettingsTap,
+    this.onCourseEditTap,
     this.onMemberTap,
     this.onLeaveTap,
     this.onDeleteTap,
@@ -80,6 +81,10 @@ class TravelDetailTopBar extends StatelessWidget {
 
   /// 설정 팝업의 '여행 설정' 항목을 눌렀을 때 호출됩니다.
   final VoidCallback? onSettingsTap;
+
+  /// 설정 팝업의 '코스 수정' 항목을 눌렀을 때 호출됩니다. 여행 전/중일 때
+  /// 팀장에게만 항목 자체가 표시됩니다.
+  final VoidCallback? onCourseEditTap;
 
   /// 설정 팝업의 '멤버' 항목을 눌렀을 때 호출됩니다.
   final VoidCallback? onMemberTap;
@@ -165,6 +170,7 @@ class TravelDetailTopBar extends StatelessWidget {
                 travelStatus: travelStatus!,
                 isLeader: isLeader!,
                 onSettingsTap: onSettingsTap,
+                onCourseEditTap: onCourseEditTap,
                 onMemberTap: onMemberTap,
                 onLeaveTap: onLeaveTap,
                 onDeleteTap: onDeleteTap,
@@ -182,6 +188,7 @@ class _SettingsButton extends StatefulWidget {
     required this.travelStatus,
     required this.isLeader,
     this.onSettingsTap,
+    this.onCourseEditTap,
     this.onMemberTap,
     this.onLeaveTap,
     this.onDeleteTap,
@@ -191,6 +198,7 @@ class _SettingsButton extends StatefulWidget {
   final AppTravelStatus travelStatus;
   final bool isLeader;
   final VoidCallback? onSettingsTap;
+  final VoidCallback? onCourseEditTap;
   final VoidCallback? onMemberTap;
   final VoidCallback? onLeaveTap;
   final VoidCallback? onDeleteTap;
@@ -209,6 +217,7 @@ class _SettingsButtonState extends State<_SettingsButton> {
       status: widget.travelStatus,
       isLeader: widget.isLeader,
       onSettingsTap: widget.onSettingsTap,
+      onCourseEditTap: widget.onCourseEditTap,
       onMemberTap: widget.onMemberTap,
       onLeaveTap: _handleLeaveTap,
       onDeleteTap: _handleDeleteTap,

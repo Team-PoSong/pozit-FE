@@ -30,6 +30,7 @@ class CourseSpotModel {
   final int courseSpotId;
   final int touristSpotId;
   final String name;
+  final String address;
   final double latitude;
   final double longitude;
   final int orderIndex;
@@ -40,6 +41,7 @@ class CourseSpotModel {
     required this.courseSpotId,
     required this.touristSpotId,
     required this.name,
+    required this.address,
     required this.latitude,
     required this.longitude,
     required this.orderIndex,
@@ -52,6 +54,7 @@ class CourseSpotModel {
       courseSpotId: json['courseSpotId'] as int,
       touristSpotId: json['touristSpotId'] as int,
       name: json['name'] as String,
+      address: json['address'] as String,
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       orderIndex: json['orderIndex'] as int,

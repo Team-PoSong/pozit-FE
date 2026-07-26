@@ -11,6 +11,7 @@ import 'package:pozit/data/models/travel_course_model.dart';
 import 'package:pozit/data/models/travel_info_card_model.dart';
 import 'package:pozit/data/models/travel_member_model.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
+import 'package:pozit/screens/course_edit/course_edit_screen.dart';
 import 'package:pozit/screens/travel_detail/travel_detail_screen.dart';
 import 'package:pozit/screens/travel_member/travel_member_screen.dart';
 import 'package:pozit/screens/travel_settings/travel_settings_screen.dart';
@@ -71,6 +72,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 1,
             touristSpotId: 1,
             name: '동궁과 월지',
+            address: '경북 경주시 원화로 102',
             latitude: 35.8347,
             longitude: 129.2247,
             orderIndex: 0,
@@ -80,6 +82,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 2,
             touristSpotId: 2,
             name: '첨성대',
+            address: '경북 경주시 인왕동 839-1',
             latitude: 35.8347,
             longitude: 129.2194,
             orderIndex: 1,
@@ -89,6 +92,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 3,
             touristSpotId: 3,
             name: '대릉원',
+            address: '경북 경주시 계림로 9',
             latitude: 35.8351,
             longitude: 129.2118,
             orderIndex: 2,
@@ -106,6 +110,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 4,
             touristSpotId: 3,
             name: '대릉원',
+            address: '경북 경주시 계림로 9',
             latitude: 35.8351,
             longitude: 129.2118,
             orderIndex: 0,
@@ -115,6 +120,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 5,
             touristSpotId: 2,
             name: '첨성대',
+            address: '경북 경주시 인왕동 839-1',
             latitude: 35.8347,
             longitude: 129.2194,
             orderIndex: 1,
@@ -124,6 +130,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 6,
             touristSpotId: 1,
             name: '동궁과 월지',
+            address: '경북 경주시 원화로 102',
             latitude: 35.8347,
             longitude: 129.2247,
             orderIndex: 2,
@@ -142,6 +149,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 7,
             touristSpotId: 2,
             name: '첨성대',
+            address: '경북 경주시 인왕동 839-1',
             latitude: 35.8347,
             longitude: 129.2194,
             orderIndex: 0,
@@ -160,6 +168,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 8,
             touristSpotId: 3,
             name: '대릉원',
+            address: '경북 경주시 계림로 9',
             latitude: 35.8351,
             longitude: 129.2118,
             orderIndex: 2,
@@ -169,6 +178,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 9,
             touristSpotId: 1,
             name: '동궁과 월지',
+            address: '경북 경주시 원화로 102',
             latitude: 35.8347,
             longitude: 129.2247,
             orderIndex: 0,
@@ -178,6 +188,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 10,
             touristSpotId: 2,
             name: '첨성대',
+            address: '경북 경주시 인왕동 839-1',
             latitude: 35.8347,
             longitude: 129.2194,
             orderIndex: 1,
@@ -187,6 +198,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 11,
             touristSpotId: 6,
             name: '계림',
+            address: '경북 경주시 교동 1',
             latitude: 35.8345,
             longitude: 129.2159,
             orderIndex: 3,
@@ -204,6 +216,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 12,
             touristSpotId: 9,
             name: '불국사',
+            address: '경북 경주시 불국로 385',
             latitude: 35.7898,
             longitude: 129.3320,
             orderIndex: 0,
@@ -213,6 +226,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 13,
             touristSpotId: 10,
             name: '석굴암',
+            address: '경북 경주시 석굴로 238',
             latitude: 35.7947,
             longitude: 129.3492,
             orderIndex: 1,
@@ -230,6 +244,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 14,
             touristSpotId: 10,
             name: '석굴암',
+            address: '경북 경주시 석굴로 238',
             latitude: 35.7947,
             longitude: 129.3492,
             orderIndex: 0,
@@ -239,6 +254,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 15,
             touristSpotId: 9,
             name: '불국사',
+            address: '경북 경주시 불국로 385',
             latitude: 35.7898,
             longitude: 129.3320,
             orderIndex: 1,
@@ -256,6 +272,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
             courseSpotId: 16,
             touristSpotId: 16,
             name: '보문관광단지',
+            address: '경북 경주시 보문로 132',
             latitude: 35.8484,
             longitude: 129.2712,
             orderIndex: 0,
@@ -271,7 +288,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
       home: Builder(
         builder: (context) => TravelDetailScreen(
           info: info,
-          status: AppTravelStatus.completed,
+          status: AppTravelStatus.inProgress,
           isLeader: _isLeader,
           courses: courses,
           onSettingsTap: () {
@@ -286,6 +303,18 @@ class _MapMarkerPreviewApp extends StatelessWidget {
                       '${result.startDate}~${result.endDate}, '
                       '${result.tags}, 공개=${result.isPublic}',
                     );
+                  },
+                ),
+              ),
+            );
+          },
+          onCourseEditTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => CourseEditScreen(
+                  courses: courses,
+                  onSave: (spotsByDay) {
+                    debugPrint('코스 수정 저장: $spotsByDay');
                   },
                 ),
               ),
