@@ -160,9 +160,13 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
         child: AppCalendar(
           initialMonth: _startDate ?? DateTime.now(),
           onRangeSelected: (start, end) {
-            Navigator.of(
-              dialogContext,
-            ).pop(DateTimeRange(start: start, end: end));
+            Future.delayed(const Duration(milliseconds: 700), () {
+              if (dialogContext.mounted) {
+                Navigator.of(
+                  dialogContext,
+                ).pop(DateTimeRange(start: start, end: end));
+              }
+            });
           },
         ),
       ),
@@ -176,6 +180,10 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
   }
 
   void _handleToggleTag(String tag) {
+    // 태그 자체의 GestureDetector가 탭을 먼저 가져가서(제스처 아레나 승리),
+    // 화면 전체를 감싼 "바깥 탭 시 포커스 해제" 처리기가 실행되지 않습니다.
+    // 그래서 태그를 눌렀을 때 여기서 직접 포커스를 해제합니다.
+    FocusScope.of(context).unfocus();
     setState(() {
       if (_selectedTags.contains(tag)) {
         _selectedTags.remove(tag);
@@ -251,15 +259,20 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       const SizedBox(height: _kLabelToFieldGap),
                       AppInputField(
                         controller: _travelNameController,
+                        hintText: '친구들과 경주 여행',
                         onChanged: (_) => setState(() {}),
                       ),
                       const SizedBox(height: _kFieldToNextLabelGap),
                       const _SectionLabel('어디로 떠나시나요?'),
                       const SizedBox(height: _kLabelToFieldGap),
-                      AppInputField(
-                        controller: _destinationController,
-                        readOnly: true,
-                        textColor: AppColors.gray5,
+                      // 수정할 수 없는 항목이라, 탭이 TextField까지 전달되지
+                      // 않도록 막아 포커스(선택 테두리)가 생기지 않게 합니다.
+                      IgnorePointer(
+                        child: AppInputField(
+                          controller: _destinationController,
+                          readOnly: true,
+                          textColor: AppColors.gray5,
+                        ),
                       ),
                       const SizedBox(height: _kFieldToNextLabelGap),
                       const _SectionLabel('여행이 언제인가요?'),

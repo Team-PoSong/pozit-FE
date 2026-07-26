@@ -226,6 +226,7 @@ class _AppCalendarState extends State<AppCalendar> {
         boxShadow: const [BoxShadow(color: AppColors.gray3, blurRadius: 4.0)],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 32.0),
           Padding(
