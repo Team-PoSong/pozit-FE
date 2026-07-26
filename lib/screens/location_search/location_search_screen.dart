@@ -22,7 +22,6 @@ const double _kEmptyImageToTextGap = 16.0;
 const double _kChipsToButtonGap = 17.0;
 const double _kChipGap = 5.0;
 const int _kMinQueryLength = 2;
-const double _kSearchBarVerticalPadding = 12.0;
 
 // 빈 결과 이미지/텍스트는 검색 바~버튼 사이 빈 공간을 이 비율(157:184)로
 // 나눠서 위아래 여백을 잡습니다. 화면 높이가 달라져도 같은 비율을 유지하기
@@ -156,7 +155,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               child: AppSearchBar(
                 controller: _controller,
                 hintText: '장소명을 검색해주세요.',
-                verticalPadding: _kSearchBarVerticalPadding,
                 onChanged: _handleQueryChanged,
                 onSubmitted: _handleSearch,
                 onSearchTap: () => _handleSearch(_controller.text),

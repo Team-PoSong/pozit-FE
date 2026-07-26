@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../app_colors.dart';
+import '../app_dimensions.dart';
 import '../app_text_styles.dart';
 
 class AppInputField extends StatefulWidget {
@@ -32,7 +33,6 @@ class AppInputField extends StatefulWidget {
   final int? maxLength;
   final List<TextInputFormatter>? inputFormatters;
 
-  /// 입력된 텍스트의 색상입니다. 지정하지 않으면 [AppColors.text]를 사용합니다.
   final Color? textColor;
 
   @override
@@ -114,55 +114,60 @@ class _AppInputFieldState extends State<AppInputField> {
         ? const BorderSide(width: 1, color: AppColors.purple3)
         : BorderSide.none;
 
-    return TextField(
-      controller: _controller,
-      focusNode: _focusNode,
-      onChanged: widget.onChanged,
-      onTap: widget.onTap,
-      readOnly: widget.readOnly,
-      autofocus: widget.autofocus,
-      maxLines: 1,
-      maxLength: widget.maxLength,
-      inputFormatters: widget.inputFormatters,
-      buildCounter:
-          (
-            context, {
-            required currentLength,
-            required isFocused,
-            required maxLength,
-          }) => null,
-      textAlignVertical: TextAlignVertical.center,
-      cursorColor: AppColors.text,
-      style: AppTextStyles.body.copyWith(
-        color: widget.textColor ?? AppColors.text,
-        height: 20 / 14,
-        letterSpacing: -0.5,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: AppDimensions.inputMinHeight,
       ),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: AppColors.gray2,
-        hintText: widget.hintText,
-        hintStyle: AppTextStyles.body.copyWith(
-          color: AppColors.textSub,
+      child: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        onChanged: widget.onChanged,
+        onTap: widget.onTap,
+        readOnly: widget.readOnly,
+        autofocus: widget.autofocus,
+        maxLines: 1,
+        maxLength: widget.maxLength,
+        inputFormatters: widget.inputFormatters,
+        buildCounter:
+            (
+              context, {
+              required currentLength,
+              required isFocused,
+              required maxLength,
+            }) => null,
+        textAlignVertical: TextAlignVertical.center,
+        cursorColor: AppColors.text,
+        style: AppTextStyles.body.copyWith(
+          color: widget.textColor ?? AppColors.text,
           height: 20 / 14,
           letterSpacing: -0.5,
         ),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 28,
-          vertical: 19,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: borderRadius,
-          borderSide: borderSide,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: borderRadius,
-          borderSide: borderSide,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: borderRadius,
-          borderSide: borderSide,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: AppColors.gray2,
+          hintText: widget.hintText,
+          hintStyle: AppTextStyles.body.copyWith(
+            color: AppColors.textSub,
+            height: 20 / 14,
+            letterSpacing: -0.5,
+          ),
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: borderRadius,
+            borderSide: borderSide,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: borderRadius,
+            borderSide: borderSide,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: borderRadius,
+            borderSide: borderSide,
+          ),
         ),
       ),
     );

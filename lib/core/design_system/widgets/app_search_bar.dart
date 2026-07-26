@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../app_colors.dart';
+import '../app_dimensions.dart';
 import '../app_icons.dart';
 import '../app_text_styles.dart';
 
@@ -16,7 +17,6 @@ class AppSearchBar extends StatelessWidget {
     this.onSearchTap,
     this.readOnly = false,
     this.hintText = '찾고 싶은 여행을 검색해주세요.',
-    this.verticalPadding = 17.0,
   });
 
   final TextEditingController? controller;
@@ -26,13 +26,15 @@ class AppSearchBar extends StatelessWidget {
   final VoidCallback? onSearchTap;
   final bool readOnly;
   final String hintText;
-  final double verticalPadding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(28, verticalPadding, 20, verticalPadding),
+      constraints: const BoxConstraints(
+        minHeight: AppDimensions.inputMinHeight,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: AppColors.gray2,
         borderRadius: BorderRadius.circular(4),
