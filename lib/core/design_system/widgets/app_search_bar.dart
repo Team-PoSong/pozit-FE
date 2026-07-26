@@ -16,6 +16,7 @@ class AppSearchBar extends StatelessWidget {
     this.onSearchTap,
     this.readOnly = false,
     this.hintText = '찾고 싶은 여행을 검색해주세요.',
+    this.verticalPadding = 17.0,
   });
 
   final TextEditingController? controller;
@@ -25,12 +26,13 @@ class AppSearchBar extends StatelessWidget {
   final VoidCallback? onSearchTap;
   final bool readOnly;
   final String hintText;
+  final double verticalPadding;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(28, 17, 20, 17),
+      padding: EdgeInsets.fromLTRB(28, verticalPadding, 20, verticalPadding),
       decoration: BoxDecoration(
         color: AppColors.gray2,
         borderRadius: BorderRadius.circular(4),

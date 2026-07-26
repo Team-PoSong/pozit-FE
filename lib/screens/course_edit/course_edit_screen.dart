@@ -8,6 +8,8 @@ import '../../core/design_system/widgets/app_location.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
 import '../../data/models/travel_course_model.dart';
+import '../../data/models/tourist_spot_model.dart';
+import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
@@ -26,8 +28,11 @@ class CourseEditScreen extends StatefulWidget {
     super.key,
     required this.courses,
     this.initialDay = 1,
+    this.popularSpots = const [],
+    this.recentSearches = const [],
+    this.onSearch,
+    this.onRecentSearchDeleted,
     this.onBackTap,
-    this.onAddTap,
     this.onSave,
   });
 
@@ -35,10 +40,14 @@ class CourseEditScreen extends StatefulWidget {
   /// touristSpotId 기준으로 하나의 동선으로 합쳐서 보여줍니다.
   final List<TravelCourseModel> courses;
   final int initialDay;
-  final VoidCallback? onBackTap;
 
-  /// 플로팅 '+' 버튼을 눌렀을 때 호출됩니다. 이동할 화면은 별도로 정해집니다.
-  final VoidCallback? onAddTap;
+  /// 플로팅 '+' 버튼을 누르면 뜨는 [LocationSearchScreen]에 그대로 전달됩니다.
+  final List<TouristSpotModel> popularSpots;
+  final List<String> recentSearches;
+  final Future<List<TouristSpotModel>> Function(String query)? onSearch;
+  final ValueChanged<String>? onRecentSearchDeleted;
+
+  final VoidCallback? onBackTap;
 
   /// '저장하기'를 눌렀을 때 일차(dayNumber)별 수정된 장소 목록과 함께 호출됩니다.
   final ValueChanged<Map<int, List<CourseSpotModel>>>? onSave;
@@ -50,6 +59,15 @@ class CourseEditScreen extends StatefulWidget {
 class _CourseEditScreenState extends State<CourseEditScreen> {
   late final List<int> _dayNumbers =
       (widget.courses.map((c) => c.dayNumber).toSet().toList()..sort());
+
+  int _dayNumberForIndex(int dayIndex) {
+    // 기존 코스가 하나도 없는 일차에 새로 장소를 추가하는 경우, 목록에
+    // 아직 없는 dayNumber를 일차(index)와 동일한 값으로 채워둡니다.
+    while (_dayNumbers.length < dayIndex) {
+      _dayNumbers.add(_dayNumbers.length + 1);
+    }
+    return _dayNumbers[dayIndex - 1];
+  }
 
   late final Map<int, List<CourseSpotModel>> _spotsByDayIndex = {
     for (var i = 0; i < _dayNumbers.length; i++)
@@ -99,10 +117,46 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     });
   }
 
+  Future<void> _handleAddTap() async {
+    final added = await Navigator.of(context).push<List<TouristSpotModel>>(
+      MaterialPageRoute<List<TouristSpotModel>>(
+        builder: (_) => LocationSearchScreen(
+          popularSpots: widget.popularSpots,
+          recentSearches: widget.recentSearches,
+          onSearch: widget.onSearch,
+          onRecentSearchDeleted: widget.onRecentSearchDeleted,
+        ),
+      ),
+    );
+    if (added == null || added.isEmpty || !mounted) return;
+
+    setState(() {
+      _dayNumberForIndex(_selectedDay);
+      final list = _spotsByDayIndex.putIfAbsent(_selectedDay, () => []);
+      final existingSpotIds = list.map((s) => s.touristSpotId).toSet();
+      for (final spot in added) {
+        if (!existingSpotIds.add(spot.touristSpotId)) continue;
+        list.add(
+          CourseSpotModel(
+            courseSpotId: spot.touristSpotId,
+            touristSpotId: spot.touristSpotId,
+            name: spot.name,
+            address: spot.address,
+            latitude: spot.latitude,
+            longitude: spot.longitude,
+            orderIndex: list.length,
+            status: 'notVisited',
+          ),
+        );
+      }
+      _hasChanges = true;
+    });
+  }
+
   void _handleSave() {
     widget.onSave?.call({
       for (final entry in _spotsByDayIndex.entries)
-        _dayNumbers[entry.key - 1]: List.unmodifiable(entry.value),
+        _dayNumberForIndex(entry.key): List.unmodifiable(entry.value),
     });
   }
 
@@ -195,10 +249,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
               ),
               child: Align(
                 alignment: Alignment.centerRight,
-                child: AppCircleButton(
-                  size: 62.0,
-                  onPressed: widget.onAddTap,
-                ),
+                child: AppCircleButton(size: 62.0, onPressed: _handleAddTap),
               ),
             ),
             const SizedBox(height: _kFabToButtonGap),

@@ -10,6 +10,7 @@ import 'package:pozit/data/datasources/auth/auth_token_storage.dart';
 import 'package:pozit/data/models/travel_course_model.dart';
 import 'package:pozit/data/models/travel_info_card_model.dart';
 import 'package:pozit/data/models/travel_member_model.dart';
+import 'package:pozit/data/models/tourist_spot_model.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
 import 'package:pozit/screens/course_edit/course_edit_screen.dart';
 import 'package:pozit/screens/travel_detail/travel_detail_screen.dart';
@@ -313,6 +314,35 @@ class _MapMarkerPreviewApp extends StatelessWidget {
               MaterialPageRoute<void>(
                 builder: (_) => CourseEditScreen(
                   courses: courses,
+                  popularSpots: const [
+                    TouristSpotModel(
+                      touristSpotId: 20,
+                      name: '경주월드',
+                      address: '경북 경주시 보문로 400-1',
+                      latitude: 35.8402,
+                      longitude: 129.2646,
+                    ),
+                    TouristSpotModel(
+                      touristSpotId: 21,
+                      name: '황리단길',
+                      address: '경북 경주시 포석로 1080',
+                      latitude: 35.8367,
+                      longitude: 129.2103,
+                    ),
+                  ],
+                  recentSearches: const ['경주월드', '황리단길'],
+                  onSearch: (query) async {
+                    await Future.delayed(const Duration(milliseconds: 300));
+                    return const [
+                      TouristSpotModel(
+                        touristSpotId: 20,
+                        name: '경주월드',
+                        address: '경북 경주시 보문로 400-1',
+                        latitude: 35.8402,
+                        longitude: 129.2646,
+                      ),
+                    ].where((spot) => spot.name.contains(query)).toList();
+                  },
                   onSave: (spotsByDay) {
                     debugPrint('코스 수정 저장: $spotsByDay');
                   },
