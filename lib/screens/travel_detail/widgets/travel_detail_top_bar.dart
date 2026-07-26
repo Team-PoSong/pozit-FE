@@ -6,6 +6,7 @@ import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_icons.dart';
 import '../../../core/design_system/app_text_styles.dart';
 import '../../../core/design_system/app_travel_status.dart';
+import '../../../core/design_system/widgets/app_confirm_dialog.dart';
 import 'travel_settings_popup.dart';
 import 'travel_status.dart';
 
@@ -83,10 +84,12 @@ class TravelDetailTopBar extends StatelessWidget {
   /// 설정 팝업의 '멤버' 항목을 눌렀을 때 호출됩니다.
   final VoidCallback? onMemberTap;
 
-  /// 설정 팝업의 '여행 나가기' 항목을 눌렀을 때 호출됩니다.
+  /// 설정 팝업의 '여행 나가기' 항목을 누르고, [AppConfirmDialog]에서 한 번 더
+  /// 확인('나가기')한 뒤에 호출됩니다.
   final VoidCallback? onLeaveTap;
 
-  /// 설정 팝업의 '여행 삭제' 항목을 눌렀을 때 호출됩니다.
+  /// 설정 팝업의 '여행 삭제' 항목을 누르고, [AppConfirmDialog]에서 한 번 더
+  /// 확인('삭제하기')한 뒤에 호출됩니다.
   final VoidCallback? onDeleteTap;
 
   /// 뒤로가기·설정·자물쇠 아이콘의 색상입니다.
@@ -207,8 +210,28 @@ class _SettingsButtonState extends State<_SettingsButton> {
       isLeader: widget.isLeader,
       onSettingsTap: widget.onSettingsTap,
       onMemberTap: widget.onMemberTap,
-      onLeaveTap: widget.onLeaveTap,
-      onDeleteTap: widget.onDeleteTap,
+      onLeaveTap: _handleLeaveTap,
+      onDeleteTap: _handleDeleteTap,
+    );
+  }
+
+  void _handleLeaveTap() {
+    showAppConfirmDialog(
+      context,
+      title: '여행을 나가겠습니까?',
+      description: '해당 작업은 돌릴 수 없습니다.',
+      confirmText: '나가기',
+      onConfirm: widget.onLeaveTap,
+    );
+  }
+
+  void _handleDeleteTap() {
+    showAppConfirmDialog(
+      context,
+      title: '여행을 삭제하겠습니까?',
+      description: '해당 작업은 돌릴 수 없습니다.',
+      confirmText: '삭제하기',
+      onConfirm: widget.onDeleteTap,
     );
   }
 
