@@ -18,6 +18,7 @@ const double _kDateDetailToTitleGap = 24.0;
 const double _kTitleToListGap = 24.0;
 const double _kLocationGap = 11.0;
 const double _kFabToButtonGap = 22.0;
+const double _kFabSize = 62.0;
 
 /// 코스 수정 화면입니다.
 ///
@@ -193,60 +194,69 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
             ),
             const SizedBox(height: _kTitleToListGap),
             Expanded(
-              child: ReorderableListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: _kHorizontalPadding,
-                ),
-                buildDefaultDragHandles: false,
-                itemCount: spots.length,
-                onReorderItem: _handleReorder,
-                // 기본 proxyDecorator는 Material 3의 surfaceTintColor를 그대로
-                // 물려받아서, 드래그 중인 항목의 투명한 여백(위 Padding의
-                // bottom 11)까지 옅은 보라색으로 칠해져 버립니다. 그림자만
-                // 남기고 틴트는 꺼서 그 현상을 없앱니다.
-                proxyDecorator: (child, index, animation) {
-                  return AnimatedBuilder(
-                    animation: animation,
-                    builder: (context, _) {
-                      final elevation =
-                          Curves.easeInOut.transform(animation.value) * 6;
-                      return Material(
-                        elevation: elevation,
-                        color: Colors.transparent,
-                        surfaceTintColor: Colors.transparent,
-                        shadowColor: Colors.black.withValues(alpha: 0.3),
+              child: Stack(
+                children: [
+                  ReorderableListView.builder(
+                    // 목록 맨 아래 항목이 플로팅 '+' 버튼에 완전히 가려지지
+                    // 않도록, 버튼 높이+간격만큼 하단 여백을 더 둡니다.
+                    padding: const EdgeInsets.fromLTRB(
+                      _kHorizontalPadding,
+                      0,
+                      _kHorizontalPadding,
+                      _kFabSize + _kFabToButtonGap,
+                    ),
+                    buildDefaultDragHandles: false,
+                    itemCount: spots.length,
+                    onReorderItem: _handleReorder,
+                    // 기본 proxyDecorator는 Material 3의 surfaceTintColor를 그대로
+                    // 물려받아서, 드래그 중인 항목의 투명한 여백(위 Padding의
+                    // bottom 11)까지 옅은 보라색으로 칠해져 버립니다. 그림자만
+                    // 남기고 틴트는 꺼서 그 현상을 없앱니다.
+                    proxyDecorator: (child, index, animation) {
+                      return AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, _) {
+                          final elevation =
+                              Curves.easeInOut.transform(animation.value) * 6;
+                          return Material(
+                            elevation: elevation,
+                            color: Colors.transparent,
+                            surfaceTintColor: Colors.transparent,
+                            shadowColor: Colors.black.withValues(alpha: 0.3),
+                            child: child,
+                          );
+                        },
                         child: child,
                       );
                     },
-                    child: child,
-                  );
-                },
-                itemBuilder: (context, index) {
-                  final spot = spots[index];
-                  return Padding(
-                    key: ValueKey(spot.courseSpotId),
-                    padding: const EdgeInsets.only(bottom: _kLocationGap),
-                    child: AppLocation(
-                      name: spot.name,
-                      address: spot.address,
-                      showReorderHandle: true,
-                      reorderIndex: index,
-                      onDelete: () => _handleDelete(spot),
+                    itemBuilder: (context, index) {
+                      final spot = spots[index];
+                      return Padding(
+                        key: ValueKey(spot.courseSpotId),
+                        padding: const EdgeInsets.only(bottom: _kLocationGap),
+                        child: AppLocation(
+                          name: spot.name,
+                          address: spot.address,
+                          showReorderHandle: true,
+                          reorderIndex: index,
+                          onDelete: () => _handleDelete(spot),
+                        ),
+                      );
+                    },
+                  ),
+                  // 목록 위에 떠 있는 형태라, 목록 폭 전체가 아니라 버튼
+                  // 영역만큼만 아래 컨텐츠를 가립니다.
+                  Positioned(
+                    right: _kHorizontalPadding,
+                    bottom: _kFabToButtonGap,
+                    child: AppCircleButton(
+                      size: _kFabSize,
+                      onPressed: _handleAddTap,
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _kHorizontalPadding,
-              ),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: AppCircleButton(size: 62.0, onPressed: _handleAddTap),
-              ),
-            ),
-            const SizedBox(height: _kFabToButtonGap),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: _kHorizontalPadding,
