@@ -29,9 +29,7 @@ class CourseEditScreen extends StatefulWidget {
     required this.courses,
     this.initialDay = 1,
     this.popularSpots = const [],
-    this.recentSearches = const [],
     this.onSearch,
-    this.onRecentSearchDeleted,
     this.onBackTap,
     this.onSave,
   });
@@ -43,9 +41,7 @@ class CourseEditScreen extends StatefulWidget {
 
   /// 플로팅 '+' 버튼을 누르면 뜨는 [LocationSearchScreen]에 그대로 전달됩니다.
   final List<TouristSpotModel> popularSpots;
-  final List<String> recentSearches;
   final Future<List<TouristSpotModel>> Function(String query)? onSearch;
-  final ValueChanged<String>? onRecentSearchDeleted;
 
   final VoidCallback? onBackTap;
 
@@ -122,9 +118,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
       MaterialPageRoute<List<TouristSpotModel>>(
         builder: (_) => LocationSearchScreen(
           popularSpots: widget.popularSpots,
-          recentSearches: widget.recentSearches,
           onSearch: widget.onSearch,
-          onRecentSearchDeleted: widget.onRecentSearchDeleted,
         ),
       ),
     );

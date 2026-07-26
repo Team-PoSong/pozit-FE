@@ -330,7 +330,6 @@ class _MapMarkerPreviewApp extends StatelessWidget {
                       longitude: 129.2103,
                     ),
                   ],
-                  recentSearches: const ['경주월드', '황리단길'],
                   onSearch: (query) async {
                     await Future.delayed(const Duration(milliseconds: 300));
                     return const [

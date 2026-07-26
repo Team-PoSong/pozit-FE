@@ -33,28 +33,23 @@ const int _kEmptyResultBottomFlex = 184;
 /// 코스 수정 화면의 '+' 플로팅 버튼에서 진입하는 장소 검색 화면입니다.
 ///
 /// 검색어가 없으면 [popularSpots](지금 인기 있는 장소)를, 두 글자 이상으로
-/// 검색하면 [onSearch] 결과를 보여줍니다. 여러 장소를 선택해 한 번에
-/// '장소 추가하기'로 넘길 수 있고, 누르는 즉시 선택된 장소 목록을 들고
-/// 이전 화면으로 돌아갑니다.
+/// 검색하면 [onSearch] 결과를 보여줍니다. 여러 장소를 선택하면 버튼 위에
+/// 선택된 장소들이 칩으로 나열되고, '장소 추가하기'를 누르면 그 장소들을
+/// 들고 즉시 이전 화면으로 돌아갑니다.
 class LocationSearchScreen extends StatefulWidget {
   const LocationSearchScreen({
     super.key,
     this.popularSpots = const [],
-    this.recentSearches = const [],
     this.onSearch,
-    this.onRecentSearchDeleted,
     this.onBackTap,
   });
 
   final List<TouristSpotModel> popularSpots;
-  final List<String> recentSearches;
 
   /// 두 글자 이상인 검색어로 호출됩니다. 실제 검색(서버 조회)은 호출하는
   /// 쪽의 몫입니다.
   final Future<List<TouristSpotModel>> Function(String query)? onSearch;
 
-  /// 최근 검색어 칩의 x를 눌렀을 때 호출됩니다.
-  final ValueChanged<String>? onRecentSearchDeleted;
   final VoidCallback? onBackTap;
 
   @override
@@ -63,13 +58,17 @@ class LocationSearchScreen extends StatefulWidget {
 
 class _LocationSearchScreenState extends State<LocationSearchScreen> {
   final TextEditingController _controller = TextEditingController();
-  late final List<String> _recentSearches = List.of(widget.recentSearches);
   final Map<int, TouristSpotModel> _spotById = {};
   final Set<int> _selectedIds = {};
 
   List<TouristSpotModel> _searchResults = [];
   bool _hasSearched = false;
   bool _showLengthError = false;
+
+  /// 지금까지 선택한 장소들입니다(선택한 순서 그대로). '장소 추가하기' 버튼
+  /// 위 칩 목록과, 실제로 추가될 장소 목록에 그대로 쓰입니다.
+  List<TouristSpotModel> get _selectedSpots =>
+      _selectedIds.map((id) => _spotById[id]!).toList();
 
   @override
   void initState() {
@@ -124,14 +123,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     });
   }
 
-  void _handleDeleteRecentSearch(String keyword) {
-    setState(() => _recentSearches.remove(keyword));
-    widget.onRecentSearchDeleted?.call(keyword);
-  }
-
   void _handleAddTap() {
-    final selected = _selectedIds.map((id) => _spotById[id]!).toList();
-    Navigator.of(context).pop(selected);
+    Navigator.of(context).pop(_selectedSpots);
   }
 
   void _handleBack() {
@@ -143,10 +136,11 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   Widget build(BuildContext context) {
     final displayedSpots = _hasSearched ? _searchResults : widget.popularSpots;
     final isEmptyResult = _hasSearched && displayedSpots.isEmpty;
+    final selectedSpots = _selectedSpots;
 
     return Scaffold(
       backgroundColor: AppColors.white,
-      // 최근 검색어·버튼이 화면 하단에 고정되어야 해서, 키보드가 올라와도
+      // 선택된 장소 칩·버튼이 화면 하단에 고정되어야 해서, 키보드가 올라와도
       // 본문이 눌려 올라가지 않도록 합니다.
       resizeToAvoidBottomInset: false,
       body: SafeArea(
@@ -222,7 +216,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       },
                     ),
             ),
-            if (_recentSearches.isNotEmpty) ...[
+            if (selectedSpots.isNotEmpty) ...[
               SizedBox(
                 height: 29,
                 child: Padding(
@@ -233,12 +227,15 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        for (var i = 0; i < _recentSearches.length; i++) ...[
+                        for (var i = 0; i < selectedSpots.length; i++) ...[
                           if (i > 0) const SizedBox(width: _kChipGap),
                           AppDeletableChip(
-                            label: _recentSearches[i],
-                            onDeleted: () =>
-                                _handleDeleteRecentSearch(_recentSearches[i]),
+                            key: ValueKey(selectedSpots[i].touristSpotId),
+                            label: selectedSpots[i].name,
+                            onDeleted: () => _handleSpotSelectedChanged(
+                              selectedSpots[i],
+                              false,
+                            ),
                           ),
                         ],
                       ],
@@ -254,7 +251,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               ),
               child: AppButton(
                 text: '장소 추가하기',
-                isEnabled: _selectedIds.isNotEmpty,
+                isEnabled: selectedSpots.isNotEmpty,
                 onPressed: _handleAddTap,
               ),
             ),
@@ -329,7 +326,6 @@ Widget locationSearchScreenPreview() {
     debugShowCheckedModeBanner: false,
     home: LocationSearchScreen(
       popularSpots: _previewPopularSpots(),
-      recentSearches: const ['경주월드', '불국사'],
       onSearch: (query) async {
         await Future.delayed(const Duration(milliseconds: 300));
         return _previewPopularSpots()
