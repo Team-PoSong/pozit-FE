@@ -23,10 +23,11 @@ class _MenuItemData {
   });
 }
 
-/// 여행 상태(전/중/후)에 따라 항목이 달라지는 여행 설정 팝업입니다.
+/// 여행 상태(전/중/후)와 팀장 여부에 따라 항목이 달라지는 여행 설정 팝업입니다.
 
 class TravelSettingsPopup extends StatelessWidget {
   final AppTravelStatus status;
+  final bool isLeader;
   final VoidCallback? onSettingsTap;
   final VoidCallback? onMemberTap;
   final VoidCallback? onLeaveTap;
@@ -35,6 +36,7 @@ class TravelSettingsPopup extends StatelessWidget {
   const TravelSettingsPopup({
     super.key,
     required this.status,
+    required this.isLeader,
     this.onSettingsTap,
     this.onMemberTap,
     this.onLeaveTap,
@@ -63,11 +65,13 @@ class TravelSettingsPopup extends StatelessWidget {
       onTap: onDeleteTap,
     );
 
+    // 팀원은 여행 상태와 상관없이 멤버/여행 나가기만 볼 수 있습니다.
+    if (!isLeader) return [member, leave];
+
     switch (status) {
       case AppTravelStatus.upcoming:
-        return [settings, member, delete];
       case AppTravelStatus.inProgress:
-        return [leave, member];
+        return [settings, member, delete];
       case AppTravelStatus.completed:
         return [settings, member, leave];
     }
@@ -162,6 +166,7 @@ Future<void> showTravelSettingsPopup(
   BuildContext context, {
   required LayerLink anchorLink,
   required AppTravelStatus status,
+  required bool isLeader,
   VoidCallback? onSettingsTap,
   VoidCallback? onMemberTap,
   VoidCallback? onLeaveTap,
@@ -206,6 +211,7 @@ Future<void> showTravelSettingsPopup(
             onControllerReady: (c) => controller = c,
             child: TravelSettingsPopup(
               status: status,
+              isLeader: isLeader,
               onSettingsTap: wrap(onSettingsTap),
               onMemberTap: wrap(onMemberTap),
               onLeaveTap: wrap(onLeaveTap),
@@ -272,8 +278,12 @@ class _PopupTransitionState extends State<_PopupTransition>
 
 class _TravelSettingsPopupPreview extends StatefulWidget {
   final AppTravelStatus status;
+  final bool isLeader;
 
-  const _TravelSettingsPopupPreview({required this.status});
+  const _TravelSettingsPopupPreview({
+    required this.status,
+    required this.isLeader,
+  });
 
   @override
   State<_TravelSettingsPopupPreview> createState() =>
@@ -293,6 +303,7 @@ class _TravelSettingsPopupPreviewState
         context,
         anchorLink: _anchorLink,
         status: widget.status,
+        isLeader: widget.isLeader,
       );
     });
   }
@@ -328,18 +339,32 @@ class _TravelSettingsPopupPreviewState
   }
 }
 
-Widget _popupPreview(AppTravelStatus status) {
-  return MaterialApp(home: _TravelSettingsPopupPreview(status: status));
+Widget _popupPreview(AppTravelStatus status, {required bool isLeader}) {
+  return MaterialApp(
+    home: _TravelSettingsPopupPreview(status: status, isLeader: isLeader),
+  );
 }
 
-@Preview(group: 'Seohyun', name: 'TravelSettingsPopup - 여행 전', size: Size(390, 844))
+@Preview(group: 'Seohyun', name: 'TravelSettingsPopup - 팀장 - 여행 전', size: Size(390, 844))
 Widget travelSettingsPopupUpcomingPreview() =>
-    _popupPreview(AppTravelStatus.upcoming);
+    _popupPreview(AppTravelStatus.upcoming, isLeader: true);
 
-@Preview(group: 'Seohyun', name: 'TravelSettingsPopup - 여행 중', size: Size(390, 844))
+@Preview(group: 'Seohyun', name: 'TravelSettingsPopup - 팀장 - 여행 중', size: Size(390, 844))
 Widget travelSettingsPopupInProgressPreview() =>
-    _popupPreview(AppTravelStatus.inProgress);
+    _popupPreview(AppTravelStatus.inProgress, isLeader: true);
 
-@Preview(group: 'Seohyun', name: 'TravelSettingsPopup - 여행 후', size: Size(390, 844))
+@Preview(group: 'Seohyun', name: 'TravelSettingsPopup - 팀장 - 여행 후', size: Size(390, 844))
 Widget travelSettingsPopupCompletedPreview() =>
-    _popupPreview(AppTravelStatus.completed);
+    _popupPreview(AppTravelStatus.completed, isLeader: true);
+
+@Preview(group: 'Seohyun', name: 'TravelSettingsPopup - 팀원 - 여행 전', size: Size(390, 844))
+Widget travelSettingsPopupMemberUpcomingPreview() =>
+    _popupPreview(AppTravelStatus.upcoming, isLeader: false);
+
+@Preview(group: 'Seohyun', name: 'TravelSettingsPopup - 팀원 - 여행 중', size: Size(390, 844))
+Widget travelSettingsPopupMemberInProgressPreview() =>
+    _popupPreview(AppTravelStatus.inProgress, isLeader: false);
+
+@Preview(group: 'Seohyun', name: 'TravelSettingsPopup - 팀원 - 여행 후', size: Size(390, 844))
+Widget travelSettingsPopupMemberCompletedPreview() =>
+    _popupPreview(AppTravelStatus.completed, isLeader: false);

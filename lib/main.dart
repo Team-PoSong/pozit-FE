@@ -9,8 +9,10 @@ import 'package:pozit/core/network/dio_client.dart';
 import 'package:pozit/data/datasources/auth/auth_token_storage.dart';
 import 'package:pozit/data/models/travel_course_model.dart';
 import 'package:pozit/data/models/travel_info_card_model.dart';
+import 'package:pozit/data/models/travel_member_model.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
 import 'package:pozit/screens/travel_detail/travel_detail_screen.dart';
+import 'package:pozit/screens/travel_member/travel_member_screen.dart';
 import 'package:pozit/screens/travel_settings/travel_settings_screen.dart';
 
 Future<void> main() async {
@@ -34,6 +36,11 @@ Future<void> main() async {
 
 class _MapMarkerPreviewApp extends StatelessWidget {
   const _MapMarkerPreviewApp();
+
+  // 이 임시 진입점에서 팀장/팀원 화면을 갈아 끼워보고 싶으면 여기 하나만
+  // 바꾸면 됩니다. TravelDetailScreen과 그 안에서 진입하는 TravelMemberScreen
+  // 모두 이 값을 그대로 씁니다.
+  static const bool _isLeader = true;
 
   @override
   Widget build(BuildContext context) {
@@ -265,12 +272,13 @@ class _MapMarkerPreviewApp extends StatelessWidget {
         builder: (context) => TravelDetailScreen(
           info: info,
           status: AppTravelStatus.completed,
+          isLeader: _isLeader,
           courses: courses,
           onSettingsTap: () {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => TravelSettingsScreen(
-                  status: AppTravelStatus.completed,
+                  status: AppTravelStatus.inProgress,
                   destination: info.destination,
                   onSave: (result) {
                     debugPrint(
@@ -279,6 +287,28 @@ class _MapMarkerPreviewApp extends StatelessWidget {
                       '${result.tags}, 공개=${result.isPublic}',
                     );
                   },
+                ),
+              ),
+            );
+          },
+          onMemberTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TravelMemberScreen(
+                  isLeader: _isLeader,
+                  inviteCode: 'AB12C',
+                  members: const [
+                    TravelMemberModel(
+                      nickname: '김윤지',
+                      userId: 'yoonji_kim',
+                      isLeader: true,
+                    ),
+                    TravelMemberModel(
+                      nickname: '박서현',
+                      userId: 'seohyun_park',
+                      isLeader: false,
+                    ),
+                  ],
                 ),
               ),
             );

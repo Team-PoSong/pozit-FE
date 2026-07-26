@@ -59,9 +59,9 @@ class TravelSettingsResult {
 
 /// 여행 설정 화면입니다.
 ///
-/// '여행 전'/'여행 후' 상태에서만 진입할 수 있으며, '여행 후'일 때는 다른
-/// 공통 항목들 위에 공개 여부 섹션이 추가로 표시됩니다. [destination](여행지)은
-/// 이미 정해진 값을 보여주기만 하고 수정할 수 없습니다.
+/// 팀장은 여행 전/중/후 어느 상태에서든 진입할 수 있으며, '여행 후'일 때는
+/// 다른 공통 항목들 위에 공개 여부 섹션이 추가로 표시됩니다.
+/// [destination](여행지)은 이미 정해진 값을 보여주기만 하고 수정할 수 없습니다.
 class TravelSettingsScreen extends StatefulWidget {
   const TravelSettingsScreen({
     super.key,
@@ -75,10 +75,7 @@ class TravelSettingsScreen extends StatefulWidget {
     this.initialBackgroundImage,
     this.onBackTap,
     this.onSave,
-  }) : assert(
-         status != AppTravelStatus.inProgress,
-         '여행 설정은 여행 전/후 상태에서만 진입할 수 있습니다.',
-       );
+  });
 
   final AppTravelStatus status;
   final String destination;
@@ -446,6 +443,18 @@ Widget travelSettingsScreenUpcomingPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     home: _previewScreen(AppTravelStatus.upcoming),
+  );
+}
+
+@Preview(
+  group: 'travel_settings',
+  name: 'TravelSettingsScreen - 여행 중',
+  size: Size(390, 844),
+)
+Widget travelSettingsScreenInProgressPreview() {
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: _previewScreen(AppTravelStatus.inProgress),
   );
 }
 

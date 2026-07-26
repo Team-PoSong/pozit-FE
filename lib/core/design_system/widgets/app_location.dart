@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../app_colors.dart';
 import '../app_icons.dart';
 import '../app_text_styles.dart';
+import 'app_delete_popover.dart';
 
 /// 여행지의 이름과 주소를 표시하는 공통 카드입니다.
 ///
@@ -167,67 +168,12 @@ class _AppLocationState extends State<AppLocation> {
               Positioned(
                 top: 14,
                 right: 5,
-                child: _DeletePopover(
+                child: AppDeletePopover(
                   assetPackage: widget.assetPackage,
                   onTap: _handleDelete,
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DeletePopover extends StatelessWidget {
-  const _DeletePopover({required this.assetPackage, required this.onTap});
-
-  final String? assetPackage;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: '삭제하기',
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
-          clipBehavior: Clip.antiAlias,
-          decoration: ShapeDecoration(
-            color: AppColors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            shadows: const [
-              BoxShadow(
-                color: AppColors.popoverShadow,
-                blurRadius: 4,
-                offset: Offset(1, 1),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SvgPicture.asset(
-                AppIcons.trashBlack,
-                package: assetPackage,
-                width: 24,
-                height: 24,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '삭제하기',
-                style: AppTextStyles.body.copyWith(
-                  color: AppColors.text,
-                  package: assetPackage,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -33,6 +33,7 @@ class TravelDetailScreen extends StatefulWidget {
     super.key,
     required this.info,
     required this.status,
+    required this.isLeader,
     this.courses = const [],
     this.backgroundImage = const AssetImage(AppImages.travelMockup),
     this.initialDay = 1,
@@ -48,6 +49,10 @@ class TravelDetailScreen extends StatefulWidget {
 
   final TravelInfoCardModel info;
   final AppTravelStatus status;
+
+  /// 현재 사용자가 이 여행의 팀장인지 여부입니다. 상단 바 설정 팝업에 표시할
+  /// 항목이 팀장/팀원에 따라 달라집니다.
+  final bool isLeader;
 
   /// 코스 목록입니다. 같은 [TravelCourseModel.dayNumber]를 가진 항목이 여러 개일
   /// 수 있으며(하루에 코스 후보가 여럿인 경우), 그 경우 지도 카드를 좌우로
@@ -237,6 +242,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                             title: widget.info.destination,
                             showSettingsButton: true,
                             travelStatus: widget.status,
+                            isLeader: widget.isLeader,
                             iconColor: AppColors.white,
                             textColor: AppColors.white,
                             onBackTap: widget.onBackTap,
@@ -436,6 +442,7 @@ Widget travelDetailScreenUpcomingPreview() {
     home: TravelDetailScreen(
       info: _previewInfo(),
       status: AppTravelStatus.upcoming,
+      isLeader: true,
       courses: _previewCourses(),
     ),
   );
@@ -448,6 +455,7 @@ Widget travelDetailScreenInProgressPreview() {
     home: TravelDetailScreen(
       info: _previewInfo(),
       status: AppTravelStatus.inProgress,
+      isLeader: true,
       courses: _previewCourses(),
     ),
   );
@@ -460,6 +468,7 @@ Widget travelDetailScreenCompletedPreview() {
     home: TravelDetailScreen(
       info: _previewInfo(),
       status: AppTravelStatus.completed,
+      isLeader: true,
       courses: _previewCourses(),
     ),
   );

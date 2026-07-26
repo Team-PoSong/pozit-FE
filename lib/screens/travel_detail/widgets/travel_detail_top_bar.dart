@@ -34,6 +34,7 @@ class TravelDetailTopBar extends StatelessWidget {
     this.showSettingsButton = false,
     this.travelStatusMode,
     this.travelStatus,
+    this.isLeader,
     this.onBackTap,
     this.onSettingsTap,
     this.onMemberTap,
@@ -48,6 +49,10 @@ class TravelDetailTopBar extends StatelessWidget {
        assert(
          !showSettingsButton || travelStatus != null,
          'showSettingsButton이 true면 travelStatus가 필요합니다.',
+       ),
+       assert(
+         !showSettingsButton || isLeader != null,
+         'showSettingsButton이 true면 isLeader가 필요합니다.',
        );
 
   /// 중앙에 표시할 제목. null이면 제목 대신 [travelStatusMode]가 표시됩니다.
@@ -65,6 +70,10 @@ class TravelDetailTopBar extends StatelessWidget {
   /// 설정 버튼을 눌렀을 때 뜨는 [TravelSettingsPopup]에 표시할 항목을 결정하는
   /// 여행 진행 상태입니다. [showSettingsButton]이 true이면 필수입니다.
   final AppTravelStatus? travelStatus;
+
+  /// 현재 사용자가 이 여행의 팀장인지 여부입니다. 설정 팝업에 표시할 항목이
+  /// 팀장/팀원에 따라 달라지므로, [showSettingsButton]이 true이면 필수입니다.
+  final bool? isLeader;
 
   final VoidCallback? onBackTap;
 
@@ -151,6 +160,7 @@ class TravelDetailTopBar extends StatelessWidget {
               child: _SettingsButton(
                 iconColor: iconColor,
                 travelStatus: travelStatus!,
+                isLeader: isLeader!,
                 onSettingsTap: onSettingsTap,
                 onMemberTap: onMemberTap,
                 onLeaveTap: onLeaveTap,
@@ -167,6 +177,7 @@ class _SettingsButton extends StatefulWidget {
   const _SettingsButton({
     required this.iconColor,
     required this.travelStatus,
+    required this.isLeader,
     this.onSettingsTap,
     this.onMemberTap,
     this.onLeaveTap,
@@ -175,6 +186,7 @@ class _SettingsButton extends StatefulWidget {
 
   final Color iconColor;
   final AppTravelStatus travelStatus;
+  final bool isLeader;
   final VoidCallback? onSettingsTap;
   final VoidCallback? onMemberTap;
   final VoidCallback? onLeaveTap;
@@ -192,6 +204,7 @@ class _SettingsButtonState extends State<_SettingsButton> {
       context,
       anchorLink: _anchorLink,
       status: widget.travelStatus,
+      isLeader: widget.isLeader,
       onSettingsTap: widget.onSettingsTap,
       onMemberTap: widget.onMemberTap,
       onLeaveTap: widget.onLeaveTap,
@@ -258,6 +271,7 @@ Widget travelDetailTopBarWithSettingsPreview() {
         title: '경주 여행!!',
         showSettingsButton: true,
         travelStatus: AppTravelStatus.upcoming,
+        isLeader: true,
       ),
     ),
   );
@@ -272,6 +286,7 @@ Widget travelDetailTopBarWithLockPreview() {
         showLock: true,
         showSettingsButton: true,
         travelStatus: AppTravelStatus.completed,
+        isLeader: true,
       ),
     ),
   );

@@ -78,6 +78,7 @@ class AppIcons {
   static const String map = '$_basePath/ic_map.svg';
   static const String x = '$_basePath/ic_x.svg';
   static const String share = '$_basePath/ic_share.svg';
+  static const String shareWhite = '$_basePath/ic_share_white.svg';
   static const String save = '$_basePath/ic_save.svg';
   static const String posong = '$_basePath/ic_posong.svg';
 }
