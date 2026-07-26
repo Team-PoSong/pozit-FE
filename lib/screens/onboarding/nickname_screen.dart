@@ -79,7 +79,9 @@ class _NicknameScreenState extends State<NicknameScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.white,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
+        maintainBottomViewPadding: true,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(

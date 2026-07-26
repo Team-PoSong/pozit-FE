@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../app_colors.dart';
+import '../app_dimensions.dart';
 import '../app_images.dart';
 import '../app_text_styles.dart';
 
@@ -62,8 +63,12 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      minimum: const EdgeInsets.only(bottom: 12),
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: bottomInset + AppDimensions.bottomNavigationSpacing,
+      ),
       child: Align(
         widthFactor: 1,
         heightFactor: 1,
@@ -86,12 +91,12 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                         child: ColoredBox(
                           color: AppColors.white,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 35),
+                            padding: const EdgeInsets.symmetric(horizontal: 26),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 SizedBox(
-                                  width: 30,
+                                  width: AppDimensions.minimumTapTargetSize,
                                   child: _NavigationItem(
                                     label: '여행',
                                     iconAsset:
@@ -106,7 +111,7 @@ class _AppNavigationBarState extends State<AppNavigationBar> {
                                   ),
                                 ),
                                 SizedBox(
-                                  width: 30,
+                                  width: AppDimensions.minimumTapTargetSize,
                                   child: _NavigationItem(
                                     label: '탐색',
                                     iconAsset:
@@ -280,8 +285,8 @@ class _CenterButtonState extends State<_CenterButton>
                 boxShadow: [
                   BoxShadow(
                     color: widget.isCameraReady
-                        ? AppColors.purple2.withValues(alpha: 0.65)
-                        : AppColors.navigationBorderStart,
+                        ? const Color(0xFFC7C8FF).withValues(alpha: 0.72)
+                        : const Color(0xFFECEBFF),
                     blurRadius: glowBlur,
                   ),
                 ],
@@ -300,22 +305,34 @@ class _CenterButtonState extends State<_CenterButton>
                           gradient: widget.isCameraReady
                               ? const SweepGradient(
                                   colors: [
-                                    AppColors.purple1,
-                                    AppColors.navigationBorderEnd,
-                                    AppColors.purple3,
-                                    AppColors.navigationBorderEnd,
-                                    AppColors.purple1,
-                                    AppColors.white,
-                                    AppColors.purple1,
+                                    Color(0xFFC7C8FF),
+                                    Color(0xFFF2F0FF),
+                                    Color(0xFFF6DDFB),
+                                    Color(0xFFF6DDFB),
+                                    Color(0xFFC7C8FF),
+                                    Color(0xFFF2F0FF),
+                                    Color(0xFFF6DDFB),
+                                    Color(0xFFF6DDFB),
+                                    Color(0xFFC7C8FF),
                                   ],
-                                  stops: [0, 0.18, 0.38, 0.58, 0.72, 0.84, 1],
+                                  stops: [
+                                    0,
+                                    0.12,
+                                    0.22,
+                                    0.3,
+                                    0.5,
+                                    0.62,
+                                    0.72,
+                                    0.8,
+                                    1,
+                                  ],
                                 )
                               : const LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    AppColors.navigationBorderStart,
-                                    AppColors.navigationBorderEnd,
+                                    Color(0xFFECEBFF),
+                                    Color(0xFFC7C8FF),
                                   ],
                                 ),
                         ),

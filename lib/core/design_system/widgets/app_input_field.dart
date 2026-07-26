@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../app_colors.dart';
+import '../app_dimensions.dart';
 import '../app_text_styles.dart';
 
 class AppInputField extends StatefulWidget {
@@ -92,55 +93,60 @@ class _AppInputFieldState extends State<AppInputField> {
         ? const BorderSide(width: 1, color: AppColors.purple3)
         : BorderSide.none;
 
-    return TextField(
-      controller: _controller,
-      focusNode: widget.focusNode,
-      onChanged: widget.onChanged,
-      onTap: widget.onTap,
-      readOnly: widget.readOnly,
-      autofocus: widget.autofocus,
-      maxLines: 1,
-      maxLength: widget.maxLength,
-      inputFormatters: widget.inputFormatters,
-      buildCounter:
-          (
-            context, {
-            required currentLength,
-            required isFocused,
-            required maxLength,
-          }) => null,
-      textAlignVertical: TextAlignVertical.center,
-      cursorColor: AppColors.text,
-      style: AppTextStyles.body.copyWith(
-        color: AppColors.text,
-        height: 20 / 14,
-        letterSpacing: -0.5,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minHeight: AppDimensions.inputMinHeight,
       ),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: AppColors.gray2,
-        hintText: widget.hintText,
-        hintStyle: AppTextStyles.body.copyWith(
-          color: AppColors.textSub,
+      child: TextField(
+        controller: _controller,
+        focusNode: widget.focusNode,
+        onChanged: widget.onChanged,
+        onTap: widget.onTap,
+        readOnly: widget.readOnly,
+        autofocus: widget.autofocus,
+        maxLines: 1,
+        maxLength: widget.maxLength,
+        inputFormatters: widget.inputFormatters,
+        buildCounter:
+            (
+              context, {
+              required currentLength,
+              required isFocused,
+              required maxLength,
+            }) => null,
+        textAlignVertical: TextAlignVertical.center,
+        cursorColor: AppColors.text,
+        style: AppTextStyles.body.copyWith(
+          color: AppColors.text,
           height: 20 / 14,
           letterSpacing: -0.5,
         ),
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 28,
-          vertical: 19,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: borderRadius,
-          borderSide: borderSide,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: borderRadius,
-          borderSide: borderSide,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: borderRadius,
-          borderSide: borderSide,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: AppColors.gray2,
+          hintText: widget.hintText,
+          hintStyle: AppTextStyles.body.copyWith(
+            color: AppColors.textSub,
+            height: 20 / 14,
+            letterSpacing: -0.5,
+          ),
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: borderRadius,
+            borderSide: borderSide,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: borderRadius,
+            borderSide: borderSide,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: borderRadius,
+            borderSide: borderSide,
+          ),
         ),
       ),
     );
