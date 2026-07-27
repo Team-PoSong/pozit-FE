@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
@@ -113,16 +111,28 @@ class AppMapView extends StatefulWidget {
 }
 
 class _AppMapViewState extends State<AppMapView> {
-  // 마커 아이콘은 (상태, 선택 여부) 조합별로 몇 종류뿐이라, 앱 전체에서 한 번만
-  // 생성해 재사용합니다. KImage.fromWidget이 비동기라 Future로 캐싱합니다.
-  static final Map<(MapMarkerStatus, bool), Future<PoiStyle>> _styleCache = {};
+  // 마커 아이콘은 (상태, 선택 여부) 조합별로 몇 종류뿐이라, 이 지도 하나
+  // 안에서는 한 번만 생성해 재사용합니다. KImage.fromWidget이 비동기라
+  // Future로 캐싱합니다.
+  //
+  // 반드시 인스턴스 필드여야 합니다(예전엔 static이었습니다). PoiStyle에는
+  // 이미 등록되었는지를 나타내는 `_isAdded` 플래그가 있는데, 이 등록은
+  // 이 지도(=네이티브 KakaoMapController)에 한정된 것입니다. 캐시가
+  // static이면 카드형 지도에서 이미 등록해 `_isAdded=true`가 된 스타일
+  // 객체를 이 화면(다른 네이티브 지도 인스턴스)에서 그대로 재사용하게
+  // 되어, addPoi가 (이미 등록된 줄 알고) 재등록을 건너뛰고 그 결과
+  // "LabelStyles is null" 오류로 실패합니다(실기 로그로 확인: 방문완료
+  // 마커만 이 화면에서 처음 쓰는 (상태, 선택여부) 조합이라 새로 등록되어
+  // 유일하게 성공했고, 나머지는 카드에서 이미 등록된 스타일을 그대로
+  // 재사용하려다 실패했습니다).
+  final Map<(MapMarkerStatus, bool), Future<PoiStyle>> _styleCache = {};
 
   KakaoMapController? _controller;
   List<Poi> _pois = const [];
   List<BaseRoute> _routes = const [];
   bool _hasError = false;
 
-  static Future<PoiStyle> _styleFor(MapMarkerStatus status, bool isSelected) {
+  Future<PoiStyle> _styleFor(MapMarkerStatus status, bool isSelected) {
     final key = (status, isSelected);
     return _styleCache.putIfAbsent(key, () => _buildStyle(status, isSelected));
   }
@@ -242,8 +252,7 @@ class _AppMapViewState extends State<AppMapView> {
   /// [widget.fitVisibleFraction]이 1.0 미만이면(예: 바텀 시트가 화면 아래쪽
   /// 일부를 가리는 경우), 지금 화면 정중앙에 있는 지점이 화면 전체가 아니라
   /// 위쪽 [fitVisibleFraction] 영역의 세로 중앙에 오도록 카메라를 다시
-  /// 옮깁니다. fitMapPoints로 맞춘 직후는 물론, 마커를 눌러 포커스로
-  /// 이동시킨 직후에도 똑같이 씁니다.
+  /// 옮깁니다. fitMapPoints로 맞춘 직후에 씁니다.
   ///
   /// 위/경도 범위를 직접 계산해 미리 늘리는 방식은 마커들이 같은 위도(정
   /// 동서 방향)에 있는 경우 기준으로 삼을 범위가 없어 어긋났습니다. 대신
@@ -283,18 +292,6 @@ class _AppMapViewState extends State<AppMapView> {
     await controller.moveCamera(CameraUpdate.newCenterPosition(target));
   }
 
-  /// 마커를 눌렀을 때 그 위치로 카메라를 이동해 포커스합니다.
-  Future<void> _focusOnMarker(
-    KakaoMapController controller,
-    LatLng position,
-  ) async {
-    await controller.moveCamera(
-      CameraUpdate.newCenterPosition(position, zoomLevel: 16),
-      animation: const CameraAnimation(300),
-    );
-    await _biasCameraTowardVisibleArea(controller);
-  }
-
   Future<void> _renderMarkers(KakaoMapController controller) async {
     final layer = controller.labelLayer;
 
@@ -312,11 +309,7 @@ class _AppMapViewState extends State<AppMapView> {
       final style = await _styleFor(marker.status, marker.isSelected);
       void Function()? onClick;
       if (onMarkerTap != null) {
-        onClick = () {
-          // 마커를 누르면 그 위치로 카메라가 이동해 포커스됩니다.
-          unawaited(_focusOnMarker(controller, marker.position));
-          onMarkerTap(i);
-        };
+        onClick = () => onMarkerTap(i);
       }
       final poi = await _addPoiWithRetry(layer, marker, style, onClick);
       if (poi != null) newPois.add(poi);

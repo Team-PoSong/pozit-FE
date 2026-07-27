@@ -3,23 +3,40 @@ import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app_colors.dart';
+import '../app_dimensions.dart';
 import '../app_icons.dart';
 import '../app_text_styles.dart';
 
 const double _sheetRadius = 20.0;
 const double _defaultExtent = 0.5;
-const double _peekHeight = 100.0;
 const double _handleTopOffset = 15.0;
 const double _handleAreaHeight = 34.0;
 const double _handleWidth = 55.0;
 const double _handleHeight = 6.0;
 const double _floatingButtonMargin = 16.0;
 
+// 접힌 상태에서 보여주는 안내 문구 관련 여백입니다. 드래그 핸들로부터 5px
+// 아래에 문구가 있고, 그 아래로 32px만큼 여백을 둡니다.
+const double _kPeekTextBottomGap = 50.0;
+
+// 접힌 상태 전체 높이에 더해주는 추가 여유분입니다.
+const double _kPeekExtraBuffer = 20.0;
+
+// 접힌 상태의 전체 높이입니다. 핸들 영역(_handleTopOffset+_handleAreaHeight)
+// 과 안내 문구 한 줄(AppTextStyles.body 기준 24px), 문구 위/아래 여백,
+// 추가 여유분을 모두 더한 값입니다: 15 + 34 + 5 + 24 + 32 + 20 = 130.
+const double _peekHeight =
+    _handleTopOffset +
+    _handleAreaHeight +
+    24 +
+    _kPeekTextBottomGap +
+    _kPeekExtraBuffer;
+
 /// 지도 화면 위에 띄우는, 드래그로 펼치고 접을 수 있는 바텀 시트입니다.
 ///
 /// 기본적으로 화면 높이의 50%를 차지하며, 드래그 핸들을 아래로 당기거나
-/// 바텀 시트 바깥 영역을 탭하면 높이 100만큼만 남기고 접힙니다. 이 위젯은
-/// 전체 화면 크기의 [Stack] 안에 직접 자식으로 넣어 사용해야 합니다.
+/// 바텀 시트 바깥 영역을 탭하면 [_peekHeight]만큼만 남기고 접힙니다. 이
+/// 위젯은 전체 화면 크기의 [Stack] 안에 직접 자식으로 넣어 사용해야 합니다.
 class AppCourseBottomSheet extends StatefulWidget {
   /// 바텀 시트가 기본으로 펼쳐져 있는 높이 비율(화면 높이 대비)입니다. 이
   /// 시트 아래에 깔린 지도가 이 영역만큼 가려진다는 뜻이므로, 지도의 카메라를
@@ -179,32 +196,55 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
                       ),
                     ),
                   ),
+                  // DraggableScrollableSheet는 이 scrollController가 실제
+                  // Scrollable에 붙어 있기를 기대하지만, 여기 붙이면 시트가
+                  // maxChildSize에 도달하기 전까지는 본문을 드래그해도 시트
+                  // 크기만 늘어나고 목록 스크롤은 시작되지 않습니다(끝까지
+                  // 펼친 뒤 손을 떼고 다시 스와이프해야만 스크롤됨). 시트
+                  // 크기 조절은 위 핸들 제스처가 전담하므로, 여기서는
+                  // 아무 것도 스크롤하지 않는 크기 0짜리 더미에만 붙여 시트
+                  // 리사이즈와 목록 스크롤을 완전히 분리합니다. 그 결과 목록은
+                  // 시트가 반쯤 펼쳐진 상태에서도 바로 스크롤됩니다.
+                  SizedBox(
+                    height: 0,
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      physics: const NeverScrollableScrollPhysics(),
+                    ),
+                  ),
                   Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return SingleChildScrollView(
-                          controller: scrollController,
-                          physics: isPeeking
-                              ? const NeverScrollableScrollPhysics()
-                              : const ClampingScrollPhysics(),
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
+                    child: isPeeking
+                        ? Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: _kPeekTextBottomGap,
                             ),
-                            child: isPeeking
-                                ? Center(
+                            child: Center(
                               child: Text(
                                 '올려서 코스 자세히 보기',
                                 style: AppTextStyles.body.copyWith(
                                   color: AppColors.gray5,
                                 ),
                               ),
-                            )
-                                : widget.child,
+                            ),
+                          )
+                        : Padding(
+                            // 시트 배경(흰색)은 화면 맨 아래까지 그대로
+                            // 채우되, 실제 내용은 기기 하단 제스처 바 위로
+                            // 올려서 마지막 항목이 그 아래 가려지지 않게
+                            // 합니다. 안전 영역만큼만 띄우면 마지막 항목이
+                            // 제스처 바 바로 위에 붙어 보여서,
+                            // screenBottomPadding만큼 여유를 더 둡니다.
+                            padding: const EdgeInsets.only(
+                              bottom: AppDimensions.screenBottomPadding,
+                            ),
+                            child: SafeArea(
+                              top: false,
+                              child: SingleChildScrollView(
+                                physics: const ClampingScrollPhysics(),
+                                child: widget.child,
+                              ),
+                            ),
                           ),
-                        );
-                      },
-                    ),
                   ),
                 ],
               ),

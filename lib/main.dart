@@ -374,12 +374,13 @@ class _MapMarkerPreviewApp extends StatelessWidget {
           },
           onLeaveTap: () => debugPrint('여행 나가기 확정'),
           onDeleteTap: () => debugPrint('여행 삭제 확정'),
-          onCourseTap: () {
+          onCourseTap: (day) {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => TravelCourseMapScreen(
                   courses: courses,
                   status: AppTravelStatus.inProgress,
+                  initialDay: day,
                 ),
               ),
             );

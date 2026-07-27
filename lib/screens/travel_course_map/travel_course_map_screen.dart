@@ -157,13 +157,6 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
               fitVisibleFraction: 1 - AppCourseBottomSheet.defaultRestingExtent,
             ),
           ),
-          SafeArea(
-            bottom: false,
-            child: TravelDetailTopBar(
-              travelStatusMode: travelStatusMode,
-              onBackTap: _handleBack,
-            ),
-          ),
           AppCourseBottomSheet(
             showFloatingButton: false,
             maxChildSize: maxChildSize,
@@ -197,6 +190,17 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
                   ],
                 ],
               ),
+            ),
+          ),
+          // AppCourseBottomSheet가 화면 전체를 덮는 "바깥 탭하면 접기" 영역을
+          // 가지고 있어서, 이보다 먼저(= 아래에) 쌓으면 탑 바가 그 뒤에 깔려
+          // 뒤로가기 버튼이 한 번에 눌리지 않고 시트부터 접힙니다. 탑 바를
+          // 맨 위에 쌓아 자기 영역만큼은 항상 먼저 히트테스트되게 합니다.
+          SafeArea(
+            bottom: false,
+            child: TravelDetailTopBar(
+              travelStatusMode: travelStatusMode,
+              onBackTap: _handleBack,
             ),
           ),
         ],

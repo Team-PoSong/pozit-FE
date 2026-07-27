@@ -68,7 +68,8 @@ class TravelDetailScreen extends StatefulWidget {
   final VoidCallback? onMemberTap;
   final VoidCallback? onLeaveTap;
   final VoidCallback? onDeleteTap;
-  final VoidCallback? onCourseTap;
+  /// '코스 보기'를 눌렀을 때, 현재 보고 있는 일차와 함께 호출됩니다.
+  final ValueChanged<int>? onCourseTap;
   final ValueChanged<int>? onDayChanged;
   final VoidCallback? onSaveLogTap;
 
@@ -300,7 +301,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                         markers: _mergedMarkersForSelectedDay(),
                         currentPage: coursePageIndex,
                         pageCount: coursePageCount,
-                        onCourseTap: widget.onCourseTap,
+                        onCourseTap: () => widget.onCourseTap?.call(_selectedDay),
                       ),
                     ),
                   ),
