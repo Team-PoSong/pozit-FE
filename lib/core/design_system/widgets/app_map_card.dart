@@ -470,6 +470,8 @@ class AppMapCard extends StatelessWidget {
     this.currentPage = 0,
     this.pageCount = 4,
     this.onCourseTap,
+    this.courseButtonKey,
+    this.mapKey,
   }) : assert(pageCount > 0, 'pageCount는 1 이상이어야 합니다.'),
        assert(
          currentPage >= 0 && currentPage < pageCount,
@@ -481,6 +483,14 @@ class AppMapCard extends StatelessWidget {
   final int currentPage;
   final int pageCount;
   final VoidCallback? onCourseTap;
+
+  /// 외부(예: 코치마크 오버레이)에서 '코스 보기' 버튼의 실제 렌더링 위치를
+  /// 측정할 수 있도록 붙이는 키입니다.
+  final Key? courseButtonKey;
+
+  /// 외부에서 지도 영역의 실제 렌더링 위치를 측정할 수 있도록 붙이는
+  /// 키입니다.
+  final Key? mapKey;
 
   @override
   Widget build(BuildContext context) {
@@ -529,6 +539,7 @@ class AppMapCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 13),
                 AspectRatio(
+                  key: mapKey,
                   aspectRatio: 319 / 156,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -540,7 +551,11 @@ class AppMapCard extends StatelessWidget {
               ],
             ),
           ),
-          Positioned(top: 2, right: 12, child: _CourseAction(onTap: onCourseTap)),
+          Positioned(
+            top: 2,
+            right: 12,
+            child: _CourseAction(key: courseButtonKey, onTap: onCourseTap),
+          ),
         ],
       ),
     );
@@ -548,7 +563,7 @@ class AppMapCard extends StatelessWidget {
 }
 
 class _CourseAction extends StatelessWidget {
-  const _CourseAction({required this.onTap});
+  const _CourseAction({super.key, required this.onTap});
 
   final VoidCallback? onTap;
 

@@ -7,9 +7,11 @@ import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
+import '../../data/datasources/local/travel_detail_guide_storage.dart';
 import '../../data/models/travel_course_model.dart';
 import '../../data/models/travel_info_card_model.dart';
 import 'widgets/travel_detail_bottom_section.dart';
+import 'widgets/travel_detail_guide_overlay.dart';
 import 'widgets/travel_detail_top_bar.dart';
 import 'widgets/travel_info_card.dart';
 import 'widgets/travel_status.dart';
@@ -49,6 +51,7 @@ class TravelDetailScreen extends StatefulWidget {
     this.onCourseTap,
     this.onDayChanged,
     this.onSaveLogTap,
+    this.guideStorage = const TravelDetailGuideStorage(),
   });
 
   final TravelInfoCardModel info;
@@ -76,6 +79,11 @@ class TravelDetailScreen extends StatefulWidget {
   final ValueChanged<int>? onDayChanged;
   final VoidCallback? onSaveLogTap;
 
+  /// '코스 보기 안내' 코치마크를 '다신 보지 않기'로 껐는지 기억하는
+  /// 저장소입니다. 테스트/프리뷰에서 다른 구현으로 바꿔 끼울 수 있게
+  /// 주입 가능하게 열어둡니다.
+  final TravelDetailGuideStorage guideStorage;
+
   @override
   State<TravelDetailScreen> createState() => _TravelDetailScreenState();
 }
@@ -86,6 +94,35 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   // 선택된 일차 안에서 몇 번째 코스를 보고 있는지입니다. 일차가 바뀌면 0으로
   // 초기화됩니다.
   int _selectedCourseIndex = 0;
+
+  final GlobalKey _courseButtonKey = GlobalKey();
+  final GlobalKey _mapKey = GlobalKey();
+
+  // 여행 전/중에는, '다신 보지 않기'를 누르지 않은 이상 이 화면에 들어올
+  // 때마다 코치마크를 다시 보여줍니다.
+  bool _showGuide = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _maybeShowGuide();
+  }
+
+  Future<void> _maybeShowGuide() async {
+    if (widget.status == AppTravelStatus.completed) return;
+    final dismissed = await widget.guideStorage.isDismissed();
+    if (!mounted || dismissed) return;
+    setState(() => _showGuide = true);
+  }
+
+  void _hideGuide() {
+    setState(() => _showGuide = false);
+  }
+
+  void _dismissGuideForever() {
+    _hideGuide();
+    widget.guideStorage.markDismissed();
+  }
 
   /// 코스가 가진 dayNumber를 오름차순으로 중복 제거한 목록입니다. 실제
   /// dayNumber 값(0부터 시작하는지 등)에 의존하지 않고, 이 목록에서의
@@ -218,6 +255,21 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
         ? 0
         : _selectedCourseIndex.clamp(0, coursePageCount - 1);
 
+    return Stack(
+      children: [
+        _buildScaffold(coursePageCount, coursePageIndex),
+        if (_showGuide)
+          TravelDetailGuideOverlay(
+            courseButtonKey: _courseButtonKey,
+            mapKey: _mapKey,
+            onDismiss: _hideGuide,
+            onDismissForever: _dismissGuideForever,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildScaffold(int coursePageCount, int coursePageIndex) {
     return Scaffold(
       backgroundColor: AppColors.white,
       // 배경 사진이 있는 상단 영역도 스크롤에 포함되어야 하므로, 화면 전체를
@@ -305,6 +357,8 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                         currentPage: coursePageIndex,
                         pageCount: coursePageCount,
                         onCourseTap: () => widget.onCourseTap?.call(_selectedDay),
+                        courseButtonKey: _courseButtonKey,
+                        mapKey: _mapKey,
                       ),
                     ),
                   ),
