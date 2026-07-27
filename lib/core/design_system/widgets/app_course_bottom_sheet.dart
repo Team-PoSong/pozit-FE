@@ -15,19 +15,22 @@ const double _handleWidth = 55.0;
 const double _handleHeight = 6.0;
 const double _floatingButtonMargin = 16.0;
 
-// 접힌 상태에서 보여주는 안내 문구 관련 여백입니다. 드래그 핸들로부터 5px
-// 아래에 문구가 있고, 그 아래로 32px만큼 여백을 둡니다.
+// 드래그 핸들 영역(_handleTopOffset+_handleAreaHeight, 총 49px) 바로 아래
+// 안내 문구까지의 간격과, 그 문구 아래쪽 여백입니다.
+const double _kPeekTextTopGap = 20.0;
 const double _kPeekTextBottomGap = 50.0;
 
 // 접힌 상태 전체 높이에 더해주는 추가 여유분입니다.
 const double _kPeekExtraBuffer = 20.0;
 
 // 접힌 상태의 전체 높이입니다. 핸들 영역(_handleTopOffset+_handleAreaHeight)
-// 과 안내 문구 한 줄(AppTextStyles.body 기준 24px), 문구 위/아래 여백,
-// 추가 여유분을 모두 더한 값입니다: 15 + 34 + 5 + 24 + 32 + 20 = 130.
+// + 핸들-문구 간격(_kPeekTextTopGap) + 안내 문구 한 줄(AppTextStyles.body
+// 기준 24px) + 문구 아래 여백(_kPeekTextBottomGap) + 추가 여유분
+// (_kPeekExtraBuffer)을 모두 더한 값입니다: 15+34+20+24+50+20 = 163.
 const double _peekHeight =
     _handleTopOffset +
     _handleAreaHeight +
+    _kPeekTextTopGap +
     24 +
     _kPeekTextBottomGap +
     _kPeekExtraBuffer;
@@ -216,6 +219,7 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
                     child: isPeeking
                         ? Padding(
                             padding: const EdgeInsets.only(
+                              top: _kPeekTextTopGap,
                               bottom: _kPeekTextBottomGap,
                             ),
                             child: Center(

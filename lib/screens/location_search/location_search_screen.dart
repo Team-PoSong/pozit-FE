@@ -14,10 +14,10 @@ import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
 const double _kTopBarToSearchBarGap = 41.0;
-const double _kSearchBarToErrorGap = 11.0;
-const double _kSearchBarToLabelGap = 46.0;
+const double _kSearchBarToErrorGap = 10.0;
+const double _kSearchBarToLabelGap = 24.0;
 const double _kLabelToListGap = 24.0;
-const double _kLocationGap = 11.0;
+const double _kLocationGap = 8.0;
 const double _kEmptyImageSize = 160.0;
 const double _kEmptyImageToTextGap = 16.0;
 const double _kChipsToButtonGap = 17.0;
@@ -135,7 +135,10 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   @override
   Widget build(BuildContext context) {
     final displayedSpots = _hasSearched ? _searchResults : widget.popularSpots;
-    final isEmptyResult = _hasSearched && displayedSpots.isEmpty;
+    // 두 글자 미만 경고가 떠 있을 때도 검색 결과가 없는 것과 같은 화면을
+    // 보여줍니다('지금 인기 있는 장소' 대신 '검색 결과가 없어요').
+    final isEmptyResult =
+        _showLengthError || (_hasSearched && displayedSpots.isEmpty);
     final selectedSpots = _selectedSpots;
 
     return Scaffold(
@@ -153,34 +156,40 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               padding: const EdgeInsets.symmetric(
                 horizontal: _kHorizontalPadding,
               ),
-              child: AppSearchBar(
-                controller: _controller,
-                hintText: '장소명을 검색해주세요.',
-                onChanged: _handleQueryChanged,
-                onSubmitted: _handleSearch,
-                onSearchTap: () => _handleSearch(_controller.text),
-              ),
-            ),
-            const SizedBox(height: _kSearchBarToErrorGap),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _kHorizontalPadding,
-              ),
-              // 워닝이 뜨고 사라질 때 아래 요소들이 밀리지 않도록, 보이지
-              // 않을 때도 같은 높이를 그대로 차지하게 둡니다.
-              child: Visibility(
-                visible: _showLengthError,
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainState: true,
-                child: Text(
-                  '두 글자 이상 검색할 수 있어요.',
-                  style: AppTextStyles.caption.copyWith(color: AppColors.error),
-                ),
+              // 경고 문구는 검색 바 아래에 떠 있는 형태라, 뜨고 사라져도
+              // 검색 바~다음 요소 사이 간격(_kSearchBarToLabelGap)이 항상
+              // 그대로 유지됩니다. 문구가 정확히 그 간격 안에 들어오도록
+              // (검색 바~문구 _kSearchBarToErrorGap + 문구 한 줄 높이 14 =
+              // _kSearchBarToLabelGap) 배치합니다.
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AppSearchBar(
+                    controller: _controller,
+                    hintText: '장소명을 검색해주세요.',
+                    onChanged: _handleQueryChanged,
+                    onSubmitted: _handleSearch,
+                    onSearchTap: () => _handleSearch(_controller.text),
+                  ),
+                  if (_showLengthError)
+                    Positioned(
+                      top:
+                          AppDimensions.inputMinHeight +
+                          _kSearchBarToErrorGap,
+                      left: 0,
+                      right: 0,
+                      child: Text(
+                        '두 글자 이상 검색할 수 있어요.',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.error,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: _kSearchBarToLabelGap),
-            if (!_hasSearched) ...[
+            if (!_hasSearched && !_showLengthError) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: _kHorizontalPadding,

@@ -17,7 +17,7 @@ const double _kHorizontalPadding = 24.0;
 const double _kTopBarToDateDetailGap = 25.0;
 const double _kDateDetailToTitleGap = 24.0;
 const double _kTitleToListGap = 24.0;
-const double _kLocationGap = 11.0;
+const double _kLocationGap = 8.0;
 const double _kFabToButtonGap = 22.0;
 const double _kFabSize = 62.0;
 
