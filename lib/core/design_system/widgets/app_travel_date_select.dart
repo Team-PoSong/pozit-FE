@@ -11,11 +11,16 @@ class AppTravelDate extends StatefulWidget {
     super.key,
     required this.startDate,
     required this.endDate,
+    this.showTitle = true,
     this.onTap,
   });
 
   final DateTime startDate;
   final DateTime endDate;
+
+  /// 아이콘 + "여행날짜" 타이틀 행을 표시할지 여부입니다.
+  final bool showTitle;
+
   final VoidCallback? onTap;
 
   @override
@@ -49,8 +54,10 @@ class _AppTravelDateState extends State<AppTravelDate> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _TravelDateTitle(),
-          const SizedBox(height: 14),
+          if (widget.showTitle) ...[
+            const _TravelDateTitle(),
+            const SizedBox(height: 14),
+          ],
           SizedBox(
             width: double.infinity,
             height: 66,

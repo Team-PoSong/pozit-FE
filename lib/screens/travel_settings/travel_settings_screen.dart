@@ -8,13 +8,13 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/app_travel_status.dart';
-import '../../core/design_system/widgets/app_calendar.dart';
 import '../../core/design_system/widgets/app_chip.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/app_posing.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/toggle/app_visibility_toggle.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
+import 'travel_date_edit_screen.dart';
 
 const double _kHorizontalPadding = 24.0;
 // TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로(_kTopOffset),
@@ -150,25 +150,11 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
   }
 
   Future<void> _handlePickDateRange() async {
-    final range = await showDialog<DateTimeRange>(
-      context: context,
-      builder: (dialogContext) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(
-          horizontal: 4,
-          vertical: 24,
-        ),
-        child: AppCalendar(
-          initialMonth: _startDate ?? DateTime.now(),
-          onRangeSelected: (start, end) {
-            Future.delayed(const Duration(milliseconds: 700), () {
-              if (dialogContext.mounted) {
-                Navigator.of(
-                  dialogContext,
-                ).pop(DateTimeRange(start: start, end: end));
-              }
-            });
-          },
+    final range = await Navigator.of(context).push<DateTimeRange>(
+      MaterialPageRoute<DateTimeRange>(
+        builder: (_) => TravelDateEditScreen(
+          initialStartDate: _startDate ?? DateTime.now(),
+          initialEndDate: _endDate ?? DateTime.now(),
         ),
       ),
     );
