@@ -23,8 +23,6 @@ class _MenuItemData {
   });
 }
 
-/// 여행 상태(전/중/후)와 팀장 여부에 따라 항목이 달라지는 여행 설정 팝업입니다.
-
 class TravelSettingsPopup extends StatelessWidget {
   final AppTravelStatus status;
   final bool isLeader;
@@ -72,11 +70,9 @@ class TravelSettingsPopup extends StatelessWidget {
       onTap: onDeleteTap,
     );
 
-    // 팀원은 여행 상태와 상관없이 멤버/여행 나가기만 볼 수 있습니다.
     if (!isLeader) return [member, leave];
 
     switch (status) {
-      // '코스 수정'은 여행 전/중에만, 팀장에게만 보입니다.
       case AppTravelStatus.upcoming:
       case AppTravelStatus.inProgress:
         return [settings, courseEdit, member, delete];
@@ -109,10 +105,7 @@ class TravelSettingsPopup extends StatelessWidget {
               filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
               child: Container(
                 color: AppColors.white.withValues(alpha: 0.65),
-                // 이 팝업은 Overlay.of(context).insert(...)로 Scaffold의
-                // Material 밖(오버레이 레이어)에 직접 그려집니다. Material
-                // 조상이 없으면 디버그 빌드에서 Text에 노란 밑줄 경고가
-                // 붙으므로, transparency 타입의 Material로 감싸 해결합니다.
+
                 child: Material(
                   type: MaterialType.transparency,
                   child: Column(
@@ -165,11 +158,6 @@ class _PopupMenuRow extends StatelessWidget {
   }
 }
 
-/// 여행 설정 팝업을 [anchorLink]가 붙은 트리거 버튼(설정 아이콘) 바로 아래에 띄웁니다.
-///
-/// 호출하는 쪽에서는 트리거 버튼을 `CompositedTransformTarget(link: anchorLink, ...)`
-/// 로 감싸두면, 팝업의 오른쪽 상단 모서리가 트리거의 오른쪽 하단 모서리에
-/// 맞춰집니다.
 Future<void> showTravelSettingsPopup(
   BuildContext context, {
   required LayerLink anchorLink,
@@ -211,8 +199,7 @@ Future<void> showTravelSettingsPopup(
         ),
         CompositedTransformFollower(
           link: anchorLink,
-          // 트리거(설정 아이콘)의 오른쪽 하단 모서리에 팝업의 오른쪽 상단
-          // 모서리를 붙여서, 팝업이 트리거 바로 아래에 오도록 합니다.
+
           targetAnchor: Alignment.bottomRight,
           followerAnchor: Alignment.topRight,
           offset: const Offset(-10, 0),
@@ -237,8 +224,6 @@ Future<void> showTravelSettingsPopup(
   return completer.future;
 }
 
-/// 팝업이 앵커(오른쪽 상단, 설정 아이콘 위치)를 기준으로 페이드인+스케일업 되며
-/// 나타나도록 감싸는 위젯입니다.
 class _PopupTransition extends StatefulWidget {
   const _PopupTransition({required this.child, required this.onControllerReady});
 

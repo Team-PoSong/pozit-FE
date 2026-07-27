@@ -14,13 +14,13 @@ const TextStyle _weekdayTextStyle = TextStyle(
 
 const double _cellWidth = 18.0;
 const double _cellGap = 26.0;
-const double _rowContentWidth = (_cellWidth + _cellGap) * 6 + _cellWidth; // 282.0
-const double _capPaddingHorizontal = 7.0; // 텍스트 좌우로 확장되는 정도
-const double _capPaddingVertical = 4.0; // 텍스트 위아래로 확장되는 정도
+const double _rowContentWidth = (_cellWidth + _cellGap) * 6 + _cellWidth;
+const double _capPaddingHorizontal = 7.0;
+const double _capPaddingVertical = 4.0;
 
 class _HighlightSegment {
   final Rect rect;
-  final bool roundLeft; // 진짜 시작일이면 true(둥글게), 줄바꿈으로 이어지는 중이면 false(각지게)
+  final bool roundLeft;
   final bool roundRight;
 
   const _HighlightSegment({
@@ -35,10 +35,6 @@ bool _isSameDay(DateTime a, DateTime b) =>
 
 String _dateKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
 
-/// 여행 날짜(기간) 선택용 캘린더.
-/// 날짜 숫자는 요일 줄과 완전히 동일한 단순 Row 구조로 그리고,
-/// 선택 표시(진보라 도형)는 실제로 렌더링된 숫자 위치를 GlobalKey로 측정해서
-/// 그 위에 별도 레이어로 얹는 방식. 좌표를 손으로 계산하지 않아서 정렬이 어긋날 수 없음.
 class AppCalendar extends StatefulWidget {
   final DateTime initialMonth;
   final double width;
@@ -116,7 +112,7 @@ class _AppCalendarState extends State<AppCalendar> {
             final isTrueStart = _isSameDay(week[segStart], _rangeStart!);
             final isTrueEnd = _rangeEnd != null
                 ? _isSameDay(week[segEnd], _rangeEnd!)
-                : _isSameDay(week[segEnd], _rangeStart!); // 종료일 없으면 시작일 자체가 곧 끝
+                : _isSameDay(week[segEnd], _rangeStart!);
 
             final double left = isTrueStart
                 ? startPos.dx - _capPaddingHorizontal
@@ -218,9 +214,7 @@ class _AppCalendarState extends State<AppCalendar> {
     final weeks = <List<DateTime>>[
       for (int i = 0; i < dates.length; i += 7) dates.sublist(i, i + 7),
     ];
-    // 요일 줄·날짜 그리드는 왼쪽 고정 패딩만으로 배치되므로(그리드 자체는
-    // 내용만큼만 차지), 이 패딩을 너비에 맞춰 계산해야 컨테이너 안에서
-    // 계속 정중앙에 위치합니다.
+
     final gridLeftPadding = ((widget.width - _rowContentWidth) / 2).clamp(
       0.0,
       double.infinity,
@@ -294,7 +288,7 @@ class _AppCalendarState extends State<AppCalendar> {
           const SizedBox(height: 14.0),
           Padding(
             padding: EdgeInsets.only(left: gridLeftPadding),
-            // 도형 레이어(측정된 위치)를 숫자 Column 밑에 깔고, 숫자는 그 위에 그대로 그림
+
             child: Stack(
               clipBehavior: Clip.none,
               children: [

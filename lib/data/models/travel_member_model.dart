@@ -1,5 +1,3 @@
-// 여행 멤버 목록에 표시되는 데이터를 정의합니다.
-
 class TravelMemberModel {
   final String nickname;
   final String userId;

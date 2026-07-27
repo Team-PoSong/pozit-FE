@@ -1,5 +1,3 @@
-// 공통적으로 쓰이는 이미지를 변수화합니다.
-
 class AppImages {
   AppImages._();
 

@@ -32,17 +32,12 @@ Future<void> main() async {
     () => const AuthTokenStorage().readAccessToken(),
   );
 
-  // TODO(임시): 여행 설정 화면을 실기로 확인하기 위한 임시 진입점입니다.
-  // 확인이 끝나면 아래를 `runApp(const MyApp());`로 되돌려주세요.
   runApp(const _MapMarkerPreviewApp());
 }
 
 class _MapMarkerPreviewApp extends StatelessWidget {
   const _MapMarkerPreviewApp();
 
-  // 이 임시 진입점에서 팀장/팀원 화면을 갈아 끼워보고 싶으면 여기 하나만
-  // 바꾸면 됩니다. TravelDetailScreen과 그 안에서 진입하는 TravelMemberScreen
-  // 모두 이 값을 그대로 씁니다.
   static const bool _isLeader = true;
 
   @override
@@ -58,13 +53,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
       completionRate: 0.6,
     );
 
-    // 같은 날짜의 코스 후보들은 "서로 다른 곳"이 아니라, 같은 권역을 도는
-    // 서로 다른 동선(순서·범위)이어야 현실적입니다. 그래서 1일차는 전부
-    // 경주 시내 역사 유적지구, 2일차는 전부 불국사·석굴암 권역으로
-    // 묶었습니다.
     final courses = [
-      // 1일차 코스 A — 동궁과 월지 → 첨성대 → 대릉원. visited/visiting/
-      // notVisited 세 상태를 모두 포함합니다.
       TravelCourseModel(
         courseId: 1,
         dayNumber: 1,
@@ -102,7 +91,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
           ),
         ],
       ),
-      // 1일차 코스 B — 코스 A와 같은 세 장소를 반대 순서로 도는 동선.
+
       TravelCourseModel(
         courseId: 2,
         dayNumber: 1,
@@ -140,8 +129,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
           ),
         ],
       ),
-      // 1일차 코스 C — 시간이 부족할 때를 위한 짧은 동선(첨성대만).
-      // 같은 시내 권역이면서 여행지 1곳뿐인 경우(연결선 없음)를 확인합니다.
+
       TravelCourseModel(
         courseId: 3,
         dayNumber: 1,
@@ -159,8 +147,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
           ),
         ],
       ),
-      // 1일차 코스 D — 코스 A를 계림까지 확장한 4곳짜리 긴 동선.
-      // orderIndex를 일부러 뒤섞어 정렬 로직도 같이 확인합니다.
+
       TravelCourseModel(
         courseId: 4,
         dayNumber: 1,
@@ -208,7 +195,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
           ),
         ],
       ),
-      // 2일차 코스 E — 불국사 → 석굴암.
+
       TravelCourseModel(
         courseId: 5,
         dayNumber: 2,
@@ -236,7 +223,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
           ),
         ],
       ),
-      // 2일차 코스 F — 코스 E와 같은 두 곳을 반대 순서로 도는 동선.
+
       TravelCourseModel(
         courseId: 6,
         dayNumber: 2,
@@ -264,7 +251,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
           ),
         ],
       ),
-      // 3일차 — 코스 1개, 여행지도 1곳뿐인 완전한 최소 케이스.
+
       TravelCourseModel(
         courseId: 7,
         dayNumber: 3,

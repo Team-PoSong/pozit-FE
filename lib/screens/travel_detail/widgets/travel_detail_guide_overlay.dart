@@ -9,7 +9,7 @@ import '../../../core/design_system/app_text_styles.dart';
 
 const double _kHorizontalPadding = 24.0;
 const Size _kHighlightSize = Size(64, 21);
-// img_pointer.png의 원본 비율(36x128)을 유지한 채 길이 36으로 표시합니다.
+
 const double _kPointerHeight = 36.0;
 const double _kPointerWidth = _kPointerHeight * 36 / 128;
 const double _kPointerToTextGap = 6.0;
@@ -33,14 +33,6 @@ const TextStyle _kDismissTextStyle = TextStyle(
   decorationColor: AppColors.gray1,
 );
 
-/// 여행 상세 화면에 처음(또는 '다신 보지 않기'를 누르기 전까지 매번) 들어올 때
-/// 뜨는 사용자 설명(코치마크)입니다.
-///
-/// 화면 전체를 반투명 검정으로 덮고, [courseButtonKey]가 가리키는 '코스 보기'
-/// 버튼과 [mapKey]가 가리키는 지도 영역의 실제 렌더링 위치를 측정해 그 위에
-/// 설명 문구를 얹습니다. 좌표를 직접 계산하지 않고 [AppCalendar]와 동일하게
-/// GlobalKey로 실제 위치를 측정하는 방식이라, 두 위젯의 레이아웃이 조금
-/// 바뀌어도 설명 위치가 함께 따라갑니다.
 class TravelDetailGuideOverlay extends StatefulWidget {
   const TravelDetailGuideOverlay({
     super.key,
@@ -53,10 +45,8 @@ class TravelDetailGuideOverlay extends StatefulWidget {
   final GlobalKey courseButtonKey;
   final GlobalKey mapKey;
 
-  /// 화면 아무 곳이나 탭했을 때(이번 한 번만 닫힘, 다음에 다시 뜰 수 있음).
   final VoidCallback onDismiss;
 
-  /// '다신 보지 않기'를 눌렀을 때(이후로는 계속 뜨지 않음).
   final VoidCallback onDismissForever;
 
   @override
@@ -69,8 +59,6 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
   Rect? _courseButtonRect;
   Rect? _mapRect;
 
-  // '다신 보지 않기'/바깥 탭으로 닫힐 때, 위젯이 트리에서 바로 빠지며
-  // 뚝 끊겨 보이지 않도록 먼저 투명도를 낮춘 뒤에 실제 콜백을 호출합니다.
   bool _visible = true;
 
   @override
@@ -114,9 +102,6 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
     final courseButtonRect = _courseButtonRect;
     final mapRect = _mapRect;
 
-    // '코스 보기'를 밝히는 상자는 실제 버튼 위치(측정된 중심)에 고정
-    // 크기(64x21)로 얹습니다. '스와이프 하여 장소 이동' 문구는 이 상자
-    // 기준으로 세로 39px 아래에 옵니다.
     Rect? highlightRect;
     if (courseButtonRect != null) {
       highlightRect = Rect.fromCenter(
@@ -171,9 +156,7 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
                         ),
                       ),
                     ),
-                  // 포인터(점·선·화살표)는 '코스 보기' 상자의 가로 중앙을
-                  // 향해야 하므로, 오른쪽 정렬인 설명 문구와 별도로 각각
-                  // 위치를 잡습니다.
+
                   if (highlightRect != null) ...[
                     Positioned(
                       left: highlightRect.center.dx - _kPointerWidth / 2,
@@ -253,9 +236,6 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
   }
 }
 
-/// 실제 '코스 보기' 버튼 자리에 새로 그리는, 흰 글씨의 '코스 보기 >'
-/// 라벨입니다. 어둡게 딤 처리된 화면 위로 원래 버튼(회색 글씨)이 그대로
-/// 비치면 잘 안 보이므로, 하이라이트 상자 위에 흰색으로 다시 그립니다.
 class _HighlightedCourseLabel extends StatelessWidget {
   const _HighlightedCourseLabel();
 
@@ -279,7 +259,6 @@ class _HighlightedCourseLabel extends StatelessWidget {
   }
 }
 
-/// '코스 보기' 상자 중앙을 가리키는 점(원 안에 원) + 선 + 화살표입니다.
 class _GuidePointer extends StatelessWidget {
   const _GuidePointer();
 

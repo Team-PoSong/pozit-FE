@@ -13,8 +13,7 @@ import '../../data/models/tourist_spot_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
-// TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로(_kTopOffset),
-// 탑 바 다음 요소의 위치가 그대로 유지되도록 이 간격을 8px 줄였습니다.
+
 const double _kTopBarToSearchBarGap = 33.0;
 const double _kSearchBarToErrorGap = 4.0;
 const double _kSearchBarToLabelGap = 24.0;
@@ -26,18 +25,9 @@ const double _kChipsToButtonGap = 17.0;
 const double _kChipGap = 5.0;
 const int _kMinQueryLength = 2;
 
-// 빈 결과 이미지/텍스트는 검색 바~버튼 사이 빈 공간을 이 비율(157:184)로
-// 나눠서 위아래 여백을 잡습니다. 화면 높이가 달라져도 같은 비율을 유지하기
-// 위해 고정 픽셀 대신 flex로 배치합니다.
 const int _kEmptyResultTopFlex = 157;
 const int _kEmptyResultBottomFlex = 184;
 
-/// 코스 수정 화면의 '+' 플로팅 버튼에서 진입하는 장소 검색 화면입니다.
-///
-/// 검색어가 없으면 [popularSpots](지금 인기 있는 장소)를, 두 글자 이상으로
-/// 검색하면 [onSearch] 결과를 보여줍니다. 여러 장소를 선택하면 버튼 위에
-/// 선택된 장소들이 칩으로 나열되고, '장소 추가하기'를 누르면 그 장소들을
-/// 들고 즉시 이전 화면으로 돌아갑니다.
 class LocationSearchScreen extends StatefulWidget {
   const LocationSearchScreen({
     super.key,
@@ -48,8 +38,6 @@ class LocationSearchScreen extends StatefulWidget {
 
   final List<TouristSpotModel> popularSpots;
 
-  /// 두 글자 이상인 검색어로 호출됩니다. 실제 검색(서버 조회)은 호출하는
-  /// 쪽의 몫입니다.
   final Future<List<TouristSpotModel>> Function(String query)? onSearch;
 
   final VoidCallback? onBackTap;
@@ -67,8 +55,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   bool _hasSearched = false;
   bool _showLengthError = false;
 
-  /// 지금까지 선택한 장소들입니다(선택한 순서 그대로). '장소 추가하기' 버튼
-  /// 위 칩 목록과, 실제로 추가될 장소 목록에 그대로 쓰입니다.
   List<TouristSpotModel> get _selectedSpots =>
       _selectedIds.map((id) => _spotById[id]!).toList();
 
@@ -137,16 +123,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   @override
   Widget build(BuildContext context) {
     final displayedSpots = _hasSearched ? _searchResults : widget.popularSpots;
-    // 두 글자 미만 경고가 떠 있을 때도 검색 결과가 없는 것과 같은 화면을
-    // 보여줍니다('지금 인기 있는 장소' 대신 '검색 결과가 없어요').
+
     final isEmptyResult =
         _showLengthError || (_hasSearched && displayedSpots.isEmpty);
     final selectedSpots = _selectedSpots;
 
     return Scaffold(
       backgroundColor: AppColors.white,
-      // 선택된 장소 칩·버튼이 화면 하단에 고정되어야 해서, 키보드가 올라와도
-      // 본문이 눌려 올라가지 않도록 합니다.
+
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
@@ -158,11 +142,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               padding: const EdgeInsets.symmetric(
                 horizontal: _kHorizontalPadding,
               ),
-              // 경고 문구는 검색 바 아래에 떠 있는 형태라, 뜨고 사라져도
-              // 검색 바~다음 요소 사이 간격(_kSearchBarToLabelGap)이 항상
-              // 그대로 유지됩니다. 문구가 정확히 그 간격 안에 들어오도록
-              // (검색 바~문구 _kSearchBarToErrorGap + 문구 한 줄 높이 14 =
-              // _kSearchBarToLabelGap) 배치합니다.
+
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [

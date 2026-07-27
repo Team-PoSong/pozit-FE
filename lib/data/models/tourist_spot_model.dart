@@ -1,5 +1,3 @@
-// 관광지(장소 검색·인기 장소) 관련 API 응답 모델을 정의합니다.
-
 class TouristSpotModel {
   final int touristSpotId;
   final String name;

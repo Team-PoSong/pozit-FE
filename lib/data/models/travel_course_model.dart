@@ -1,5 +1,3 @@
-// 여행 코스(일차별 방문 장소) 관련 API 응답 모델을 정의합니다.
-
 class PozingModel {
   final int pozingId;
   final int userId;
@@ -68,8 +66,6 @@ class CourseSpotModel {
   }
 }
 
-/// 하루치 코스입니다. [spots]는 서버가 준 순서를 신뢰하지 않고 [CourseSpotModel.orderIndex]
-/// 기준으로 정렬해 사용합니다.
 class TravelCourseModel {
   final int courseId;
   final int dayNumber;
@@ -83,7 +79,6 @@ class TravelCourseModel {
     this.spots = const [],
   });
 
-  /// 해당 일차에 가장 먼저 방문하는 여행지 이름입니다. 정보가 없으면 빈 문자열입니다.
   String get firstSpotName {
     if (spots.isEmpty) return '';
     final sorted = [...spots]

@@ -13,11 +13,6 @@ export '../app_travel_status.dart';
 
 enum AppTravelCardType { pozitPick, myTravel, otherTravel }
 
-/// 여행 목록에서 공통으로 사용하는 카드입니다.
-///
-/// [backgroundImage]가 null이면 기본 포송 이미지가 표시됩니다.
-/// [status]는 [AppTravelCardType.myTravel]일 때만 사용되며, 완료 상태에서만
-/// [isPublic]에 따른 공개/비공개 아이콘이 표시됩니다.
 class AppTravelCard extends StatelessWidget {
   const AppTravelCard({
     super.key,

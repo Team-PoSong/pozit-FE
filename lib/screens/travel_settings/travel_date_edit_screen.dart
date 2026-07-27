@@ -9,14 +9,10 @@ import '../../core/design_system/widgets/button/app_button.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
-// TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로, 탑 바 다음
-// 요소와의 간격을 8px 줄였습니다.
+
 const double _kTopBarToTravelDateGap = 32.0;
 const double _kTravelDateToCalendarGap = 21.0;
 
-/// '여행 설정'의 "여행이 언제인가요?" 항목에서 진입하는, 여행 날짜를
-/// 수정하는 화면입니다. [AppCalendar]에서 새 기간을 선택하고 저장을 누르면
-/// 선택한 [DateTimeRange]를 반환하며 이전 화면으로 돌아갑니다.
 class TravelDateEditScreen extends StatefulWidget {
   const TravelDateEditScreen({
     super.key,
@@ -41,8 +37,6 @@ class _TravelDateEditScreenState extends State<TravelDateEditScreen> {
   static bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  // 처음 들어온 날짜에서 아무것도 바뀌지 않았다면 저장할 필요가 없으므로
-  // 버튼을 비활성화합니다.
   bool get _hasChanged =>
       !_isSameDay(_displayStartDate, widget.initialStartDate) ||
       !_isSameDay(_displayEndDate, widget.initialEndDate);

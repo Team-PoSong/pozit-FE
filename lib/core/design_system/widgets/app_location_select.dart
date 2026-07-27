@@ -20,8 +20,6 @@ class AppLocationSelect extends StatefulWidget {
   final bool? isSelected;
   final bool initiallySelected;
 
-  /// 오른쪽 끝 선택 표시(라디오 버튼 모양) 노출 여부입니다. 선택 자체가 아니라
-  /// 순서/강조 표시 목적으로 쓰일 때(예: 코스 보기 화면)는 false로 꺼서 씁니다.
   final bool showTrailingIndicator;
   final ValueChanged<bool>? onChanged;
 

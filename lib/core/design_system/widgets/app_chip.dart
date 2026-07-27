@@ -5,7 +5,6 @@ import '../app_colors.dart';
 import '../app_icons.dart';
 import '../app_text_styles.dart';
 
-/// 선택 가능한 태그 칩 (예: #문화, #예술)
 class AppTagChip extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -46,7 +45,6 @@ class AppTagChip extends StatelessWidget {
   }
 }
 
-/// 삭제(x) 가능한 칩
 class AppDeletableChip extends StatelessWidget {
   final String label;
   final VoidCallback? onDeleted;

@@ -12,19 +12,13 @@ const double _kHorizontalPadding = 24.0;
 const double _kStatusToContentGap = 15.0;
 const double _kPosingGap = 12.0;
 const double _kPosingToButtonGap = 30.0;
-// 탑승권 이미지와 안내 문구 사이 간격입니다.
+
 const double _kTicketToTextGap = 21.0;
-// 탑승권 이미지의 원본 크기(363x555)에서 대폭 축소한 너비입니다.
+
 const double _kCarrierTicketWidth = 121.0;
-// 화면 최하단(시스템 세이프 영역 하단)으로부터 마지막 posing/버튼까지
-// 추가로 두는 여백입니다. 시스템 인셋 자체는 SafeArea가 처리합니다.
+
 const double _kBottomSafeGap = 7.0;
 
-/// 여행 상세 화면에서 [status]에 따라 달라지는 하단 영역입니다.
-///
-/// - 여행 전: 탑승권 이미지와 "여행이 시작되면 기록할 수 있어요." 안내 문구
-/// - 여행 중: 동행인 수만큼의 [AppPosing]
-/// - 여행 후: 여행 중과 동일한 [AppPosing]과 "여행 로그 저장하기" 버튼
 class TravelDetailBottomSection extends StatelessWidget {
   const TravelDetailBottomSection({
     super.key,

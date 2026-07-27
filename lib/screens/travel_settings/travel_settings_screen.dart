@@ -17,8 +17,7 @@ import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_date_edit_screen.dart';
 
 const double _kHorizontalPadding = 24.0;
-// TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로(_kTopOffset),
-// 탑 바 다음 요소의 위치가 그대로 유지되도록 이 간격을 8px 줄였습니다.
+
 const double _kTopBarToFirstGap = 31.0;
 const double _kLabelToFieldGap = 18.0;
 const double _kFieldToNextLabelGap = 23.0;
@@ -41,7 +40,6 @@ const List<String> _kTravelTagOptions = [
   '탐험',
 ];
 
-/// 여행 설정 화면을 저장했을 때 상위로 전달되는 값입니다.
 class TravelSettingsResult {
   const TravelSettingsResult({
     required this.travelName,
@@ -60,11 +58,6 @@ class TravelSettingsResult {
   final File? backgroundImage;
 }
 
-/// 여행 설정 화면입니다.
-///
-/// 팀장은 여행 전/중/후 어느 상태에서든 진입할 수 있으며, '여행 후'일 때는
-/// 다른 공통 항목들 위에 공개 여부 섹션이 추가로 표시됩니다.
-/// [destination](여행지)은 이미 정해진 값을 보여주기만 하고 수정할 수 없습니다.
 class TravelSettingsScreen extends StatefulWidget {
   const TravelSettingsScreen({
     super.key,
@@ -90,7 +83,6 @@ class TravelSettingsScreen extends StatefulWidget {
   final File? initialBackgroundImage;
   final VoidCallback? onBackTap;
 
-  /// '저장하기'를 눌렀을 때 호출됩니다. 실제 저장(서버 반영)은 호출하는 쪽의 몫입니다.
   final ValueChanged<TravelSettingsResult>? onSave;
 
   @override
@@ -166,9 +158,6 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
   }
 
   void _handleToggleTag(String tag) {
-    // 태그 자체의 GestureDetector가 탭을 먼저 가져가서(제스처 아레나 승리),
-    // 화면 전체를 감싼 "바깥 탭 시 포커스 해제" 처리기가 실행되지 않습니다.
-    // 그래서 태그를 눌렀을 때 여기서 직접 포커스를 해제합니다.
     FocusScope.of(context).unfocus();
     setState(() {
       if (_selectedTags.contains(tag)) {
@@ -256,8 +245,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       const SizedBox(height: _kFieldToNextLabelGap),
                       const _SectionLabel('어디로 떠나시나요?'),
                       const SizedBox(height: _kLabelToFieldGap),
-                      // 수정할 수 없는 항목이라, 탭이 TextField까지 전달되지
-                      // 않도록 막아 포커스(선택 테두리)가 생기지 않게 합니다.
+
                       IgnorePointer(
                         child: AppInputField(
                           controller: _destinationController,
@@ -377,9 +365,6 @@ class _VisibilitySection extends StatelessWidget {
   }
 }
 
-/// 태그를 2행 4열 고정 그리드로 배치합니다. 텍스트 길이에 따라 줄바꿈
-/// 개수가 바뀌는 [Wrap] 대신 한 행에 4개씩 직접 묶고, 각 칸을 [Expanded]로
-/// 균등 분할해 전체 가로 너비(좌우 기본 패딩 제외)를 채우도록 합니다.
 class _TagGrid extends StatelessWidget {
   const _TagGrid({required this.selectedTags, required this.onToggle});
 
@@ -412,8 +397,7 @@ class _TagGrid extends StatelessWidget {
                     label: '# ${rows[r][c]}',
                     isSelected: selectedTags.contains(rows[r][c]),
                     onTap: () => onToggle(rows[r][c]),
-                    // 기본 padding(좌우 24)은 4칸 그리드 폭 안에서 라벨이
-                    // 줄바꿈되므로, 이 화면에서만 좌우를 줄입니다.
+
                     padding: const EdgeInsets.symmetric(
                       vertical: 10.0,
                       horizontal: 12.0,

@@ -12,8 +12,7 @@ import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'widgets/travel_member_item.dart';
 
 const double _kHorizontalPadding = 24.0;
-// TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로(_kTopOffset),
-// 탑 바 다음 요소의 위치가 그대로 유지되도록 이 간격을 8px 줄였습니다.
+
 const double _kTopBarToFirstGap = 24.0;
 const double _kTitleToDescGap = 12.0;
 const double _kDescToCodeBoxesGap = 21.0;
@@ -23,19 +22,13 @@ const double _kShareButtonToDividerGap = 18.0;
 const double _kDividerThickness = 8.0;
 const double _kDividerToMembersTitleGap = 27.0;
 const double _kMembersTitleToListGap = 24.0;
-// 멤버 행 사이 간격은 디자인 명세에 없어 목록 내 다른 항목들과 비슷한
-// 값으로 임의 지정했습니다. 실제 디자인이 나오면 조정해주세요.
+
 const double _kMemberItemGap = 16.0;
 
 const double _kCodeBoxHeight = 67.0;
 const double _kCodeBoxRadius = 4.0;
 const double _kCodeBoxGap = 10.0;
 
-/// 여행 상세의 설정 팝업에서 '멤버'를 눌렀을 때 뜨는 화면입니다.
-///
-/// [isLeader]가 true(팀장)면 위쪽에 초대 코드 섹션이 추가로 표시되고,
-/// 아래 멤버 목록에서도 다른 멤버를 삭제할 수 있는 더보기 버튼이 함께
-/// 표시됩니다. 팀원은 참여한 팀원 목록만 볼 수 있습니다.
 class TravelMemberScreen extends StatelessWidget {
   const TravelMemberScreen({
     super.key,
@@ -54,19 +47,14 @@ class TravelMemberScreen extends StatelessWidget {
   final bool isLeader;
   final List<TravelMemberModel> members;
 
-  /// 초대 코드입니다. [isLeader]가 true이면 필수입니다.
   final String? inviteCode;
 
   final VoidCallback? onBackTap;
 
-  /// '코드 복사'를 눌러 클립보드 복사가 끝난 뒤 호출됩니다.
   final VoidCallback? onCopyCode;
 
-  /// '링크 공유하기' 버튼을 눌렀을 때 호출됩니다.
   final VoidCallback? onShareTap;
 
-  /// 멤버 삭제 확인 다이얼로그에서 '삭제하기'를 눌렀을 때, 삭제 대상 멤버와
-  /// 함께 호출됩니다.
   final ValueChanged<TravelMemberModel>? onDeleteMember;
 
   void _handleBack(BuildContext context) {

@@ -11,10 +11,8 @@ import '../../data/models/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import '../travel_detail/widgets/travel_status.dart';
 
-// TravelDetailTopBar의 전체 높이(_kHeight + 위로 내려가는 여백 _kTopOffset)
-// 와 동일해야 합니다.
 const double _kTopBarHeight = 60.0;
-// 바텀 시트를 최대로 올렸을 때 탑 바와 남겨야 하는 간격입니다.
+
 const double _kSheetTopGap = 15.0;
 
 const double _kHorizontalPadding = 24.0;
@@ -22,13 +20,6 @@ const double _kHandleToDateDetailGap = 22.0;
 const double _kDateDetailToCourseGap = 30.0;
 const double _kLocationGap = 8.0;
 
-/// 여행 상세 화면의 '코스 보기'에서 진입하는, 전체 화면 지도 위에 코스를
-/// 보여주는 화면입니다.
-///
-/// 바탕 전체가 이동 가능한 지도이고, 그 위에 방문 상태를 보여주는 탑 바와
-/// 일차별 코스를 보여주는 바텀 시트가 떠 있는 형태입니다. 지도의 원(마커)과
-/// 바텀 시트의 장소 항목은 서로 선택 상태를 공유해서, 어느 한쪽을 누르면
-/// 반대쪽도 함께 강조됩니다.
 class TravelCourseMapScreen extends StatefulWidget {
   const TravelCourseMapScreen({
     super.key,
@@ -38,8 +29,6 @@ class TravelCourseMapScreen extends StatefulWidget {
     this.onBackTap,
   });
 
-  /// 코스 목록입니다. 같은 [TravelCourseModel.dayNumber]를 가진 항목이 여러 개면
-  /// touristSpotId 기준으로 하나의 동선으로 합쳐서 보여줍니다.
   final List<TravelCourseModel> courses;
   final AppTravelStatus status;
   final int initialDay;
@@ -52,7 +41,6 @@ class TravelCourseMapScreen extends StatefulWidget {
 class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
   late int _selectedDay = widget.initialDay;
 
-  /// 지도의 원과 바텀 시트의 장소 항목이 함께 공유하는 선택 상태입니다.
   int? _selectedSpotId;
 
   List<int> get _dayNumbers {
@@ -63,8 +51,6 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
 
   int get _dayCount => _dayNumbers.isEmpty ? 1 : _dayNumbers.length;
 
-  /// 선택된 일차에 해당하는 장소들을, touristSpotId 기준으로 중복 없이
-  /// orderIndex 순서대로 모은 목록입니다.
   List<CourseSpotModel> get _spotsForSelectedDay {
     final dayNumbers = _dayNumbers;
     final dayIndex = _selectedDay - 1;
@@ -86,8 +72,6 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
   }
 
   List<MapMarker> _markersForSelectedDay() {
-    // TravelStatusIndicator와 동일하게, '방문중' 개념은 여행이 실제로
-    // 진행 중일 때만 존재합니다.
     final allowVisiting = widget.status == AppTravelStatus.inProgress;
 
     return [
@@ -152,9 +136,7 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
               markers: _markersForSelectedDay(),
               onMarkerTap: _handleMarkerTap,
               enableGestures: true,
-              // 바텀 시트가 기본으로 화면 아래쪽 일부를 가리고 있으므로,
-              // 자동으로 카메라를 맞출 때 마커들이 가려지지 않는 위쪽
-              // 영역 안에 들어오도록 합니다.
+
               fitVisibleFraction: 1 - AppCourseBottomSheet.defaultRestingExtent,
             ),
           ),
@@ -193,10 +175,7 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
               ),
             ),
           ),
-          // AppCourseBottomSheet가 화면 전체를 덮는 "바깥 탭하면 접기" 영역을
-          // 가지고 있어서, 이보다 먼저(= 아래에) 쌓으면 탑 바가 그 뒤에 깔려
-          // 뒤로가기 버튼이 한 번에 눌리지 않고 시트부터 접힙니다. 탑 바를
-          // 맨 위에 쌓아 자기 영역만큼은 항상 먼저 히트테스트되게 합니다.
+
           SafeArea(
             bottom: false,
             child: TravelDetailTopBar(

@@ -1,5 +1,3 @@
-// 여행 정보 카드에 표시되는 데이터를 정의합니다.
-
 class TravelInfoCardModel {
   final String destination;
   final DateTime startDate;

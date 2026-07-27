@@ -17,10 +17,6 @@ const TextStyle _tagTextStyle = TextStyle(
   color: AppColors.gray5,
 );
 
-/// 여행 상세 화면 상단에서 여행의 핵심 정보를 요약해 보여주는 카드입니다.
-///
-/// 여행 대표 이미지 등 배경 위에 올라간다는 전제로 텍스트가 흰색으로
-/// 디자인되어 있으므로, 배경은 이 위젯을 사용하는 곳에서 준비해야 합니다.
 class TravelInfoCard extends StatelessWidget {
   const TravelInfoCard({super.key, required this.info});
 
@@ -35,11 +31,6 @@ class TravelInfoCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            // destination과 date를 하나의 Expanded 안에 함께 넣어 이 블록이
-            // 남는 공간을 전부 차지하게 합니다. 그래야 아래쪽 완주율
-            // 퍼센티지와 오른쪽 끝이 정확히 맞고(뒤 아이콘/인원수가 항상
-            // 카드 끝에 붙음), 여행지 이름이 길어져도 이 블록 안에서만
-            // 줄어들어 카드 밖으로 오버플로우되지 않습니다.
             Expanded(
               child: Row(
                 children: [
@@ -144,7 +135,7 @@ class _InfoTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = label.startsWith('#') ? label : '# $label';
-    // 디자인에 정확한 수치가 있다면 그 값으로 다시 맞춰주세요.
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: ShapeDecoration(

@@ -7,11 +7,6 @@ import '../app_icons.dart';
 import '../app_text_styles.dart';
 import 'app_delete_popover.dart';
 
-/// 여행지의 이름과 주소를 표시하는 공통 카드입니다.
-///
-/// [showReorderHandle]을 활성화하면 왼쪽에 정렬 핸들이 표시되고,
-/// [reorderIndex]를 전달하면 핸들을 드래그해 순서 변경을 시작할 수 있습니다.
-/// [onDelete]를 전달하면 오른쪽 더보기 버튼과 삭제 팝오버가 표시됩니다.
 class AppLocation extends StatefulWidget {
   const AppLocation({
     super.key,

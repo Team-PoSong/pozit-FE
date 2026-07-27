@@ -18,20 +18,14 @@ import 'widgets/travel_status.dart';
 
 const double _kPhotoHeight = 290.0;
 const double _kHorizontalPadding = 24.0;
-// TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로(_kTopOffset),
-// 탑 바 다음 요소의 위치가 그대로 유지되도록 이 간격을 8px 줄였습니다.
+
 const double _kTopBarToInfoCardGap = 30.0;
 const double _kPhotoToDateSelectGap = 17.0;
 const double _kDateSelectToMapCardGap = 10.0;
 const double _kMapCardToStatusGap = 8.0;
-// 지도 카드를 좌우로 스와이프해, 선택된 일차 안에서 다음/이전 코스로
-// 넘길 때 판정하는 최소 속도입니다.
+
 const double _kSwipeVelocityThreshold = 200.0;
 
-/// 여행 상세 화면입니다.
-///
-/// 여행의 진행 상태([status])에 따라 하단 영역이 달라지며, 자세한 내용은
-/// [TravelDetailBottomSection]을 참고하세요.
 class TravelDetailScreen extends StatefulWidget {
   const TravelDetailScreen({
     super.key,
@@ -56,14 +50,8 @@ class TravelDetailScreen extends StatefulWidget {
   final TravelInfoCardModel info;
   final AppTravelStatus status;
 
-  /// 현재 사용자가 이 여행의 팀장인지 여부입니다. 상단 바 설정 팝업에 표시할
-  /// 항목이 팀장/팀원에 따라 달라집니다.
   final bool isLeader;
 
-  /// 코스 목록입니다. 같은 [TravelCourseModel.dayNumber]를 가진 항목이 여러 개일
-  /// 수 있으며(하루에 코스 후보가 여럿인 경우), 그 경우 지도 카드를 좌우로
-  /// 스와이프해 같은 일차 안에서 다음/이전 코스로 넘어갈 수 있습니다. 일차
-  /// 자체는 [AppDateDetailSelect] 탭으로만 바뀝니다.
   final List<TravelCourseModel> courses;
   final ImageProvider<Object> backgroundImage;
   final int initialDay;
@@ -73,14 +61,11 @@ class TravelDetailScreen extends StatefulWidget {
   final VoidCallback? onMemberTap;
   final VoidCallback? onLeaveTap;
   final VoidCallback? onDeleteTap;
-  /// '코스 보기'를 눌렀을 때, 현재 보고 있는 일차와 함께 호출됩니다.
+
   final ValueChanged<int>? onCourseTap;
   final ValueChanged<int>? onDayChanged;
   final VoidCallback? onSaveLogTap;
 
-  /// '코스 보기 안내' 코치마크를 '다신 보지 않기'로 껐는지 기억하는
-  /// 저장소입니다. 테스트/프리뷰에서 다른 구현으로 바꿔 끼울 수 있게
-  /// 주입 가능하게 열어둡니다.
   final TravelDetailGuideStorage guideStorage;
 
   @override
@@ -90,15 +75,11 @@ class TravelDetailScreen extends StatefulWidget {
 class _TravelDetailScreenState extends State<TravelDetailScreen> {
   late int _selectedDay = widget.initialDay;
 
-  // 선택된 일차 안에서 몇 번째 코스를 보고 있는지입니다. 일차가 바뀌면 0으로
-  // 초기화됩니다.
   int _selectedCourseIndex = 0;
 
   final GlobalKey _courseButtonKey = GlobalKey();
   final GlobalKey _mapKey = GlobalKey();
 
-  // 여행 전/중에는, '다신 보지 않기'를 누르지 않은 이상 이 화면에 들어올
-  // 때마다 코치마크를 다시 보여줍니다.
   bool _showGuide = false;
 
   @override
@@ -123,9 +104,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     widget.guideStorage.markDismissed();
   }
 
-  /// 코스가 가진 dayNumber를 오름차순으로 중복 제거한 목록입니다. 실제
-  /// dayNumber 값(0부터 시작하는지 등)에 의존하지 않고, 이 목록에서의
-  /// 위치(index + 1)를 "N일차"로 사용합니다.
   List<int> get _distinctDayNumbers {
     final set = widget.courses.map((c) => c.dayNumber).toSet().toList()
       ..sort();
@@ -136,8 +114,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
       ? _distinctDayNumbers.length
       : widget.info.totalDays;
 
-  /// 선택된 일차(dayNumber)에 해당하는 코스 후보들입니다. 하루에 코스가
-  /// 여럿이면 여기 여러 개가 담깁니다.
   List<TravelCourseModel> get _coursesForSelectedDay {
     final dayNumbers = _distinctDayNumbers;
     final dayIndex = _selectedDay - 1;
@@ -154,15 +130,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     return courses[_selectedCourseIndex.clamp(0, courses.length - 1)];
   }
 
-  /// 선택된 일차에 속한 "모든" 코스의 여행지를 touristSpotId 기준으로 하나로
-  /// 합칩니다. 같은 일차 안에서 코스를 스와이프해도 지도의 원+연결선은
-  /// 이 고정된 집합 그대로이고, 오직 어떤 원이 강조(isSelected)되는지만
-  /// 바뀝니다.
-  ///
-  /// 합친 순서는 "코스 목록에서 가장 먼저 나오는 코스"의 orderIndex 순서를
-  /// 기준으로 하고, 거기 없는 장소(다른 코스에만 있는 장소)는 뒤에
-  /// 덧붙입니다. 여러 코스에 같은 장소가 orderIndex/상태만 다르게 들어있는
-  /// 경우, 가장 먼저 등장한 값을 그대로 씁니다.
   List<MapMarker> _mergedMarkersForSelectedDay() {
     final coursesForDay = _coursesForSelectedDay;
     if (coursesForDay.isEmpty) return const [];
@@ -179,7 +146,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
       }
     }
 
-    // 현재 보고 있는 코스(=지도 카드 제목)의 첫 번째 여행지만 강조합니다.
     int? selectedSpotId;
     final selected = _selectedCourse;
     if (selected != null && selected.spots.isNotEmpty) {
@@ -188,10 +154,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
       selectedSpotId = sortedSelected.first.touristSpotId;
     }
 
-    // TravelStatusIndicator와 동일하게, '방문중' 개념은 여행이 실제로
-    // 진행 중일 때만 존재합니다(여행 전/후에는 지도 아래 인디케이터에도
-    // '방문중' 항목이 없습니다). 그래서 여행 중이 아니면 status가
-    // 'visiting'이어도 미방문으로 취급합니다.
     final allowVisiting = widget.status == AppTravelStatus.inProgress;
 
     return [
@@ -214,15 +176,12 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     if (clamped == _selectedDay) return;
     setState(() {
       _selectedDay = clamped;
-      // 일차가 바뀌면 그 날의 첫 번째 코스부터 다시 보여줍니다. 스와이프로
-      // 이동한 코스 위치는 일차 전환 기준이 아니므로 여기서만 초기화합니다.
+
       _selectedCourseIndex = 0;
     });
     widget.onDayChanged?.call(clamped);
   }
 
-  /// 지도를 좌우로 스와이프하면 "같은 일차 안에서" 다음/이전 코스로만
-  /// 넘어갑니다. 일차 자체는 이 제스처로 바뀌지 않습니다.
   void _handleMapSwipe(DragEndDetails details) {
     final courses = _coursesForSelectedDay;
     if (courses.length <= 1) return;
@@ -271,10 +230,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   Widget _buildScaffold(int coursePageCount, int coursePageIndex) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      // 배경 사진이 있는 상단 영역도 스크롤에 포함되어야 하므로, 화면 전체를
-      // 하나의 CustomScrollView로 구성합니다. 아래쪽 시스템 인셋(제스처 바 등)만
-      // 반영하면 되므로 top은 SafeArea에서 제외하고, 상단 여백은 사진 영역
-      // 안쪽의 SafeArea(bottom: false)에서 상태 바 기준으로 직접 처리합니다.
+
       body: SafeArea(
         top: false,
         child: CustomScrollView(
@@ -292,9 +248,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // TravelDetailTopBar는 자체적으로 좌우 16만큼의 아이콘
-                          // 여백을 두므로, 바깥에서 다시 24 패딩을 주면 이중으로
-                          // 밀려나 보입니다. 화면 폭 그대로 전달합니다.
                           TravelDetailTopBar(
                             title: widget.info.destination,
                             showSettingsButton: true,
@@ -343,11 +296,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                     padding: const EdgeInsets.symmetric(
                       horizontal: _kHorizontalPadding,
                     ),
-                    // 선택된 일차 안에 코스 후보가 여럿일 수 있으므로,
-                    // 좌우로 스와이프해 같은 일차 안의 다음/이전 코스로
-                    // 넘어갈 수 있게 합니다(일차 자체는 위 날짜 탭으로만
-                    // 바뀝니다). 페이지 인디케이터(하단 점)는 선택된
-                    // 일차의 코스 개수를 보여줍니다.
+
                     child: GestureDetector(
                       onHorizontalDragEnd: _handleMapSwipe,
                       child: AppMapCard(
@@ -407,8 +356,6 @@ TravelInfoCardModel _previewInfo() {
 
 List<TravelCourseModel> _previewCourses() {
   return [
-    // 1일차 코스 후보 A — 지도를 스와이프하면 아래 courseId 2(코스 후보 B)로
-    // 넘어갑니다. 일차(dayNumber)는 둘 다 1로 동일합니다.
     TravelCourseModel(
       courseId: 1,
       dayNumber: 1,
@@ -436,7 +383,7 @@ List<TravelCourseModel> _previewCourses() {
         ),
       ],
     ),
-    // 1일차 코스 후보 B.
+
     TravelCourseModel(
       courseId: 2,
       dayNumber: 1,

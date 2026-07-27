@@ -14,8 +14,7 @@ import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
-// TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로(_kTopOffset),
-// 탑 바 다음 요소의 위치가 그대로 유지되도록 이 간격을 8px 줄였습니다.
+
 const double _kTopBarToDateDetailGap = 17.0;
 const double _kDateDetailToTitleGap = 24.0;
 const double _kTitleToListGap = 24.0;
@@ -23,10 +22,6 @@ const double _kLocationGap = 8.0;
 const double _kFabToButtonGap = 22.0;
 const double _kFabSize = 62.0;
 
-/// 코스 수정 화면입니다.
-///
-/// 여행 전/중일 때 팀장만 진입할 수 있습니다. [courses]에서 일차별로 장소를
-/// 모아 보여주고, 순서 변경·삭제가 있어야만 '저장하기' 버튼이 활성화됩니다.
 class CourseEditScreen extends StatefulWidget {
   const CourseEditScreen({
     super.key,
@@ -38,18 +33,14 @@ class CourseEditScreen extends StatefulWidget {
     this.onSave,
   });
 
-  /// 코스 목록입니다. 같은 [TravelCourseModel.dayNumber]를 가진 항목이 여러 개면
-  /// touristSpotId 기준으로 하나의 동선으로 합쳐서 보여줍니다.
   final List<TravelCourseModel> courses;
   final int initialDay;
 
-  /// 플로팅 '+' 버튼을 누르면 뜨는 [LocationSearchScreen]에 그대로 전달됩니다.
   final List<TouristSpotModel> popularSpots;
   final Future<List<TouristSpotModel>> Function(String query)? onSearch;
 
   final VoidCallback? onBackTap;
 
-  /// '저장하기'를 눌렀을 때 일차(dayNumber)별 수정된 장소 목록과 함께 호출됩니다.
   final ValueChanged<Map<int, List<CourseSpotModel>>>? onSave;
 
   @override
@@ -61,8 +52,6 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
       (widget.courses.map((c) => c.dayNumber).toSet().toList()..sort());
 
   int _dayNumberForIndex(int dayIndex) {
-    // 기존 코스가 하나도 없는 일차에 새로 장소를 추가하는 경우, 목록에
-    // 아직 없는 dayNumber를 일차(index)와 동일한 값으로 채워둡니다.
     while (_dayNumbers.length < dayIndex) {
       _dayNumbers.add(_dayNumbers.length + 1);
     }
@@ -200,8 +189,6 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
               child: Stack(
                 children: [
                   ReorderableListView.builder(
-                    // 목록 맨 아래 항목이 플로팅 '+' 버튼에 완전히 가려지지
-                    // 않도록, 버튼 높이+간격만큼 하단 여백을 더 둡니다.
                     padding: const EdgeInsets.fromLTRB(
                       _kHorizontalPadding,
                       0,
@@ -211,10 +198,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                     buildDefaultDragHandles: false,
                     itemCount: spots.length,
                     onReorderItem: _handleReorder,
-                    // 기본 proxyDecorator는 Material 3의 surfaceTintColor를 그대로
-                    // 물려받아서, 드래그 중인 항목의 투명한 여백(위 Padding의
-                    // bottom 11)까지 옅은 보라색으로 칠해져 버립니다. 그림자만
-                    // 남기고 틴트는 꺼서 그 현상을 없앱니다.
+
                     proxyDecorator: (child, index, animation) {
                       return AnimatedBuilder(
                         animation: animation,
@@ -247,8 +231,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                       );
                     },
                   ),
-                  // 목록 위에 떠 있는 형태라, 목록 폭 전체가 아니라 버튼
-                  // 영역만큼만 아래 컨텐츠를 가립니다.
+
                   Positioned(
                     right: _kHorizontalPadding,
                     bottom: _kFabToButtonGap,

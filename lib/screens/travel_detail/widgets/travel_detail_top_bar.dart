@@ -11,10 +11,7 @@ import 'travel_settings_popup.dart';
 import 'travel_status.dart';
 
 const double _kHeight = 56.0;
-// 상태 바 바로 아래보다 4px 더 내려서 보이도록 위에 추가하는 여백입니다.
-// 이 값만큼 전체 위젯 높이가 늘어나므로, 이 탑 바를 쓰는 화면들은 탑 바
-// 바로 다음 요소와의 간격을 4px씩 줄여서 그 다음 요소의 위치가 그대로
-// 유지되게 해야 합니다.
+
 const double _kTopOffset = 4.0;
 const double _kHorizontalPadding = 16.0;
 const double _kTapTargetPadding = 10.0;
@@ -26,12 +23,6 @@ const double _kIconTop = (_kHeight - _kIconSize) / 2;
 const double _kTravelStatusWidth = 210.0;
 const double _kTravelStatusHeight = 31.0;
 
-/// 여행 상세 화면 전용 탑 바입니다.
-///
-/// [title]이 없으면 뒤로가기 버튼과 [travelStatusMode]만 표시하고,
-/// [title]이 있으면 뒤로가기 버튼과 함께 중앙에 제목을, 필요에 따라
-/// [showLock]으로 제목 앞 자물쇠 아이콘을, [showSettingsButton]으로
-/// 오른쪽 끝 설정 버튼을 표시합니다.
 class TravelDetailTopBar extends StatelessWidget {
   const TravelDetailTopBar({
     super.key,
@@ -62,50 +53,32 @@ class TravelDetailTopBar extends StatelessWidget {
          'showSettingsButton이 true면 isLeader가 필요합니다.',
        );
 
-  /// 중앙에 표시할 제목. null이면 제목 대신 [travelStatusMode]가 표시됩니다.
   final String? title;
 
-  /// 제목 앞에 자물쇠 아이콘을 표시할지 여부입니다.
   final bool showLock;
 
-  /// 오른쪽 끝에 설정 버튼을 표시할지 여부입니다.
   final bool showSettingsButton;
 
-  /// 오른쪽 끝에 표시할 여행 상태. 지정하면 [title]과 [showSettingsButton]은 무시됩니다.
   final TravelStatusMode? travelStatusMode;
 
-  /// 설정 버튼을 눌렀을 때 뜨는 [TravelSettingsPopup]에 표시할 항목을 결정하는
-  /// 여행 진행 상태입니다. [showSettingsButton]이 true이면 필수입니다.
   final AppTravelStatus? travelStatus;
 
-  /// 현재 사용자가 이 여행의 팀장인지 여부입니다. 설정 팝업에 표시할 항목이
-  /// 팀장/팀원에 따라 달라지므로, [showSettingsButton]이 true이면 필수입니다.
   final bool? isLeader;
 
   final VoidCallback? onBackTap;
 
-  /// 설정 팝업의 '여행 설정' 항목을 눌렀을 때 호출됩니다.
   final VoidCallback? onSettingsTap;
 
-  /// 설정 팝업의 '코스 수정' 항목을 눌렀을 때 호출됩니다. 여행 전/중일 때
-  /// 팀장에게만 항목 자체가 표시됩니다.
   final VoidCallback? onCourseEditTap;
 
-  /// 설정 팝업의 '멤버' 항목을 눌렀을 때 호출됩니다.
   final VoidCallback? onMemberTap;
 
-  /// 설정 팝업의 '여행 나가기' 항목을 누르고, [AppConfirmDialog]에서 한 번 더
-  /// 확인('나가기')한 뒤에 호출됩니다.
   final VoidCallback? onLeaveTap;
 
-  /// 설정 팝업의 '여행 삭제' 항목을 누르고, [AppConfirmDialog]에서 한 번 더
-  /// 확인('삭제하기')한 뒤에 호출됩니다.
   final VoidCallback? onDeleteTap;
 
-  /// 뒤로가기·설정·자물쇠 아이콘의 색상입니다.
   final Color iconColor;
 
-  /// 제목 텍스트의 색상입니다.
   final Color textColor;
 
   @override

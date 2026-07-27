@@ -1,5 +1,3 @@
-// 공통적으로 쓰이는 아이콘을 변수화합니다.
-
 class AppIcons {
   AppIcons._();
 
