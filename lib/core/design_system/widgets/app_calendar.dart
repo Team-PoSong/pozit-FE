@@ -15,7 +15,7 @@ const TextStyle _weekdayTextStyle = TextStyle(
 const double _cellWidth = 18.0;
 const double _cellGap = 26.0;
 const double _rowContentWidth = (_cellWidth + _cellGap) * 6 + _cellWidth; // 282.0
-const double _capPaddingHorizontal = 11.0; // 텍스트 좌우로 확장되는 정도
+const double _capPaddingHorizontal = 7.0; // 텍스트 좌우로 확장되는 정도
 const double _capPaddingVertical = 4.0; // 텍스트 위아래로 확장되는 정도
 
 class _HighlightSegment {
