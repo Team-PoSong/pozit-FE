@@ -249,7 +249,9 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       const SizedBox(height: _kLabelToFieldGap),
                       AppInputField(
                         controller: _travelNameController,
-                        hintText: '친구들과 경주 여행',
+                        hintText: widget.initialTravelName.isNotEmpty
+                            ? widget.initialTravelName
+                            : '친구들과 경주 여행',
                         onChanged: (_) => setState(() {}),
                       ),
                       const SizedBox(height: _kFieldToNextLabelGap),
@@ -270,7 +272,12 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       AppInputField(
                         controller: _dateController,
                         readOnly: true,
-                        hintText: '8/18 - 8/21',
+                        hintText: _hasInitialDateRange
+                            ? _formatDateRange(
+                                widget.initialStartDate!,
+                                widget.initialEndDate!,
+                              )
+                            : '8/18 - 8/21',
                         onTap: _handlePickDateRange,
                       ),
                       const SizedBox(height: _kFieldToNextLabelGap),
