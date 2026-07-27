@@ -87,11 +87,17 @@ class _TravelDateEditScreenState extends State<TravelDateEditScreen> {
             const SizedBox(height: _kTravelDateToCalendarGap),
             Expanded(
               child: SingleChildScrollView(
-                child: Center(
-                  child: AppCalendar(
-                    initialMonth: _displayStartDate,
-                    onRangeSelected: _handleRangeSelected,
-                    onSelectionCleared: _handleSelectionCleared,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: _kHorizontalPadding,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => AppCalendar(
+                      width: constraints.maxWidth,
+                      initialMonth: _displayStartDate,
+                      onRangeSelected: _handleRangeSelected,
+                      onSelectionCleared: _handleSelectionCleared,
+                    ),
                   ),
                 ),
               ),

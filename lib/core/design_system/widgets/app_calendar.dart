@@ -41,12 +41,14 @@ String _dateKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
 /// 그 위에 별도 레이어로 얹는 방식. 좌표를 손으로 계산하지 않아서 정렬이 어긋날 수 없음.
 class AppCalendar extends StatefulWidget {
   final DateTime initialMonth;
+  final double width;
   final void Function(DateTime start, DateTime end)? onRangeSelected;
   final VoidCallback? onSelectionCleared;
 
   AppCalendar({
     super.key,
     DateTime? initialMonth,
+    this.width = 345.0,
     this.onRangeSelected,
     this.onSelectionCleared,
   }) : initialMonth = initialMonth ?? DateTime.now();
@@ -216,9 +218,16 @@ class _AppCalendarState extends State<AppCalendar> {
     final weeks = <List<DateTime>>[
       for (int i = 0; i < dates.length; i += 7) dates.sublist(i, i + 7),
     ];
+    // 요일 줄·날짜 그리드는 왼쪽 고정 패딩만으로 배치되므로(그리드 자체는
+    // 내용만큼만 차지), 이 패딩을 너비에 맞춰 계산해야 컨테이너 안에서
+    // 계속 정중앙에 위치합니다.
+    final gridLeftPadding = ((widget.width - _rowContentWidth) / 2).clamp(
+      0.0,
+      double.infinity,
+    );
 
     return Container(
-      width: 345.0,
+      width: widget.width,
       padding: const EdgeInsets.only(bottom: 32.0),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -265,7 +274,7 @@ class _AppCalendarState extends State<AppCalendar> {
           ),
           const SizedBox(height: 34.0),
           Padding(
-            padding: const EdgeInsets.only(left: 31.0),
+            padding: EdgeInsets.only(left: gridLeftPadding),
             child: Row(
               children: [
                 for (int i = 0; i < 7; i++) ...[
@@ -284,7 +293,7 @@ class _AppCalendarState extends State<AppCalendar> {
           ),
           const SizedBox(height: 14.0),
           Padding(
-            padding: const EdgeInsets.only(left: 31.0),
+            padding: EdgeInsets.only(left: gridLeftPadding),
             // 도형 레이어(측정된 위치)를 숫자 Column 밑에 깔고, 숫자는 그 위에 그대로 그림
             child: Stack(
               clipBehavior: Clip.none,
