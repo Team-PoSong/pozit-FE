@@ -14,8 +14,7 @@ import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
 // TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로(_kTopOffset),
-// 탑 바 다음 요소의 위치가 그대로 유지되도록 이 간격을 4px 줄이고, 추가
-// 요청으로 4px 더 줄여 총 8px 줄었습니다(41 → 33).
+// 탑 바 다음 요소의 위치가 그대로 유지되도록 이 간격을 8px 줄였습니다.
 const double _kTopBarToSearchBarGap = 33.0;
 const double _kSearchBarToErrorGap = 4.0;
 const double _kSearchBarToLabelGap = 24.0;

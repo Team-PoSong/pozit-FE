@@ -144,11 +144,7 @@ class _InfoTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = label.startsWith('#') ? label : '# $label';
-    // 네, 내부 padding 값이 칩의 가로세로 비율을 그대로 좌우합니다. 세로
-    // padding이 가로에 비해 크면 칩이 통통한 타원처럼 보이는데, 기존
-    // (10, 5)는 세로 비중이 커서 그렇게 보였습니다. 세로를 줄이고 가로를
-    // 늘려 더 얇고 넓은 필(pill) 형태로 조정했습니다. 디자인에 정확한
-    // 수치가 있다면 그 값으로 다시 맞춰주세요.
+    // 디자인에 정확한 수치가 있다면 그 값으로 다시 맞춰주세요.
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: ShapeDecoration(

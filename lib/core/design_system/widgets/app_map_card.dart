@@ -115,16 +115,13 @@ class _AppMapViewState extends State<AppMapView> {
   // 안에서는 한 번만 생성해 재사용합니다. KImage.fromWidget이 비동기라
   // Future로 캐싱합니다.
   //
-  // 반드시 인스턴스 필드여야 합니다(예전엔 static이었습니다). PoiStyle에는
-  // 이미 등록되었는지를 나타내는 `_isAdded` 플래그가 있는데, 이 등록은
-  // 이 지도(=네이티브 KakaoMapController)에 한정된 것입니다. 캐시가
-  // static이면 카드형 지도에서 이미 등록해 `_isAdded=true`가 된 스타일
-  // 객체를 이 화면(다른 네이티브 지도 인스턴스)에서 그대로 재사용하게
-  // 되어, addPoi가 (이미 등록된 줄 알고) 재등록을 건너뛰고 그 결과
-  // "LabelStyles is null" 오류로 실패합니다(실기 로그로 확인: 방문완료
-  // 마커만 이 화면에서 처음 쓰는 (상태, 선택여부) 조합이라 새로 등록되어
-  // 유일하게 성공했고, 나머지는 카드에서 이미 등록된 스타일을 그대로
-  // 재사용하려다 실패했습니다).
+  // 반드시 인스턴스 필드여야 합니다(static 금지). PoiStyle에는 이미
+  // 등록되었는지를 나타내는 `_isAdded` 플래그가 있는데, 이 등록은 이
+  // 지도(=네이티브 KakaoMapController)에 한정된 것입니다. 캐시가 static이면
+  // 카드형 지도에서 이미 등록해 `_isAdded=true`가 된 스타일 객체를 이
+  // 화면(다른 네이티브 지도 인스턴스)에서 그대로 재사용하게 되어, addPoi가
+  // (이미 등록된 줄 알고) 재등록을 건너뛰고 그 결과 "LabelStyles is null"
+  // 오류로 실패합니다.
   final Map<(MapMarkerStatus, bool), Future<PoiStyle>> _styleCache = {};
 
   KakaoMapController? _controller;
@@ -266,20 +263,16 @@ class _AppMapViewState extends State<AppMapView> {
     if (fraction >= 1.0 || !mounted) return;
 
     // moveCamera의 Future는 네이티브가 fitMapPoints/newCenterPosition의
-    // 실제 카메라 이동 계산을 마치기 전에 먼저 완료되는 경우가 있어(실기
-    // 로그로 확인: fromScreenPoint 호출이 fitMapPoints보다 먼저 처리됨),
-    // 곧바로 fromScreenPoint를 호출하면 이동 전 위치 기준으로 좌표가
-    // 계산됩니다. 카메라가 실제로 자리잡을 시간을 짧게 확보합니다.
+    // 실제 카메라 이동 계산을 마치기 전에 먼저 완료되는 경우가 있어, 곧바로
+    // fromScreenPoint를 호출하면 이동 전 위치 기준으로 좌표가 계산됩니다.
+    // 카메라가 실제로 자리잡을 시간을 짧게 확보합니다.
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
 
     final size = context.size;
     if (size == null) return;
     // fromScreenPoint는 Flutter의 논리적 픽셀이 아니라 기기의 실제(물리)
-    // 픽셀 좌표를 기대합니다(실기 로그로 확인: 화면 중앙에서 세로로만
-    // 옮긴 논리 좌표를 넘겼는데도 위도·경도가 함께 크게 어긋나는 결과가
-    // 나왔고, devicePixelRatio를 곱해 물리 픽셀로 보정하니 세로로만
-    // 어긋난 결과가 나왔습니다).
+    // 픽셀 좌표를 기대하므로 devicePixelRatio를 곱해 보정합니다.
     final dpr = MediaQuery.of(context).devicePixelRatio;
 
     // 화면 정중앙에 있던 지점이 "보이는 영역의 세로 중앙"에 오려면, 카메라
@@ -321,10 +314,10 @@ class _AppMapViewState extends State<AppMapView> {
   // kakao_map_sdk 1.2.6에는, 스타일을 등록한 직후 곧바로 그 스타일로 Poi를
   // 추가하면 네이티브 쪽에서 아직 스타일 등록이 끝나지 않은 것으로 보여
   // "LabelStyles is null"과 함께 OverlayRegistrationFailedError가 발생하는
-  // 레이스 컨디션이 있습니다(실기 로그로 확인. 특히 여러 마커를 한 번에 찍는
-  // 화면 진입 직후에 재현됩니다). 짧게 기다렸다가 다시 시도하면 대부분
-  // 통과하고, 그래도 계속 실패하면 그 마커만 건너뛰어 나머지 마커·동선
-  // 렌더링에는 영향이 없게 합니다.
+  // 레이스 컨디션이 있습니다(특히 여러 마커를 한 번에 찍는 화면 진입 직후에
+  // 재현됩니다). 짧게 기다렸다가 다시 시도하면 대부분 통과하고, 그래도 계속
+  // 실패하면 그 마커만 건너뛰어 나머지 마커·동선 렌더링에는 영향이 없게
+  // 합니다.
   Future<Poi?> _addPoiWithRetry(
     LabelController layer,
     MapMarker marker,
@@ -354,12 +347,11 @@ class _AppMapViewState extends State<AppMapView> {
   // 그라데이션 선으로 잇습니다. RouteStyle은 단색만 지원해서, 구간을 나눠
   // 각 구간 색을 보간하는 방식으로 그라데이션처럼 보이게 합니다.
   //
-  // 참고: 처음엔 ShapeController.addPolylineShape(단일 Polyline)로
-  // 구현했으나 네이티브에서 "PolylineStylesSet create failure. PolylineStyles
-  // cannot be null or empty." 오류가 반복적으로 발생했습니다(Dart 예외로는
-  // 드러나지 않고 네이티브 로그에만 남는 문제라 실기 로그 확인 후 발견).
-  // 대신 여러 지점을 잇는 용도로 설계된 MultipleRoute API로 바꾸니
-  // 문제없이 동작합니다.
+  // 참고: ShapeController.addPolylineShape(단일 Polyline)는 네이티브에서
+  // "PolylineStylesSet create failure. PolylineStyles cannot be null or
+  // empty." 오류를 일으키므로(Dart 예외로는 드러나지 않고 네이티브 로그에만
+  // 남습니다), 여러 지점을 잇는 용도로 설계된 MultipleRoute API를 사용해야
+  // 합니다.
   Future<void> _renderRoute(KakaoMapController controller) async {
     final layer = controller.routeLayer;
 
@@ -615,9 +607,9 @@ class _PageIndicator extends StatelessWidget {
         : -1 + 2 * (currentPage / (pageCount - 1));
 
     // 부모 Column이 crossAxisAlignment.stretch라 여기 바로 SizedBox를 두면
-    // 카드 전체 너비로 강제로 늘어나 점 간격이 벌어져 보였던 게 지난번
-    // 문제였습니다. Center로 한 번 감싸 느슨한 제약을 준 다음 그 안에서
-    // SizedBox가 실제로 원하는 trackWidth만큼만 차지하도록 합니다.
+    // 카드 전체 너비로 강제로 늘어나 점 간격이 벌어져 보입니다. Center로 한
+    // 번 감싸 느슨한 제약을 준 다음 그 안에서 SizedBox가 실제로 원하는
+    // trackWidth만큼만 차지하도록 합니다.
     return Center(
       child: SizedBox(
         width: trackWidth,

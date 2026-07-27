@@ -10,8 +10,7 @@ import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
 // TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로, 탑 바 다음
-// 요소와의 간격을 4px 줄이고(40 → 36), 추가 요청으로 4px 더 줄여
-// 총 8px 줄었습니다(40 → 32).
+// 요소와의 간격을 8px 줄였습니다.
 const double _kTopBarToTravelDateGap = 32.0;
 const double _kTravelDateToCalendarGap = 21.0;
 
