@@ -63,6 +63,7 @@ class TravelDetailBottomSection extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: AppTextStyles.subTitle.copyWith(color: AppColors.gray5),
               ),
+              const SizedBox(height: 10),
             ],
           ),
         );
