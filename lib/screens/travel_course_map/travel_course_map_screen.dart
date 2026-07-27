@@ -11,8 +11,9 @@ import '../../data/models/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import '../travel_detail/widgets/travel_status.dart';
 
-// TravelDetailTopBar의 고정 높이(_kHeight)와 동일해야 합니다.
-const double _kTopBarHeight = 56.0;
+// TravelDetailTopBar의 전체 높이(_kHeight + 위로 내려가는 여백 _kTopOffset)
+// 와 동일해야 합니다.
+const double _kTopBarHeight = 60.0;
 // 바텀 시트를 최대로 올렸을 때 탑 바와 남겨야 하는 간격입니다.
 const double _kSheetTopGap = 15.0;
 

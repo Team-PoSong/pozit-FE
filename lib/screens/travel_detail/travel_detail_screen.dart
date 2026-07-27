@@ -16,7 +16,10 @@ import 'widgets/travel_status.dart';
 
 const double _kPhotoHeight = 290.0;
 const double _kHorizontalPadding = 24.0;
-const double _kTopBarToInfoCardGap = 38.0;
+// TravelDetailTopBar가 자체적으로 위에 4px을 더 내려가므로(_kTopOffset),
+// 탑 바 다음 요소의 위치가 그대로 유지되도록 이 간격을 4px 줄이고, 추가
+// 요청으로 4px 더 줄여 총 8px 줄었습니다(38 → 30).
+const double _kTopBarToInfoCardGap = 30.0;
 const double _kPhotoToDateSelectGap = 17.0;
 const double _kDateSelectToMapCardGap = 10.0;
 const double _kMapCardToStatusGap = 8.0;

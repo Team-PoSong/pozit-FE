@@ -11,6 +11,11 @@ import 'travel_settings_popup.dart';
 import 'travel_status.dart';
 
 const double _kHeight = 56.0;
+// 상태 바 바로 아래보다 4px 더 내려서 보이도록 위에 추가하는 여백입니다.
+// 이 값만큼 전체 위젯 높이가 늘어나므로, 이 탑 바를 쓰는 화면들은 탑 바
+// 바로 다음 요소와의 간격을 4px씩 줄여서 그 다음 요소의 위치가 그대로
+// 유지되게 해야 합니다.
+const double _kTopOffset = 4.0;
 const double _kHorizontalPadding = 16.0;
 const double _kTapTargetPadding = 10.0;
 const double _kIconSize = 24.0;
@@ -105,78 +110,83 @@ class TravelDetailTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: _kHeight,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (title != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _kTitleSidePadding,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (showLock) ...[
-                    SvgPicture.asset(
-                      AppIcons.lockClosed,
-                      width: _kIconSize,
-                      height: _kIconSize,
-                      colorFilter: ColorFilter.mode(
-                        iconColor,
-                        BlendMode.srcIn,
+    return Padding(
+      padding: const EdgeInsets.only(top: _kTopOffset),
+      child: SizedBox(
+        width: double.infinity,
+        height: _kHeight,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (title != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: _kTitleSidePadding,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (showLock) ...[
+                      SvgPicture.asset(
+                        AppIcons.lockClosed,
+                        width: _kIconSize,
+                        height: _kIconSize,
+                        colorFilter: ColorFilter.mode(
+                          iconColor,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      const SizedBox(width: _kLockTextGap),
+                    ],
+                    Flexible(
+                      child: Text(
+                        title!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.headline.copyWith(
+                          color: textColor,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: _kLockTextGap),
                   ],
-                  Flexible(
-                    child: Text(
-                      title!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.headline.copyWith(color: textColor),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          Positioned(
-            left: _kHorizontalPadding - _kTapTargetPadding,
-            top: _kIconTop - _kTapTargetPadding,
-            child: _IconButton(
-              icon: AppIcons.arrowLeft,
-              iconColor: iconColor,
-              onTap: onBackTap,
-            ),
-          ),
-          if (travelStatusMode != null)
             Positioned(
-              right: _kHorizontalPadding,
-              top: _kIconTop,
-              child: SizedBox(
-                width: _kTravelStatusWidth,
-                height: _kTravelStatusHeight,
-                child: TravelStatusIndicator(mode: travelStatusMode!),
-              ),
-            )
-          else if (showSettingsButton)
-            Positioned(
-              right: _kHorizontalPadding - _kTapTargetPadding,
+              left: _kHorizontalPadding - _kTapTargetPadding,
               top: _kIconTop - _kTapTargetPadding,
-              child: _SettingsButton(
+              child: _IconButton(
+                icon: AppIcons.arrowLeft,
                 iconColor: iconColor,
-                travelStatus: travelStatus!,
-                isLeader: isLeader!,
-                onSettingsTap: onSettingsTap,
-                onCourseEditTap: onCourseEditTap,
-                onMemberTap: onMemberTap,
-                onLeaveTap: onLeaveTap,
-                onDeleteTap: onDeleteTap,
+                onTap: onBackTap,
               ),
             ),
-        ],
+            if (travelStatusMode != null)
+              Positioned(
+                right: _kHorizontalPadding,
+                top: _kIconTop,
+                child: SizedBox(
+                  width: _kTravelStatusWidth,
+                  height: _kTravelStatusHeight,
+                  child: TravelStatusIndicator(mode: travelStatusMode!),
+                ),
+              )
+            else if (showSettingsButton)
+              Positioned(
+                right: _kHorizontalPadding - _kTapTargetPadding,
+                top: _kIconTop - _kTapTargetPadding,
+                child: _SettingsButton(
+                  iconColor: iconColor,
+                  travelStatus: travelStatus!,
+                  isLeader: isLeader!,
+                  onSettingsTap: onSettingsTap,
+                  onCourseEditTap: onCourseEditTap,
+                  onMemberTap: onMemberTap,
+                  onLeaveTap: onLeaveTap,
+                  onDeleteTap: onDeleteTap,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
