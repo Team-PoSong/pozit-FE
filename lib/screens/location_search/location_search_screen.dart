@@ -14,7 +14,7 @@ import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
 const double _kTopBarToSearchBarGap = 41.0;
-const double _kSearchBarToErrorGap = 10.0;
+const double _kSearchBarToErrorGap = 4.0;
 const double _kSearchBarToLabelGap = 24.0;
 const double _kLabelToListGap = 24.0;
 const double _kLocationGap = 8.0;
