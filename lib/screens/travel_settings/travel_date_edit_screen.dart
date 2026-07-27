@@ -37,18 +37,29 @@ class TravelDateEditScreen extends StatefulWidget {
 class _TravelDateEditScreenState extends State<TravelDateEditScreen> {
   late DateTime _displayStartDate = widget.initialStartDate;
   late DateTime _displayEndDate = widget.initialEndDate;
-  bool _canSave = true;
+  bool _hasValidSelection = true;
+
+  static bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  // 처음 들어온 날짜에서 아무것도 바뀌지 않았다면 저장할 필요가 없으므로
+  // 버튼을 비활성화합니다.
+  bool get _hasChanged =>
+      !_isSameDay(_displayStartDate, widget.initialStartDate) ||
+      !_isSameDay(_displayEndDate, widget.initialEndDate);
+
+  bool get _canSave => _hasValidSelection && _hasChanged;
 
   void _handleRangeSelected(DateTime start, DateTime end) {
     setState(() {
       _displayStartDate = start;
       _displayEndDate = end;
-      _canSave = true;
+      _hasValidSelection = true;
     });
   }
 
   void _handleSelectionCleared() {
-    setState(() => _canSave = false);
+    setState(() => _hasValidSelection = false);
   }
 
   void _handleSave() {
