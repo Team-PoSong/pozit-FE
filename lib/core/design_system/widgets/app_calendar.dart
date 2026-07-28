@@ -12,21 +12,26 @@ const TextStyle _weekdayTextStyle = TextStyle(
   color: AppColors.primary,
 );
 
-const double _cellWidth = 18.0;
-const double _cellGap = 26.0;
-const double _rowContentWidth = (_cellWidth + _cellGap) * 6 + _cellWidth; // 282.0
-const double _capPaddingHorizontal = 11.0; // 텍스트 좌우로 확장되는 정도
-const double _capPaddingVertical = 4.0; // 텍스트 위아래로 확장되는 정도
+const double _cellDiameter = 41.0;
+const double _cellHeight = 32.0;
+const double _cellGap = 3.0;
+const double _rowContentWidth = _cellDiameter * 7 + _cellGap * 6;
+const double _weekRowGap = 18.0;
+const double _fadeStop = 0.9634;
 
-class _HighlightSegment {
+enum _CapType { round, pill, fade }
+
+class _HighlightPiece {
   final Rect rect;
-  final bool roundLeft; // 진짜 시작일이면 true(둥글게), 줄바꿈으로 이어지는 중이면 false(각지게)
-  final bool roundRight;
+  final Color? color;
+  final Gradient? gradient;
+  final BorderRadius radius;
 
-  const _HighlightSegment({
+  const _HighlightPiece({
     required this.rect,
-    required this.roundLeft,
-    required this.roundRight,
+    this.color,
+    this.gradient,
+    this.radius = const BorderRadius.all(Radius.circular(999.0)),
   });
 }
 
@@ -35,18 +40,16 @@ bool _isSameDay(DateTime a, DateTime b) =>
 
 String _dateKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
 
-/// 여행 날짜(기간) 선택용 캘린더.
-/// 날짜 숫자는 요일 줄과 완전히 동일한 단순 Row 구조로 그리고,
-/// 선택 표시(진보라 도형)는 실제로 렌더링된 숫자 위치를 GlobalKey로 측정해서
-/// 그 위에 별도 레이어로 얹는 방식. 좌표를 손으로 계산하지 않아서 정렬이 어긋날 수 없음.
 class AppCalendar extends StatefulWidget {
   final DateTime initialMonth;
+  final DateTime? minSelectableDate;
   final void Function(DateTime start, DateTime end)? onRangeSelected;
   final VoidCallback? onSelectionCleared;
 
   AppCalendar({
     super.key,
     DateTime? initialMonth,
+    this.minSelectableDate,
     this.onRangeSelected,
     this.onSelectionCleared,
   }) : initialMonth = initialMonth ?? DateTime.now();
@@ -62,7 +65,7 @@ class _AppCalendarState extends State<AppCalendar> {
 
   final GlobalKey _gridKey = GlobalKey();
   final Map<String, GlobalKey> _cellKeys = {};
-  List<_HighlightSegment> _highlightRects = [];
+  List<_HighlightPiece> _highlightPieces = [];
 
   static const List<String> _weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -80,12 +83,34 @@ class _AppCalendarState extends State<AppCalendar> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureHighlights());
   }
 
+  bool _isDisabled(DateTime date) {
+    final min = widget.minSelectableDate;
+    if (min == null) return false;
+    final d = DateTime(date.year, date.month, date.day);
+    final m = DateTime(min.year, min.month, min.day);
+    return d.isBefore(m);
+  }
+
+  bool _isEndpoint(DateTime date) {
+    if (_rangeStart != null && _isSameDay(date, _rangeStart!)) return true;
+    if (_rangeEnd != null && _isSameDay(date, _rangeEnd!)) return true;
+    return false;
+  }
+
+  Rect? _cellRect(DateTime date, RenderBox gridBox) {
+    final box = _keyFor(date).currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return null;
+    final pos = box.localToGlobal(Offset.zero, ancestor: gridBox);
+    return pos & box.size;
+  }
+
   void _measureHighlights() {
     if (!mounted) return;
     if (_rangeStart == null) {
-      if (_highlightRects.isNotEmpty) setState(() => _highlightRects = []);
+      if (_highlightPieces.isNotEmpty) setState(() => _highlightPieces = []);
       return;
     }
+
     final gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
     if (gridBox == null) return;
 
@@ -94,69 +119,226 @@ class _AppCalendarState extends State<AppCalendar> {
       for (int i = 0; i < dates.length; i += 7) dates.sublist(i, i + 7),
     ];
 
-    final rects = <_HighlightSegment>[];
+    final trueStart = _rangeStart!;
+    final trueEnd = _rangeEnd ?? _rangeStart!;
+    final monthFirstDay =
+    DateTime(_displayedMonth.year, _displayedMonth.month, 1);
+    final monthLastDay =
+    DateTime(_displayedMonth.year, _displayedMonth.month + 1, 0);
+    final startsBeforeMonth = trueStart.isBefore(monthFirstDay);
+    final endsAfterMonth = trueEnd.isAfter(monthLastDay);
+
+    final pieces = <_HighlightPiece>[];
+
     for (final week in weeks) {
       int? segStart;
+
       for (int i = 0; i < 7; i++) {
-        final inRange = _isInRange(week[i]) && week[i].month == _displayedMonth.month;
+        final inRange =
+            _isInRange(week[i]) && week[i].month == _displayedMonth.month;
+
         if (inRange) segStart ??= i;
+
         final isLastOfWeek = i == 6;
+
         if ((!inRange || isLastOfWeek) && segStart != null) {
           final segEnd = inRange ? i : i - 1;
-          final startBox =
-          _keyFor(week[segStart]).currentContext?.findRenderObject() as RenderBox?;
-          final endBox =
-          _keyFor(week[segEnd]).currentContext?.findRenderObject() as RenderBox?;
-          if (startBox != null && endBox != null) {
-            final startPos = startBox.localToGlobal(Offset.zero, ancestor: gridBox);
-            final endPos = endBox.localToGlobal(Offset.zero, ancestor: gridBox);
 
-            final isTrueStart = _isSameDay(week[segStart], _rangeStart!);
-            final isTrueEnd = _rangeEnd != null
-                ? _isSameDay(week[segEnd], _rangeEnd!)
-                : _isSameDay(week[segEnd], _rangeStart!); // 종료일 없으면 시작일 자체가 곧 끝
+          _emitSegment(
+            pieces: pieces,
+            week: week,
+            segStart: segStart,
+            segEnd: segEnd,
+            gridBox: gridBox,
+            trueStart: trueStart,
+            trueEnd: trueEnd,
+            monthFirstDay: monthFirstDay,
+            monthLastDay: monthLastDay,
+            startsBeforeMonth: startsBeforeMonth,
+            endsAfterMonth: endsAfterMonth,
+          );
 
-            final double left = isTrueStart
-                ? startPos.dx - _capPaddingHorizontal
-                : (segStart == 0 ? 0.0 : startPos.dx);
-
-            final double right = isTrueEnd
-                ? endPos.dx + endBox.size.width + _capPaddingHorizontal
-                : (segEnd == 6 ? _rowContentWidth : endPos.dx + endBox.size.width);
-
-            rects.add(_HighlightSegment(
-              rect: Rect.fromLTRB(
-                left,
-                startPos.dy - _capPaddingVertical,
-                right,
-                startPos.dy + startBox.size.height + _capPaddingVertical,
-              ),
-              roundLeft: isTrueStart,
-              roundRight: isTrueEnd,
-            ));
-          }
           segStart = null;
         }
       }
     }
-    setState(() => _highlightRects = rects);
+
+    setState(() => _highlightPieces = pieces);
+  }
+
+  void _emitSegment({
+    required List<_HighlightPiece> pieces,
+    required List<DateTime> week,
+    required int segStart,
+    required int segEnd,
+    required RenderBox gridBox,
+    required DateTime trueStart,
+    required DateTime trueEnd,
+    required DateTime monthFirstDay,
+    required DateTime monthLastDay,
+    required bool startsBeforeMonth,
+    required bool endsAfterMonth,
+  }) {
+    _CapType _capTypeFor(int index) {
+      final date = week[index];
+
+      if (_isSameDay(date, trueStart) || _isSameDay(date, trueEnd)) {
+        return _CapType.pill;
+      }
+
+      final isMonthFirst =
+          startsBeforeMonth && _isSameDay(date, monthFirstDay);
+      final isMonthLast = endsAfterMonth && _isSameDay(date, monthLastDay);
+
+      if (isMonthFirst || isMonthLast) return _CapType.fade;
+
+      return _CapType.round;
+    }
+
+    void addPiece(
+        int index,
+        _CapType type, {
+          bool squareTouchingSide = false,
+        }) {
+      final rect = _cellRect(week[index], gridBox);
+      if (rect == null) return;
+
+      if (type == _CapType.pill) {
+        pieces.add(
+          _HighlightPiece(
+            rect: rect,
+            color: AppColors.purple3,
+          ),
+        );
+      } else if (type == _CapType.fade) {
+        final isLeftEdge =
+            startsBeforeMonth && _isSameDay(week[index], monthFirstDay);
+
+        pieces.add(
+          _HighlightPiece(
+            rect: rect,
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: isLeftEdge
+                  ? [
+                AppColors.purple1.withOpacity(0.0),
+                AppColors.purple1,
+              ]
+                  : [
+                AppColors.purple1,
+                AppColors.purple1.withOpacity(0.0),
+              ],
+              stops: [0.0, _fadeStop],
+            ),
+            radius: !squareTouchingSide
+                ? const BorderRadius.all(Radius.circular(999.0))
+                : (isLeftEdge
+                ? const BorderRadius.horizontal(
+              left: Radius.circular(999.0),
+            )
+                : const BorderRadius.horizontal(
+              right: Radius.circular(999.0),
+            )),
+          ),
+        );
+      }
+    }
+
+    if (segStart == segEnd) {
+      final type = _capTypeFor(segStart);
+
+      if (type == _CapType.round) {
+        final rect = _cellRect(week[segStart], gridBox);
+
+        if (rect != null) {
+          pieces.add(
+            _HighlightPiece(
+              rect: rect,
+              color: AppColors.purple1,
+            ),
+          );
+        }
+      } else {
+        addPiece(segStart, type);
+      }
+
+      return;
+    }
+
+    final leftType = _capTypeFor(segStart);
+    final rightType = _capTypeFor(segEnd);
+
+    final startCellRect = _cellRect(week[segStart], gridBox);
+    final endCellRect = _cellRect(week[segEnd], gridBox);
+
+    if (startCellRect != null && endCellRect != null) {
+      final left =
+      leftType == _CapType.fade ? startCellRect.right : startCellRect.left;
+      final right =
+      rightType == _CapType.fade ? endCellRect.left : endCellRect.right;
+
+      if (right > left) {
+        pieces.add(
+          _HighlightPiece(
+            rect: Rect.fromLTRB(
+              left,
+              startCellRect.top,
+              right,
+              startCellRect.bottom,
+            ),
+            color: AppColors.purple1,
+            radius: BorderRadius.horizontal(
+              left: leftType == _CapType.fade
+                  ? Radius.zero
+                  : const Radius.circular(999.0),
+              right: rightType == _CapType.fade
+                  ? Radius.zero
+                  : const Radius.circular(999.0),
+            ),
+          ),
+        );
+      }
+    }
+
+    if (leftType != _CapType.round) {
+      addPiece(
+        segStart,
+        leftType,
+        squareTouchingSide: true,
+      );
+    }
+
+    if (rightType != _CapType.round) {
+      addPiece(
+        segEnd,
+        rightType,
+        squareTouchingSide: true,
+      );
+    }
   }
 
   void _goToPrevMonth() {
     setState(() {
-      _displayedMonth = DateTime(_displayedMonth.year, _displayedMonth.month - 1);
+      _displayedMonth =
+          DateTime(_displayedMonth.year, _displayedMonth.month - 1);
     });
+
     _scheduleMeasure();
   }
 
   void _goToNextMonth() {
     setState(() {
-      _displayedMonth = DateTime(_displayedMonth.year, _displayedMonth.month + 1);
+      _displayedMonth =
+          DateTime(_displayedMonth.year, _displayedMonth.month + 1);
     });
+
     _scheduleMeasure();
   }
 
   void _onDateTap(DateTime date) {
+    if (_isDisabled(date)) return;
+
     setState(() {
       if (_rangeStart == null) {
         _rangeStart = date;
@@ -171,7 +353,9 @@ class _AppCalendarState extends State<AppCalendar> {
           _rangeEnd = date;
         }
       } else {
-        final isStrictlyBetween = date.isAfter(_rangeStart!) && date.isBefore(_rangeEnd!);
+        final isStrictlyBetween =
+            date.isAfter(_rangeStart!) && date.isBefore(_rangeEnd!);
+
         if (isStrictlyBetween) {
           _rangeStart = null;
           _rangeEnd = null;
@@ -181,6 +365,7 @@ class _AppCalendarState extends State<AppCalendar> {
         }
       }
     });
+
     _scheduleMeasure();
 
     if (_rangeStart == null && _rangeEnd == null) {
@@ -192,142 +377,176 @@ class _AppCalendarState extends State<AppCalendar> {
 
   bool _isInRange(DateTime date) {
     if (_rangeStart == null) return false;
-    if (_rangeEnd == null) return _isSameDay(date, _rangeStart!);
+
+    if (_rangeEnd == null) {
+      return _isSameDay(date, _rangeStart!);
+    }
+
     final d = DateTime(date.year, date.month, date.day);
-    final s = DateTime(_rangeStart!.year, _rangeStart!.month, _rangeStart!.day);
+    final s =
+    DateTime(_rangeStart!.year, _rangeStart!.month, _rangeStart!.day);
     final e = DateTime(_rangeEnd!.year, _rangeEnd!.month, _rangeEnd!.day);
+
     return !d.isBefore(s) && !d.isAfter(e);
   }
 
   List<DateTime> _buildGridDates() {
-    final firstDayOfMonth = DateTime(_displayedMonth.year, _displayedMonth.month, 1);
+    final firstDayOfMonth =
+    DateTime(_displayedMonth.year, _displayedMonth.month, 1);
     final startWeekday = firstDayOfMonth.weekday % 7;
-    final gridStart = firstDayOfMonth.subtract(Duration(days: startWeekday));
+    final gridStart =
+    firstDayOfMonth.subtract(Duration(days: startWeekday));
 
-    final daysInMonth = DateTime(_displayedMonth.year, _displayedMonth.month + 1, 0).day;
-    final totalCells = ((startWeekday + daysInMonth) / 7).ceil() * 7;
+    final daysInMonth =
+        DateTime(_displayedMonth.year, _displayedMonth.month + 1, 0).day;
 
-    return List.generate(totalCells, (i) => gridStart.add(Duration(days: i)));
+    final totalCells =
+        ((startWeekday + daysInMonth) / 7).ceil() * 7;
+
+    return List.generate(
+      totalCells,
+          (i) => gridStart.add(Duration(days: i)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final dates = _buildGridDates();
+
     final weeks = <List<DateTime>>[
       for (int i = 0; i < dates.length; i += 7) dates.sublist(i, i + 7),
     ];
 
-    return Container(
-      width: 345.0,
-      padding: const EdgeInsets.only(bottom: 32.0),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12.0),
-        boxShadow: const [BoxShadow(color: AppColors.gray3, blurRadius: 4.0)],
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        minWidth: _rowContentWidth,
       ),
-      child: Column(
-        children: [
-          const SizedBox(height: 32.0),
-          Padding(
-            padding: const EdgeInsets.only(left: 24.0, right: 30.0),
-            child: SizedBox(
-              height: 24.0,
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: _goToPrevMonth,
-                    child: SvgPicture.asset(
-                      AppIcons.arrowLeftSmallPurple,
-                      width: 24.0,
-                      height: 24.0,
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        '${_displayedMonth.month}월',
-                        style: AppTextStyles.headline.copyWith(color: AppColors.text),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.only(bottom: 32.0),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12.0),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.gray3,
+              blurRadius: 4.0,
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 32.0),
+            Center(
+              child: SizedBox(
+                width: _rowContentWidth,
+                height: 24.0,
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: _goToPrevMonth,
+                      child: SvgPicture.asset(
+                        AppIcons.arrowLeftSmallPurple,
+                        width: 24.0,
+                        height: 24.0,
                       ),
                     ),
-                  ),
-                  GestureDetector(
-                    onTap: _goToNextMonth,
-                    child: SvgPicture.asset(
-                      AppIcons.arrowRightSmallPurple,
-                      width: 24.0,
-                      height: 24.0,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 34.0),
-          Padding(
-            padding: const EdgeInsets.only(left: 31.0),
-            child: Row(
-              children: [
-                for (int i = 0; i < 7; i++) ...[
-                  if (i > 0) const SizedBox(width: _cellGap),
-                  SizedBox(
-                    width: _cellWidth,
-                    child: Text(
-                      _weekdayLabels[i],
-                      textAlign: TextAlign.center,
-                      style: _weekdayTextStyle,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 14.0),
-          Padding(
-            padding: const EdgeInsets.only(left: 31.0),
-            // 도형 레이어(측정된 위치)를 숫자 Column 밑에 깔고, 숫자는 그 위에 그대로 그림
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                for (final seg in _highlightRects)
-                  Positioned.fromRect(
-                    rect: seg.rect,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.horizontal(
-                          left: seg.roundLeft ? const Radius.circular(999.0) : Radius.zero,
-                          right: seg.roundRight ? const Radius.circular(999.0) : Radius.zero,
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          '${_displayedMonth.month}월',
+                          style: AppTextStyles.headline.copyWith(
+                            color: AppColors.text,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                Column(
-                  key: _gridKey,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final week in weeks) ...[
-                      Row(
-                        children: [
-                          for (int i = 0; i < 7; i++) ...[
-                            if (i > 0) const SizedBox(width: _cellGap),
-                            _DateCell(
-                              key: _keyFor(week[i]),
-                              date: week[i],
-                              isCurrentMonth: week[i].month == _displayedMonth.month,
-                              isInRange: _isInRange(week[i]),
-                              onTap: _onDateTap,
-                            ),
-                          ],
-                        ],
+                    GestureDetector(
+                      onTap: _goToNextMonth,
+                      child: SvgPicture.asset(
+                        AppIcons.arrowRightSmallPurple,
+                        width: 24.0,
+                        height: 24.0,
                       ),
-                      if (week != weeks.last) const SizedBox(height: 18.0),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 34.0),
+            Center(
+              child: SizedBox(
+                width: _rowContentWidth,
+                child: Row(
+                  children: [
+                    for (int i = 0; i < 7; i++) ...[
+                      if (i > 0) const SizedBox(width: _cellGap),
+                      SizedBox(
+                        width: _cellDiameter,
+                        child: Text(
+                          _weekdayLabels[i],
+                          textAlign: TextAlign.center,
+                          style: _weekdayTextStyle,
+                        ),
+                      ),
                     ],
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 14.0),
+            Center(
+              child: SizedBox(
+                width: _rowContentWidth,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    for (final piece in _highlightPieces)
+                      Positioned.fromRect(
+                        rect: piece.rect,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color:
+                            piece.gradient == null ? piece.color : null,
+                            gradient: piece.gradient,
+                            borderRadius: piece.radius,
+                          ),
+                        ),
+                      ),
+                    Column(
+                      key: _gridKey,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final week in weeks) ...[
+                          Row(
+                            children: [
+                              for (int i = 0; i < 7; i++) ...[
+                                if (i > 0)
+                                  const SizedBox(width: _cellGap),
+                                _DateCell(
+                                  key: _keyFor(week[i]),
+                                  date: week[i],
+                                  isCurrentMonth:
+                                  week[i].month ==
+                                      _displayedMonth.month,
+                                  isEndpoint: _isEndpoint(week[i]),
+                                  isDisabled: _isDisabled(week[i]),
+                                  onTap: _onDateTap,
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (week != weeks.last)
+                            const SizedBox(height: _weekRowGap),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -336,40 +555,52 @@ class _AppCalendarState extends State<AppCalendar> {
 class _DateCell extends StatelessWidget {
   final DateTime date;
   final bool isCurrentMonth;
-  final bool isInRange;
+  final bool isEndpoint;
+  final bool isDisabled;
   final ValueChanged<DateTime>? onTap;
 
   const _DateCell({
     super.key,
     required this.date,
     required this.isCurrentMonth,
-    required this.isInRange,
+    required this.isEndpoint,
+    required this.isDisabled,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Color color;
     if (!isCurrentMonth) {
+      return const SizedBox(
+        width: _cellDiameter,
+        height: _cellHeight,
+      );
+    }
+
+    final Color color;
+
+    if (isDisabled) {
       color = AppColors.gray4;
-    } else if (isInRange) {
+    } else if (isEndpoint) {
       color = AppColors.white;
     } else {
       color = AppColors.text;
     }
 
     return GestureDetector(
-      onTap: isCurrentMonth ? () => onTap?.call(date) : null,
+      onTap: isDisabled ? null : () => onTap?.call(date),
       child: SizedBox(
-        width: _cellWidth,
-        child: Text(
-          '${date.day}',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Pretendard',
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: color,
+        width: _cellDiameter,
+        height: _cellHeight,
+        child: Center(
+          child: Text(
+            '${date.day}',
+            style: TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: color,
+            ),
           ),
         ),
       ),
@@ -378,9 +609,35 @@ class _DateCell extends StatelessWidget {
 }
 
 @Preview(group: 'haerim', name: 'AppCalendar - 인터랙티브')
-Widget appCalendarInteractivePreview() => AppCalendar(
-  initialMonth: DateTime(2026, 7),
-  onRangeSelected: (start, end) {
-    debugPrint('선택됨: $start ~ $end');
-  },
+Widget appCalendarInteractivePreview() => Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 32),
+  child: AppCalendar(
+    initialMonth: DateTime(2026, 7),
+    onRangeSelected: (start, end) {
+      debugPrint('선택됨: $start ~ $end');
+    },
+  ),
+);
+
+@Preview(group: 'haerim', name: 'AppCalendar - 월 경계 넘는 선택')
+Widget appCalendarCrossMonthPreview() => Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 32),
+  child: AppCalendar(
+    initialMonth: DateTime(2026, 7),
+    onRangeSelected: (start, end) {
+      debugPrint('선택됨: $start ~ $end');
+    },
+  ),
+);
+
+@Preview(group: 'haerim', name: 'AppCalendar - 오늘이 7월 9일이라면')
+Widget appCalendarTodayJuly9Preview() => Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 32),
+  child: AppCalendar(
+    initialMonth: DateTime(2026, 7),
+    minSelectableDate: DateTime(2026, 7, 9),
+    onRangeSelected: (start, end) {
+      debugPrint('선택됨: $start ~ $end');
+    },
+  ),
 );
