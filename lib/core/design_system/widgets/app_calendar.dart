@@ -619,16 +619,6 @@ Widget appCalendarInteractivePreview() => Padding(
   ),
 );
 
-@Preview(group: 'haerim', name: 'AppCalendar - 월 경계 넘는 선택')
-Widget appCalendarCrossMonthPreview() => Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 32),
-  child: AppCalendar(
-    initialMonth: DateTime(2026, 7),
-    onRangeSelected: (start, end) {
-      debugPrint('선택됨: $start ~ $end');
-    },
-  ),
-);
 
 @Preview(group: 'haerim', name: 'AppCalendar - 오늘이 7월 9일이라면')
 Widget appCalendarTodayJuly9Preview() => Padding(
