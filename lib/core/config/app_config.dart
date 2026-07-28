@@ -7,9 +7,11 @@ class AppConfig {
 
   static const String appleServiceId = String.fromEnvironment(
     'APPLE_SERVICE_ID',
+    defaultValue: 'kr.pozit.app.login',
   );
 
   static const String appleRedirectUri = String.fromEnvironment(
     'APPLE_REDIRECT_URI',
+    defaultValue: 'https://api.pozit.kr/api/auth/apple/callback',
   );
 }
