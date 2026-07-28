@@ -16,6 +16,7 @@ const double _cellDiameter = 41.0;
 const double _cellHeight = 32.0;
 const double _cellGap = 3.0;
 const double _rowContentWidth = _cellDiameter * 7 + _cellGap * 6;
+const double _calendarHorizontalPadding = 20.0;
 const double _weekRowGap = 18.0;
 const double _fadeStop = 0.9634;
 
@@ -417,135 +418,138 @@ class _AppCalendarState extends State<AppCalendar> {
       for (int i = 0; i < dates.length; i += 7) dates.sublist(i, i + 7),
     ];
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(
-        minWidth: _rowContentWidth,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(bottom: 32.0),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12.0),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.gray3,
+            blurRadius: 4.0,
+          ),
+        ],
       ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.only(bottom: 32.0),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(12.0),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.gray3,
-              blurRadius: 4.0,
-            ),
-          ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: _calendarHorizontalPadding,
         ),
-        child: Column(
-          children: [
-            const SizedBox(height: 32.0),
-            Center(
-              child: SizedBox(
-                width: _rowContentWidth,
-                height: 24.0,
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: _goToPrevMonth,
-                      child: SvgPicture.asset(
-                        AppIcons.arrowLeftSmallPurple,
-                        width: 24.0,
-                        height: 24.0,
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          '${_displayedMonth.month}월',
-                          style: AppTextStyles.headline.copyWith(
-                            color: AppColors.text,
-                          ),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: _goToNextMonth,
-                      child: SvgPicture.asset(
-                        AppIcons.arrowRightSmallPurple,
-                        width: 24.0,
-                        height: 24.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 34.0),
-            Center(
-              child: SizedBox(
-                width: _rowContentWidth,
-                child: Row(
-                  children: [
-                    for (int i = 0; i < 7; i++) ...[
-                      if (i > 0) const SizedBox(width: _cellGap),
-                      SizedBox(
-                        width: _cellDiameter,
-                        child: Text(
-                          _weekdayLabels[i],
-                          textAlign: TextAlign.center,
-                          style: _weekdayTextStyle,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 14.0),
-            Center(
-              child: SizedBox(
-                width: _rowContentWidth,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    for (final piece in _highlightPieces)
-                      Positioned.fromRect(
-                        rect: piece.rect,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color:
-                            piece.gradient == null ? piece.color : null,
-                            gradient: piece.gradient,
-                            borderRadius: piece.radius,
-                          ),
-                        ),
-                      ),
-                    Column(
-                      key: _gridKey,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        child: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: _rowContentWidth,
+              child: Column(
+                children: [
+                  const SizedBox(height: 32.0),
+                  SizedBox(
+                    width: _rowContentWidth,
+                    height: 24.0,
+                    child: Row(
                       children: [
-                        for (final week in weeks) ...[
-                          Row(
-                            children: [
-                              for (int i = 0; i < 7; i++) ...[
-                                if (i > 0)
-                                  const SizedBox(width: _cellGap),
-                                _DateCell(
-                                  key: _keyFor(week[i]),
-                                  date: week[i],
-                                  isCurrentMonth:
-                                  week[i].month ==
-                                      _displayedMonth.month,
-                                  isEndpoint: _isEndpoint(week[i]),
-                                  isDisabled: _isDisabled(week[i]),
-                                  onTap: _onDateTap,
-                                ),
-                              ],
-                            ],
+                        GestureDetector(
+                          onTap: _goToPrevMonth,
+                          child: SvgPicture.asset(
+                            AppIcons.arrowLeftSmallPurple,
+                            width: 24.0,
+                            height: 24.0,
                           ),
-                          if (week != weeks.last)
-                            const SizedBox(height: _weekRowGap),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              '${_displayedMonth.month}월',
+                              style: AppTextStyles.headline.copyWith(
+                                color: AppColors.text,
+                              ),
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: _goToNextMonth,
+                          child: SvgPicture.asset(
+                            AppIcons.arrowRightSmallPurple,
+                            width: 24.0,
+                            height: 24.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 34.0),
+                  SizedBox(
+                    width: _rowContentWidth,
+                    child: Row(
+                      children: [
+                        for (int i = 0; i < 7; i++) ...[
+                          if (i > 0) const SizedBox(width: _cellGap),
+                          SizedBox(
+                            width: _cellDiameter,
+                            child: Text(
+                              _weekdayLabels[i],
+                              textAlign: TextAlign.center,
+                              style: _weekdayTextStyle,
+                            ),
+                          ),
                         ],
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 14.0),
+                  SizedBox(
+                    width: _rowContentWidth,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        for (final piece in _highlightPieces)
+                          Positioned.fromRect(
+                            rect: piece.rect,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color:
+                                piece.gradient == null ? piece.color : null,
+                                gradient: piece.gradient,
+                                borderRadius: piece.radius,
+                              ),
+                            ),
+                          ),
+                        Column(
+                          key: _gridKey,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final week in weeks) ...[
+                              Row(
+                                children: [
+                                  for (int i = 0; i < 7; i++) ...[
+                                    if (i > 0)
+                                      const SizedBox(width: _cellGap),
+                                    _DateCell(
+                                      key: _keyFor(week[i]),
+                                      date: week[i],
+                                      isCurrentMonth:
+                                      week[i].month ==
+                                          _displayedMonth.month,
+                                      isEndpoint: _isEndpoint(week[i]),
+                                      isDisabled: _isDisabled(week[i]),
+                                      onTap: _onDateTap,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              if (week != weeks.last)
+                                const SizedBox(height: _weekRowGap),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
