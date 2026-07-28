@@ -23,4 +23,20 @@ void main() {
       'familyName': '조',
     });
   });
+
+  test('Apple 사용자 정보가 없으면 서버 요청에서 해당 키를 제외한다', () {
+    const request = AppleLoginRequest(
+      identityToken: 'identity-token',
+      authorizationCode: 'authorization-code',
+      nonce: 'raw-nonce',
+      platform: 'IOS',
+    );
+
+    expect(request.toJson(), {
+      'identityToken': 'identity-token',
+      'authorizationCode': 'authorization-code',
+      'nonce': 'raw-nonce',
+      'platform': 'IOS',
+    });
+  });
 }

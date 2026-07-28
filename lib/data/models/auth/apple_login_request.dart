@@ -23,9 +23,9 @@ class AppleLoginRequest {
       'authorizationCode': authorizationCode,
       'nonce': nonce,
       'platform': platform,
-      'email': email,
-      'givenName': givenName,
-      'familyName': familyName,
+      if (email != null) 'email': email,
+      if (givenName != null) 'givenName': givenName,
+      if (familyName != null) 'familyName': familyName,
     };
   }
 }
