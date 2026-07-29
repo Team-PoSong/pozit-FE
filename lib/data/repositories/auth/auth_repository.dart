@@ -1,6 +1,7 @@
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
 import '../../datasources/auth/auth_token_storage.dart';
+import '../../models/auth/apple_login_request.dart';
 import '../../models/auth/login_token_model.dart';
 
 class AuthRepository {
@@ -9,14 +10,25 @@ class AuthRepository {
 
   final AuthTokenStorage _tokenStorage;
 
+  Future<LoginTokenModel> loginWithApple(AppleLoginRequest request) async {
+    return _login(path: '/api/auth/apple', data: request.toJson());
+  }
+
   Future<LoginTokenModel> loginWithKakaoAccessToken(
     String kakaoAccessToken,
   ) async {
+    return _login(
+      path: '/api/auth/kakao/native',
+      data: {'accessToken': kakaoAccessToken},
+    );
+  }
+
+  Future<LoginTokenModel> _login({
+    required String path,
+    required Map<String, dynamic> data,
+  }) async {
     try {
-      final result = await DioClient.instance.post(
-        '/api/auth/kakao/native',
-        data: {'accessToken': kakaoAccessToken},
-      );
+      final result = await DioClient.instance.post(path, data: data);
 
       if (result is! Map<String, dynamic>) {
         throw const ApiException('로그인 응답 형식이 올바르지 않습니다.');
