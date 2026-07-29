@@ -79,6 +79,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   final GlobalKey _courseButtonKey = GlobalKey();
   final GlobalKey _mapKey = GlobalKey();
+  final GlobalKey _cameraKey = GlobalKey();
 
   bool _showGuide = false;
 
@@ -206,6 +207,9 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
           TravelDetailGuideOverlay(
             courseButtonKey: _courseButtonKey,
             mapKey: _mapKey,
+            cameraKey: widget.status == AppTravelStatus.inProgress
+                ? _cameraKey
+                : null,
             onDismiss: _hideGuide,
             onDismissForever: _dismissGuideForever,
           ),
@@ -318,6 +322,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                 status: widget.status,
                 companionCount: widget.info.companionCount,
                 onSaveLogTap: widget.onSaveLogTap,
+                cameraKey: _cameraKey,
               ),
             ),
           ],

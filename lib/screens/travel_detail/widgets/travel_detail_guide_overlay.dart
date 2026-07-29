@@ -8,11 +8,18 @@ import '../../../core/design_system/app_images.dart';
 import '../../../core/design_system/app_text_styles.dart';
 
 const double _kHorizontalPadding = 24.0;
-const Size _kHighlightSize = Size(64, 21);
+
+const double _kHighlightPaddingHorizontal = 5.0;
+const double _kHighlightPaddingTop = 3.0;
+const double _kHighlightPaddingBottom = 4.0;
+const double _kHighlightContentHeight = 14.0;
 
 const double _kPointerHeight = 36.0;
 const double _kPointerWidth = _kPointerHeight * 36 / 128;
 const double _kPointerToTextGap = 6.0;
+const double _kCameraPointerToTextGap = 5.0;
+const double _kCameraOutlineBorderWidth = 1.0;
+const double _kCameraOutlineBorderRadius = 12.0;
 const Duration _kFadeOutDuration = Duration(milliseconds: 220);
 
 const TextStyle _kTooltipTextStyle = TextStyle(
@@ -38,12 +45,14 @@ class TravelDetailGuideOverlay extends StatefulWidget {
     super.key,
     required this.courseButtonKey,
     required this.mapKey,
+    this.cameraKey,
     required this.onDismiss,
     required this.onDismissForever,
   });
 
   final GlobalKey courseButtonKey;
   final GlobalKey mapKey;
+  final GlobalKey? cameraKey;
 
   final VoidCallback onDismiss;
 
@@ -58,6 +67,7 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
   final GlobalKey _rootKey = GlobalKey();
   Rect? _courseButtonRect;
   Rect? _mapRect;
+  Rect? _cameraRect;
 
   bool _visible = true;
 
@@ -85,6 +95,9 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
         widget.mapKey.currentContext?.findRenderObject() as RenderBox?;
     if (rootBox == null || courseBox == null || mapBox == null) return;
 
+    final cameraBox =
+        widget.cameraKey?.currentContext?.findRenderObject() as RenderBox?;
+
     setState(() {
       _courseButtonRect =
           (courseBox.localToGlobal(Offset.zero, ancestor: rootBox)) &
@@ -92,6 +105,10 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
       _mapRect =
           (mapBox.localToGlobal(Offset.zero, ancestor: rootBox)) &
           mapBox.size;
+      _cameraRect = cameraBox == null
+          ? null
+          : (cameraBox.localToGlobal(Offset.zero, ancestor: rootBox)) &
+                cameraBox.size;
     });
   }
 
@@ -101,13 +118,16 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
     final bottomSafePadding = MediaQuery.of(context).padding.bottom;
     final courseButtonRect = _courseButtonRect;
     final mapRect = _mapRect;
+    final cameraRect = _cameraRect;
 
     Rect? highlightRect;
     if (courseButtonRect != null) {
-      highlightRect = Rect.fromCenter(
-        center: courseButtonRect.center,
-        width: _kHighlightSize.width,
-        height: _kHighlightSize.height,
+      final center = courseButtonRect.center;
+      highlightRect = Rect.fromLTRB(
+        center.dx - courseButtonRect.width / 2 - _kHighlightPaddingHorizontal,
+        center.dy - _kHighlightContentHeight / 2 - _kHighlightPaddingTop,
+        center.dx + courseButtonRect.width / 2 + _kHighlightPaddingHorizontal,
+        center.dy + _kHighlightContentHeight / 2 + _kHighlightPaddingBottom,
       );
     }
 
@@ -150,7 +170,13 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
                             color: AppColors.white.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Center(
+                          child: const Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              _kHighlightPaddingHorizontal,
+                              _kHighlightPaddingTop,
+                              _kHighlightPaddingHorizontal,
+                              _kHighlightPaddingBottom,
+                            ),
                             child: _HighlightedCourseLabel(),
                           ),
                         ),
@@ -209,6 +235,47 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
                         AppIcons.arrowRight,
                         width: 18,
                         height: 18,
+                      ),
+                    ),
+                  ],
+                  if (cameraRect != null) ...[
+                    Positioned(
+                      left: cameraRect.left,
+                      top: cameraRect.top,
+                      width: cameraRect.width,
+                      height: cameraRect.height,
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              _kCameraOutlineBorderRadius,
+                            ),
+                            border: Border.all(
+                              color: AppColors.gray5,
+                              width: _kCameraOutlineBorderWidth,
+                              strokeAlign: BorderSide.strokeAlignInside,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: cameraRect.center.dx - _kPointerWidth / 2,
+                      bottom: screenSize.height - cameraRect.top,
+                      child: const _GuidePointer(),
+                    ),
+                    Positioned(
+                      left: cameraRect.left,
+                      width: cameraRect.width,
+                      bottom:
+                          screenSize.height -
+                          cameraRect.top +
+                          _kPointerHeight +
+                          _kCameraPointerToTextGap,
+                      child: const Text(
+                        '카메라가 활성화되면\n포징을 촬영할 수 있어요!',
+                        textAlign: TextAlign.center,
+                        style: _kTooltipTextStyle,
                       ),
                     ),
                   ],

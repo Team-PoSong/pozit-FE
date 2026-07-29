@@ -25,11 +25,13 @@ class TravelDetailBottomSection extends StatelessWidget {
     required this.status,
     required this.companionCount,
     this.onSaveLogTap,
+    this.cameraKey,
   });
 
   final AppTravelStatus status;
   final int companionCount;
   final VoidCallback? onSaveLogTap;
+  final Key? cameraKey;
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +71,10 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kBottomSafeGap,
           ),
-          child: _PosingColumn(companionCount: companionCount),
+          child: _PosingColumn(
+            companionCount: companionCount,
+            cameraKey: cameraKey,
+          ),
         );
       case AppTravelStatus.completed:
         return Padding(
@@ -93,9 +98,10 @@ class TravelDetailBottomSection extends StatelessWidget {
 }
 
 class _PosingColumn extends StatelessWidget {
-  const _PosingColumn({required this.companionCount});
+  const _PosingColumn({required this.companionCount, this.cameraKey});
 
   final int companionCount;
+  final Key? cameraKey;
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +109,7 @@ class _PosingColumn extends StatelessWidget {
       children: [
         for (int i = 0; i < companionCount; i++) ...[
           if (i > 0) const SizedBox(height: _kPosingGap),
-          const AppPosing(isCameraOn: false),
+          AppPosing(key: i == 0 ? cameraKey : null, isCameraOn: false),
         ],
       ],
     );
