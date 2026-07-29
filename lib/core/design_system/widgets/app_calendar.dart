@@ -19,7 +19,14 @@ const double _rowContentWidth = _cellDiameter * 7 + _cellGap * 6;
 const double _calendarHorizontalPadding = 20.0;
 const double _weekRowGap = 18.0;
 const double _fadeStop = 0.9634;
+
 const double _arrowTouchSize = 48.0;
+const double _arrowIconSize = 24.0;
+
+const double _headerHorizontalOverflow = 7.0;
+
+const double _calendarOuterPadding =
+    _calendarHorizontalPadding - _headerHorizontalOverflow;
 
 enum _CapType { round, pill, fade }
 
@@ -68,19 +75,34 @@ class _AppCalendarState extends State<AppCalendar> {
   final GlobalKey _gridKey = GlobalKey();
   final Map<String, GlobalKey> _cellKeys = {};
   List<_HighlightPiece> _highlightPieces = [];
-  double? _lastContentWidth;
 
-  static const List<String> _weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  static const List<String> _weekdayLabels = [
+    'S',
+    'M',
+    'T',
+    'W',
+    'T',
+    'F',
+    'S',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _displayedMonth = DateTime(widget.initialMonth.year, widget.initialMonth.month);
+    _displayedMonth = DateTime(
+      widget.initialMonth.year,
+      widget.initialMonth.month,
+    );
     _scheduleMeasure();
   }
 
   GlobalKey _keyFor(DateTime date) =>
       _cellKeys.putIfAbsent(_dateKey(date), () => GlobalKey());
+
+  void _cleanupCellKeys() {
+    final validKeys = _buildGridDates().map(_dateKey).toSet();
+    _cellKeys.removeWhere((key, _) => !validKeys.contains(key));
+  }
 
   void _scheduleMeasure() {
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureHighlights());
@@ -89,8 +111,10 @@ class _AppCalendarState extends State<AppCalendar> {
   bool _isDisabled(DateTime date) {
     final min = widget.minSelectableDate;
     if (min == null) return false;
+
     final d = DateTime(date.year, date.month, date.day);
     final m = DateTime(min.year, min.month, min.day);
+
     return d.isBefore(m);
   }
 
@@ -100,34 +124,54 @@ class _AppCalendarState extends State<AppCalendar> {
     return false;
   }
 
+  bool _isDisplayedMonth(DateTime date) =>
+      date.year == _displayedMonth.year && date.month == _displayedMonth.month;
+
   Rect? _cellRect(DateTime date, RenderBox gridBox) {
     final box = _keyFor(date).currentContext?.findRenderObject() as RenderBox?;
+
     if (box == null) return null;
+
     final pos = box.localToGlobal(Offset.zero, ancestor: gridBox);
+
     return pos & box.size;
   }
 
   void _measureHighlights() {
     if (!mounted) return;
+
     if (_rangeStart == null) {
-      if (_highlightPieces.isNotEmpty) setState(() => _highlightPieces = []);
+      if (_highlightPieces.isNotEmpty) {
+        setState(() => _highlightPieces = []);
+      }
       return;
     }
 
     final gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+
     if (gridBox == null) return;
 
     final dates = _buildGridDates();
+
     final weeks = <List<DateTime>>[
       for (int i = 0; i < dates.length; i += 7) dates.sublist(i, i + 7),
     ];
 
     final trueStart = _rangeStart!;
     final trueEnd = _rangeEnd ?? _rangeStart!;
-    final monthFirstDay =
-    DateTime(_displayedMonth.year, _displayedMonth.month, 1);
-    final monthLastDay =
-    DateTime(_displayedMonth.year, _displayedMonth.month + 1, 0);
+
+    final monthFirstDay = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month,
+      1,
+    );
+
+    final monthLastDay = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month + 1,
+      0,
+    );
+
     final startsBeforeMonth = trueStart.isBefore(monthFirstDay);
     final endsAfterMonth = trueEnd.isAfter(monthLastDay);
 
@@ -137,8 +181,7 @@ class _AppCalendarState extends State<AppCalendar> {
       int? segStart;
 
       for (int i = 0; i < 7; i++) {
-        final inRange =
-            _isInRange(week[i]) && week[i].month == _displayedMonth.month;
+        final inRange = _isInRange(week[i]) && _isDisplayedMonth(week[i]);
 
         if (inRange) segStart ??= i;
 
@@ -189,8 +232,8 @@ class _AppCalendarState extends State<AppCalendar> {
         return _CapType.pill;
       }
 
-      final isMonthFirst =
-          startsBeforeMonth && _isSameDay(date, monthFirstDay);
+      final isMonthFirst = startsBeforeMonth && _isSameDay(date, monthFirstDay);
+
       final isMonthLast = endsAfterMonth && _isSameDay(date, monthLastDay);
 
       if (isMonthFirst || isMonthLast) return _CapType.fade;
@@ -198,21 +241,12 @@ class _AppCalendarState extends State<AppCalendar> {
       return _CapType.round;
     }
 
-    void addPiece(
-        int index,
-        _CapType type, {
-          bool squareTouchingSide = false,
-        }) {
+    void addPiece(int index, _CapType type, {bool squareTouchingSide = false}) {
       final rect = _cellRect(week[index], gridBox);
       if (rect == null) return;
 
       if (type == _CapType.pill) {
-        pieces.add(
-          _HighlightPiece(
-            rect: rect,
-            color: AppColors.purple3,
-          ),
-        );
+        pieces.add(_HighlightPiece(rect: rect, color: AppColors.purple3));
       } else if (type == _CapType.fade) {
         final isLeftEdge =
             startsBeforeMonth && _isSameDay(week[index], monthFirstDay);
@@ -225,24 +259,24 @@ class _AppCalendarState extends State<AppCalendar> {
               end: Alignment.centerRight,
               colors: isLeftEdge
                   ? [
-                AppColors.purple1.withOpacity(0.0),
-                AppColors.purple1,
-              ]
+                      AppColors.purple1.withValues(alpha: 0.0),
+                      AppColors.purple1,
+                    ]
                   : [
-                AppColors.purple1,
-                AppColors.purple1.withOpacity(0.0),
-              ],
+                      AppColors.purple1,
+                      AppColors.purple1.withValues(alpha: 0.0),
+                    ],
               stops: [0.0, _fadeStop],
             ),
             radius: !squareTouchingSide
                 ? const BorderRadius.all(Radius.circular(999.0))
                 : (isLeftEdge
-                ? const BorderRadius.horizontal(
-              left: Radius.circular(999.0),
-            )
-                : const BorderRadius.horizontal(
-              right: Radius.circular(999.0),
-            )),
+                      ? const BorderRadius.horizontal(
+                          left: Radius.circular(999.0),
+                        )
+                      : const BorderRadius.horizontal(
+                          right: Radius.circular(999.0),
+                        )),
           ),
         );
       }
@@ -255,12 +289,7 @@ class _AppCalendarState extends State<AppCalendar> {
         final rect = _cellRect(week[segStart], gridBox);
 
         if (rect != null) {
-          pieces.add(
-            _HighlightPiece(
-              rect: rect,
-              color: AppColors.purple1,
-            ),
-          );
+          pieces.add(_HighlightPiece(rect: rect, color: AppColors.purple1));
         }
       } else {
         addPiece(segStart, type);
@@ -273,13 +302,17 @@ class _AppCalendarState extends State<AppCalendar> {
     final rightType = _capTypeFor(segEnd);
 
     final startCellRect = _cellRect(week[segStart], gridBox);
+
     final endCellRect = _cellRect(week[segEnd], gridBox);
 
     if (startCellRect != null && endCellRect != null) {
-      final left =
-      leftType == _CapType.fade ? startCellRect.right : startCellRect.left;
-      final right =
-      rightType == _CapType.fade ? endCellRect.left : endCellRect.right;
+      final left = leftType == _CapType.fade
+          ? startCellRect.right
+          : startCellRect.left;
+
+      final right = rightType == _CapType.fade
+          ? endCellRect.left
+          : endCellRect.right;
 
       if (right > left) {
         pieces.add(
@@ -305,42 +338,42 @@ class _AppCalendarState extends State<AppCalendar> {
     }
 
     if (leftType != _CapType.round) {
-      addPiece(
-        segStart,
-        leftType,
-        squareTouchingSide: true,
-      );
+      addPiece(segStart, leftType, squareTouchingSide: true);
     }
 
     if (rightType != _CapType.round) {
-      addPiece(
-        segEnd,
-        rightType,
-        squareTouchingSide: true,
-      );
+      addPiece(segEnd, rightType, squareTouchingSide: true);
     }
   }
 
   void _goToPrevMonth() {
     setState(() {
-      _displayedMonth =
-          DateTime(_displayedMonth.year, _displayedMonth.month - 1);
+      _displayedMonth = DateTime(
+        _displayedMonth.year,
+        _displayedMonth.month - 1,
+      );
     });
 
+    _cleanupCellKeys();
     _scheduleMeasure();
   }
 
   void _goToNextMonth() {
     setState(() {
-      _displayedMonth =
-          DateTime(_displayedMonth.year, _displayedMonth.month + 1);
+      _displayedMonth = DateTime(
+        _displayedMonth.year,
+        _displayedMonth.month + 1,
+      );
     });
 
+    _cleanupCellKeys();
     _scheduleMeasure();
   }
 
   void _onDateTap(DateTime date) {
     if (_isDisabled(date)) return;
+
+    var selectionCleared = false;
 
     setState(() {
       if (_rangeStart == null) {
@@ -352,6 +385,7 @@ class _AppCalendarState extends State<AppCalendar> {
         } else if (date.isBefore(_rangeStart!)) {
           _rangeStart = null;
           _rangeEnd = null;
+          selectionCleared = true;
         } else {
           _rangeEnd = date;
         }
@@ -366,14 +400,18 @@ class _AppCalendarState extends State<AppCalendar> {
           _rangeStart = date;
           _rangeEnd = null;
         }
+
+        selectionCleared = true;
       }
     });
 
     _scheduleMeasure();
 
-    if (_rangeStart == null && _rangeEnd == null) {
+    if (selectionCleared) {
       widget.onSelectionCleared?.call();
-    } else if (_rangeStart != null && _rangeEnd != null) {
+    }
+
+    if (_rangeStart != null && _rangeEnd != null) {
       widget.onRangeSelected?.call(_rangeStart!, _rangeEnd!);
     }
   }
@@ -386,30 +424,34 @@ class _AppCalendarState extends State<AppCalendar> {
     }
 
     final d = DateTime(date.year, date.month, date.day);
-    final s =
-    DateTime(_rangeStart!.year, _rangeStart!.month, _rangeStart!.day);
+
+    final s = DateTime(_rangeStart!.year, _rangeStart!.month, _rangeStart!.day);
+
     final e = DateTime(_rangeEnd!.year, _rangeEnd!.month, _rangeEnd!.day);
 
     return !d.isBefore(s) && !d.isAfter(e);
   }
 
   List<DateTime> _buildGridDates() {
-    final firstDayOfMonth =
-    DateTime(_displayedMonth.year, _displayedMonth.month, 1);
-    final startWeekday = firstDayOfMonth.weekday % 7;
-    final gridStart =
-    firstDayOfMonth.subtract(Duration(days: startWeekday));
-
-    final daysInMonth =
-        DateTime(_displayedMonth.year, _displayedMonth.month + 1, 0).day;
-
-    final totalCells =
-        ((startWeekday + daysInMonth) / 7).ceil() * 7;
-
-    return List.generate(
-      totalCells,
-          (i) => gridStart.add(Duration(days: i)),
+    final firstDayOfMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month,
+      1,
     );
+
+    final startWeekday = firstDayOfMonth.weekday % 7;
+
+    final gridStart = firstDayOfMonth.subtract(Duration(days: startWeekday));
+
+    final daysInMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month + 1,
+      0,
+    ).day;
+
+    final totalCells = ((startWeekday + daysInMonth) / 7).ceil() * 7;
+
+    return List.generate(totalCells, (i) => gridStart.add(Duration(days: i)));
   }
 
   @override
@@ -426,99 +468,97 @@ class _AppCalendarState extends State<AppCalendar> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12.0),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.gray3,
-            blurRadius: 4.0,
-          ),
-        ],
+        boxShadow: const [BoxShadow(color: AppColors.gray3, blurRadius: 4.0)],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: _calendarHorizontalPadding,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: _calendarOuterPadding),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final contentWidth = constraints.maxWidth.isFinite
-                ? constraints.maxWidth.clamp(0.0, _rowContentWidth).toDouble()
+                ? (constraints.maxWidth - _headerHorizontalOverflow * 2)
+                      .clamp(0.0, _rowContentWidth)
+                      .toDouble()
                 : _rowContentWidth;
 
             var cellWidth = _cellDiameter;
             var cellGap = _cellGap;
 
+            const minCellGap = 1.0;
             const cellsWidth = _cellDiameter * 7;
+            const widthAtMinGap = cellsWidth + 6 * minCellGap;
 
             if (contentWidth < _rowContentWidth) {
-              if (contentWidth >= cellsWidth) {
+              if (contentWidth >= widthAtMinGap) {
                 cellGap = (contentWidth - cellsWidth) / 6;
               } else {
-                cellGap = 0.0;
-                cellWidth = contentWidth / 7;
+                cellGap = minCellGap;
+                cellWidth = (contentWidth - 6 * minCellGap) / 7;
               }
             }
 
             final rowWidth = cellWidth * 7 + cellGap * 6;
 
-            if (_lastContentWidth != rowWidth) {
-              _lastContentWidth = rowWidth;
-              _scheduleMeasure();
-            }
+            final headerWidth = rowWidth + _headerHorizontalOverflow * 2;
 
             return Center(
               heightFactor: 1.0,
-              child: SizedBox(
-                width: rowWidth,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 20.0),
-                    SizedBox(
-                      height: _arrowTouchSize,
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: _goToPrevMonth,
-                            child: SizedBox.square(
-                              dimension: _arrowTouchSize,
-                              child: Center(
-                                child: SvgPicture.asset(
-                                  AppIcons.arrowLeftSmallPurple,
-                                  width: 24.0,
-                                  height: 24.0,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 20.0),
+
+                  SizedBox(
+                    width: headerWidth,
+                    height: _arrowTouchSize,
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _goToPrevMonth,
+                          child: SizedBox.square(
+                            dimension: _arrowTouchSize,
                             child: Center(
-                              child: Text(
-                                '${_displayedMonth.month}월',
-                                style: AppTextStyles.headline.copyWith(
-                                  color: AppColors.text,
-                                ),
+                              child: SvgPicture.asset(
+                                AppIcons.arrowLeftSmallPurple,
+                                width: _arrowIconSize,
+                                height: _arrowIconSize,
                               ),
                             ),
                           ),
-                          GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: _goToNextMonth,
-                            child: SizedBox.square(
-                              dimension: _arrowTouchSize,
-                              child: Center(
-                                child: SvgPicture.asset(
-                                  AppIcons.arrowRightSmallPurple,
-                                  width: 24.0,
-                                  height: 24.0,
-                                ),
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              '${_displayedMonth.month}월',
+                              style: AppTextStyles.headline.copyWith(
+                                color: AppColors.text,
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _goToNextMonth,
+                          child: SizedBox.square(
+                            dimension: _arrowTouchSize,
+                            child: Center(
+                              child: SvgPicture.asset(
+                                AppIcons.arrowRightSmallPurple,
+                                width: _arrowIconSize,
+                                height: _arrowIconSize,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 22.0),
-                    Row(
+                  ),
+
+                  const SizedBox(height: 22.0),
+
+                  SizedBox(
+                    width: rowWidth,
+                    child: Row(
                       children: [
                         for (int i = 0; i < 7; i++) ...[
                           if (i > 0) SizedBox(width: cellGap),
@@ -533,55 +573,80 @@ class _AppCalendarState extends State<AppCalendar> {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 14.0),
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        for (final piece in _highlightPieces)
-                          Positioned.fromRect(
-                            rect: piece.rect,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color:
-                                piece.gradient == null ? piece.color : null,
-                                gradient: piece.gradient,
-                                borderRadius: piece.radius,
-                              ),
-                            ),
-                          ),
-                        Column(
-                          key: _gridKey,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+
+                  const SizedBox(height: 14.0),
+
+                  NotificationListener<SizeChangedLayoutNotification>(
+                    onNotification: (_) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!mounted) return;
+                        _measureHighlights();
+                      });
+                      return true;
+                    },
+                    child: SizeChangedLayoutNotifier(
+                      child: SizedBox(
+                        width: rowWidth,
+                        child: Stack(
+                          clipBehavior: Clip.none,
                           children: [
-                            for (final week in weeks) ...[
-                              Row(
-                                children: [
-                                  for (int i = 0; i < 7; i++) ...[
-                                    if (i > 0)
-                                      SizedBox(width: cellGap),
-                                    _DateCell(
-                                      key: _keyFor(week[i]),
-                                      width: cellWidth,
-                                      date: week[i],
-                                      isCurrentMonth:
-                                      week[i].month ==
-                                          _displayedMonth.month,
-                                      isEndpoint: _isEndpoint(week[i]),
-                                      isDisabled: _isDisabled(week[i]),
-                                      onTap: _onDateTap,
-                                    ),
-                                  ],
-                                ],
+                            for (final piece in _highlightPieces)
+                              Positioned.fromRect(
+                                rect: piece.rect,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: piece.gradient == null
+                                        ? piece.color
+                                        : null,
+                                    gradient: piece.gradient,
+                                    borderRadius: piece.radius,
+                                  ),
+                                ),
                               ),
-                              if (week != weeks.last)
-                                const SizedBox(height: _weekRowGap),
-                            ],
+
+                            Column(
+                              key: _gridKey,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                for (
+                                  int weekIndex = 0;
+                                  weekIndex < weeks.length;
+                                  weekIndex++
+                                ) ...[
+                                  Row(
+                                    children: [
+                                      for (int i = 0; i < 7; i++) ...[
+                                        if (i > 0) SizedBox(width: cellGap),
+                                        _DateCell(
+                                          key: _keyFor(weeks[weekIndex][i]),
+                                          width: cellWidth,
+                                          date: weeks[weekIndex][i],
+                                          isCurrentMonth: _isDisplayedMonth(
+                                            weeks[weekIndex][i],
+                                          ),
+                                          isEndpoint: _isEndpoint(
+                                            weeks[weekIndex][i],
+                                          ),
+                                          isDisabled: _isDisabled(
+                                            weeks[weekIndex][i],
+                                          ),
+                                          onTap: _onDateTap,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  if (weekIndex < weeks.length - 1)
+                                    const SizedBox(height: _weekRowGap),
+                                ],
+                              ],
+                            ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           },
@@ -659,7 +724,6 @@ Widget appCalendarInteractivePreview() => Align(
     ),
   ),
 );
-
 
 @Preview(
   group: 'haerim',
