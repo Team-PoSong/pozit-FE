@@ -8,7 +8,7 @@ class TravelInfoCardModel {
   final int recordCount;
   final double completionRate;
 
-  const TravelInfoCardModel({
+  TravelInfoCardModel({
     required this.destination,
     required this.startDate,
     required this.endDate,
@@ -17,7 +17,10 @@ class TravelInfoCardModel {
     required this.visitedPlaceCount,
     required this.recordCount,
     required this.completionRate,
-  });
+  }) : assert(
+         !endDate.isBefore(startDate),
+         'endDate는 startDate보다 빠를 수 없습니다.',
+       );
 
   int get totalDays => endDate.difference(startDate).inDays + 1;
 
@@ -29,10 +32,18 @@ class TravelInfoCardModel {
       '${startDate.month}/${startDate.day}-${endDate.month}/${endDate.day}';
 
   factory TravelInfoCardModel.fromJson(Map<String, dynamic> json) {
+    final startDate = DateTime.parse(json['startDate'] as String);
+    final endDate = DateTime.parse(json['endDate'] as String);
+    if (endDate.isBefore(startDate)) {
+      throw FormatException(
+        'endDate($endDate)가 startDate($startDate)보다 빠를 수 없습니다.',
+      );
+    }
+
     return TravelInfoCardModel(
       destination: json['destination'] as String,
-      startDate: DateTime.parse(json['startDate'] as String),
-      endDate: DateTime.parse(json['endDate'] as String),
+      startDate: startDate,
+      endDate: endDate,
       companionCount: json['companionCount'] as int,
       tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
       visitedPlaceCount: json['visitedPlaceCount'] as int,

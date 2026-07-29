@@ -117,7 +117,7 @@ class TravelInfoCard extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              '${(info.completionRate * 100).round()}%',
+              '${(info.completionRate.clamp(0.0, 1.0) * 100).round()}%',
               style: AppTextStyles.body.copyWith(color: AppColors.white),
             ),
           ],

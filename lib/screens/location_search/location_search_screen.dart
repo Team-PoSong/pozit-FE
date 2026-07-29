@@ -54,6 +54,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   List<TouristSpotModel> _searchResults = [];
   bool _hasSearched = false;
   bool _showLengthError = false;
+  bool _isSearching = false;
+  bool _hasSearchError = false;
 
   List<TouristSpotModel> get _selectedSpots =>
       _selectedIds.map((id) => _spotById[id]!).toList();
@@ -75,20 +77,35 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   Future<void> _handleSearch(String rawQuery) async {
     final query = rawQuery.trim();
     if (query.length < _kMinQueryLength) {
-      setState(() => _showLengthError = true);
+      setState(() {
+        _showLengthError = true;
+        _hasSearchError = false;
+      });
       return;
     }
 
-    final results = await widget.onSearch?.call(query) ?? const [];
-    if (!mounted) return;
     setState(() {
       _showLengthError = false;
-      _hasSearched = true;
-      _searchResults = results;
-      for (final spot in results) {
-        _spotById[spot.touristSpotId] = spot;
-      }
+      _hasSearchError = false;
+      _isSearching = true;
     });
+
+    try {
+      final results = await widget.onSearch?.call(query) ?? const [];
+      if (!mounted) return;
+      setState(() {
+        _hasSearched = true;
+        _searchResults = results;
+        for (final spot in results) {
+          _spotById[spot.touristSpotId] = spot;
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _hasSearchError = true);
+    } finally {
+      if (mounted) setState(() => _isSearching = false);
+    }
   }
 
   void _handleQueryChanged(String value) {
@@ -97,6 +114,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       _hasSearched = false;
       _searchResults = [];
       _showLengthError = false;
+      _hasSearchError = false;
     });
   }
 
@@ -184,7 +202,11 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               const SizedBox(height: _kLabelToListGap),
             ],
             Expanded(
-              child: isEmptyResult
+              child: _isSearching
+                  ? const Center(child: CircularProgressIndicator())
+                  : _hasSearchError
+                  ? _SearchError(onRetry: () => _handleSearch(_controller.text))
+                  : isEmptyResult
                   ? const _EmptyResult()
                   : ListView.separated(
                       padding: const EdgeInsets.symmetric(
@@ -250,6 +272,41 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SearchError extends StatelessWidget {
+  const _SearchError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Expanded(flex: _kEmptyResultTopFlex, child: SizedBox()),
+          Text(
+            '검색에 실패했어요. 잠시 후 다시 시도해주세요.',
+            style: AppTextStyles.subTitle.copyWith(color: AppColors.gray5),
+          ),
+          const SizedBox(height: _kEmptyImageToTextGap),
+          GestureDetector(
+            onTap: onRetry,
+            child: Text(
+              '다시 시도',
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.text,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+          const Expanded(flex: _kEmptyResultBottomFlex, child: SizedBox()),
+        ],
       ),
     );
   }

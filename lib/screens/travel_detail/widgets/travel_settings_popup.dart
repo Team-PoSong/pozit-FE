@@ -173,8 +173,11 @@ Future<void> showTravelSettingsPopup(
   final completer = Completer<void>();
   late final OverlayEntry entry;
   AnimationController? controller;
+  var isClosing = false;
 
   Future<void> close() async {
+    if (isClosing) return;
+    isClosing = true;
     await controller?.reverse();
     entry.remove();
     completer.complete();
@@ -183,8 +186,7 @@ Future<void> showTravelSettingsPopup(
   VoidCallback? wrap(VoidCallback? callback) {
     if (callback == null) return null;
     return () {
-      close();
-      callback();
+      close().then((_) => callback());
     };
   }
 

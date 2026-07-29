@@ -14,10 +14,11 @@ const double _kEndLeftPadding = 24.0;
 
 const double _kEndRightPadding = 40.0;
 
-double _measureTextWidth(String text, TextStyle style) {
+double _measureTextWidth(String text, TextStyle style, TextScaler textScaler) {
   final painter = TextPainter(
     text: TextSpan(text: text, style: style),
     textDirection: TextDirection.ltr,
+    textScaler: textScaler,
   )..layout();
   return painter.width;
 }
@@ -62,14 +63,15 @@ class _AppTravelDateState extends State<AppTravelDate> {
     final formattedStartDate = _formatDate(widget.startDate);
     final formattedEndDate = _formatDate(widget.endDate);
     final isStartSelected = _selection == _TravelDateSelection.start;
+    final textScaler = MediaQuery.textScalerOf(context);
 
     final startTextWidth = math.max(
-      _measureTextWidth('여행 시작일', AppTextStyles.body),
-      _measureTextWidth(formattedStartDate, AppTextStyles.subTitle),
+      _measureTextWidth('여행 시작일', AppTextStyles.body, textScaler),
+      _measureTextWidth(formattedStartDate, AppTextStyles.subTitle, textScaler),
     );
     final endTextWidth = math.max(
-      _measureTextWidth('여행 종료일', AppTextStyles.body),
-      _measureTextWidth(formattedEndDate, AppTextStyles.subTitle),
+      _measureTextWidth('여행 종료일', AppTextStyles.body, textScaler),
+      _measureTextWidth(formattedEndDate, AppTextStyles.subTitle, textScaler),
     );
     final startShapeWidth =
         _kStartLeftPadding + startTextWidth + _kStartRightPadding;

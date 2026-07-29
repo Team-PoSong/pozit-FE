@@ -25,12 +25,14 @@ class TravelCourseMapScreen extends StatefulWidget {
     super.key,
     required this.courses,
     required this.status,
+    required this.totalDays,
     this.initialDay = 1,
     this.onBackTap,
   });
 
   final List<TravelCourseModel> courses;
   final AppTravelStatus status;
+  final int totalDays;
   final int initialDay;
   final VoidCallback? onBackTap;
 
@@ -43,24 +45,13 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
 
   int? _selectedSpotId;
 
-  List<int> get _dayNumbers {
-    final set = widget.courses.map((c) => c.dayNumber).toSet().toList()
-      ..sort();
-    return set;
-  }
-
-  int get _dayCount => _dayNumbers.isEmpty ? 1 : _dayNumbers.length;
+  int get _dayCount => widget.totalDays;
 
   List<CourseSpotModel> get _spotsForSelectedDay {
-    final dayNumbers = _dayNumbers;
-    final dayIndex = _selectedDay - 1;
-    if (dayIndex < 0 || dayIndex >= dayNumbers.length) return const [];
-    final targetDayNumber = dayNumbers[dayIndex];
-
     final seenSpotIds = <int>{};
     final merged = <CourseSpotModel>[];
     for (final course in widget.courses.where(
-      (c) => c.dayNumber == targetDayNumber,
+      (c) => c.dayNumber == _selectedDay,
     )) {
       final sorted = [...course.spots]
         ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
@@ -269,6 +260,7 @@ Widget travelCourseMapScreenPreview() {
     home: TravelCourseMapScreen(
       courses: _previewCourses(),
       status: AppTravelStatus.inProgress,
+      totalDays: 2,
     ),
   );
 }

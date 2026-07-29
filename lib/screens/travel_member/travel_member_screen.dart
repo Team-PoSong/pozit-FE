@@ -76,7 +76,7 @@ class TravelMemberScreen extends StatelessWidget {
                 onBackTap: () => _handleBack(context),
               ),
               const SizedBox(height: _kTopBarToFirstGap),
-              if (isLeader) ...[
+              if (isLeader && inviteCode != null) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: _kHorizontalPadding,
@@ -113,7 +113,7 @@ class TravelMemberScreen extends StatelessWidget {
                         nickname: members[i].nickname,
                         userId: members[i].userId,
                         isLeader: members[i].isLeader,
-                        canManage: isLeader,
+                        canManage: isLeader && !members[i].isLeader,
                         onDelete: onDeleteMember == null
                             ? null
                             : () => onDeleteMember!(members[i]),

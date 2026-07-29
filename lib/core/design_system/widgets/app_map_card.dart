@@ -90,6 +90,7 @@ class _AppMapViewState extends State<AppMapView> {
   List<Poi> _pois = const [];
   List<BaseRoute> _routes = const [];
   bool _hasError = false;
+  int _renderGeneration = 0;
 
   Future<PoiStyle> _styleFor(MapMarkerStatus status, bool isSelected) {
     final key = (status, isSelected);
@@ -176,12 +177,25 @@ class _AppMapViewState extends State<AppMapView> {
     setState(() => _hasError = true);
   }
 
+  void _handleRetry() {
+    setState(() {
+      _hasError = false;
+      _controller = null;
+      _pois = const [];
+      _routes = const [];
+    });
+  }
+
   Future<void> _renderOverlays() async {
     final controller = _controller;
     if (controller == null) return;
+    final generation = ++_renderGeneration;
+    bool isStale() => !mounted || generation != _renderGeneration;
 
-    await _renderMarkers(controller);
-    await _renderRoute(controller);
+    await _renderMarkers(controller, generation);
+    if (isStale()) return;
+    await _renderRoute(controller, generation);
+    if (isStale()) return;
 
     final points = widget.markers.map((m) => m.position).toList();
     if (points.isEmpty) return;
@@ -194,17 +208,19 @@ class _AppMapViewState extends State<AppMapView> {
         CameraUpdate.fitMapPoints(points, padding: 80),
       );
     }
-    await _biasCameraTowardVisibleArea(controller);
+    if (isStale()) return;
+    await _biasCameraTowardVisibleArea(controller, generation);
   }
 
   Future<void> _biasCameraTowardVisibleArea(
     KakaoMapController controller,
+    int generation,
   ) async {
     final fraction = widget.fitVisibleFraction;
     if (fraction >= 1.0 || !mounted) return;
 
     await Future.delayed(const Duration(milliseconds: 200));
-    if (!mounted) return;
+    if (!mounted || generation != _renderGeneration) return;
 
     final size = context.size;
     if (size == null) return;
@@ -215,15 +231,20 @@ class _AppMapViewState extends State<AppMapView> {
     final queryX = (size.width / 2 * dpr).round();
     final queryY = ((size.height / 2 + deltaY) * dpr).round();
     final target = await controller.fromScreenPoint(queryX, queryY);
-    if (target == null || !mounted) return;
+    if (target == null || !mounted || generation != _renderGeneration) return;
     await controller.moveCamera(CameraUpdate.newCenterPosition(target));
   }
 
-  Future<void> _renderMarkers(KakaoMapController controller) async {
+  Future<void> _renderMarkers(
+    KakaoMapController controller,
+    int generation,
+  ) async {
+    bool isStale() => !mounted || generation != _renderGeneration;
     final layer = controller.labelLayer;
 
     for (final poi in _pois) {
       await layer.removePoi(poi);
+      if (isStale()) return;
     }
     _pois = const [];
 
@@ -234,14 +255,16 @@ class _AppMapViewState extends State<AppMapView> {
     for (var i = 0; i < widget.markers.length; i++) {
       final marker = widget.markers[i];
       final style = await _styleFor(marker.status, marker.isSelected);
+      if (isStale()) return;
       void Function()? onClick;
       if (onMarkerTap != null) {
         onClick = () => onMarkerTap(i);
       }
       final poi = await _addPoiWithRetry(layer, marker, style, onClick);
+      if (isStale()) return;
       if (poi != null) newPois.add(poi);
     }
-    if (!mounted) return;
+    if (isStale()) return;
     _pois = newPois;
   }
 
@@ -270,11 +293,16 @@ class _AppMapViewState extends State<AppMapView> {
     return null;
   }
 
-  Future<void> _renderRoute(KakaoMapController controller) async {
+  Future<void> _renderRoute(
+    KakaoMapController controller,
+    int generation,
+  ) async {
+    bool isStale() => !mounted || generation != _renderGeneration;
     final layer = controller.routeLayer;
 
     for (final route in _routes) {
       await layer.removeRoute(route);
+      if (isStale()) return;
     }
     _routes = const [];
 
@@ -293,7 +321,7 @@ class _AppMapViewState extends State<AppMapView> {
       );
     }
     final route = await layer.addMultipleRoute(option);
-    if (!mounted) return;
+    if (isStale()) return;
     _routes = [route];
   }
 
@@ -318,22 +346,43 @@ class _AppMapViewState extends State<AppMapView> {
   }
 
   Future<void> _updateMarkerStyles() async {
+    final generation = ++_renderGeneration;
+    bool isStale() => !mounted || generation != _renderGeneration;
+
     for (var i = 0; i < widget.markers.length && i < _pois.length; i++) {
       final marker = widget.markers[i];
       final style = await _styleFor(marker.status, marker.isSelected);
+      if (isStale()) return;
       await _pois[i].changeStyles(style);
+      if (isStale()) return;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
-      return const ColoredBox(
+      return ColoredBox(
         color: AppColors.gray2,
         child: Center(
-          child: Text(
-            '지도를 불러오지 못했어요',
-            style: TextStyle(color: AppColors.gray5),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                '지도를 불러오지 못했어요',
+                style: TextStyle(color: AppColors.gray5),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: _handleRetry,
+                child: Text(
+                  '다시 시도',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.primary,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       );

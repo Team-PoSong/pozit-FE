@@ -135,9 +135,15 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
       '${start.month}/${start.day} - ${end.month}/${end.day}';
 
   Future<void> _handlePickBackgroundImage() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
-    setState(() => _backgroundImage = File(picked.path));
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+      );
+      if (picked == null || !mounted) return;
+      setState(() => _backgroundImage = File(picked.path));
+    } catch (error) {
+      debugPrint('배경 사진 선택 실패: $error');
+    }
   }
 
   Future<void> _handlePickDateRange() async {

@@ -104,25 +104,11 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     widget.guideStorage.markDismissed();
   }
 
-  List<int> get _distinctDayNumbers {
-    final set = widget.courses.map((c) => c.dayNumber).toSet().toList()
-      ..sort();
-    return set;
-  }
+  int get _dayCount => widget.info.totalDays;
 
-  int get _dayCount => _distinctDayNumbers.isNotEmpty
-      ? _distinctDayNumbers.length
-      : widget.info.totalDays;
-
-  List<TravelCourseModel> get _coursesForSelectedDay {
-    final dayNumbers = _distinctDayNumbers;
-    final dayIndex = _selectedDay - 1;
-    if (dayIndex < 0 || dayIndex >= dayNumbers.length) return const [];
-    final targetDayNumber = dayNumbers[dayIndex];
-    return widget.courses
-        .where((course) => course.dayNumber == targetDayNumber)
-        .toList();
-  }
+  List<TravelCourseModel> get _coursesForSelectedDay => widget.courses
+      .where((course) => course.dayNumber == _selectedDay)
+      .toList();
 
   TravelCourseModel? get _selectedCourse {
     final courses = _coursesForSelectedDay;

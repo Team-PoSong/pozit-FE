@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -115,10 +117,16 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    final minChildSize = _peekHeight / screenHeight;
+    final minChildSize = math.min(
+      _peekHeight / screenHeight,
+      widget.maxChildSize,
+    );
 
     final restingExtent = _defaultExtent.clamp(minChildSize, widget.maxChildSize);
     final isPeeking = _extent <= minChildSize + 0.01;
+    final snapSizes = <double>{minChildSize, restingExtent, widget.maxChildSize}
+        .toList()
+      ..sort();
 
     return Stack(
       clipBehavior: Clip.none,
@@ -138,7 +146,7 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
           minChildSize: minChildSize,
           maxChildSize: widget.maxChildSize,
           snap: true,
-          snapSizes: [minChildSize, restingExtent],
+          snapSizes: snapSizes,
           builder: (context, scrollController) {
             return DecoratedBox(
               decoration: const BoxDecoration(
@@ -178,13 +186,6 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
                     ),
                   ),
 
-                  SizedBox(
-                    height: 0,
-                    child: SingleChildScrollView(
-                      controller: scrollController,
-                      physics: const NeverScrollableScrollPhysics(),
-                    ),
-                  ),
                   Expanded(
                     child: isPeeking
                         ? Padding(
@@ -208,6 +209,7 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
                             child: SafeArea(
                               top: false,
                               child: SingleChildScrollView(
+                                controller: scrollController,
                                 physics: const ClampingScrollPhysics(),
                                 child: widget.child,
                               ),
