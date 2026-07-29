@@ -253,6 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 15),
                         _LoginGuideBadge(assetPackage: widget.assetPackage),
                         const SizedBox(height: 30),
+                        const Spacer(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
@@ -278,7 +279,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-                        const Spacer(),
+                        SizedBox(
+                          height:
+                              MediaQuery.viewPaddingOf(context).bottom + 10,
+                        ),
                       ],
                     ),
                   ),
