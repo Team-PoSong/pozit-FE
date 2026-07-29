@@ -19,6 +19,7 @@ const double _rowContentWidth = _cellDiameter * 7 + _cellGap * 6;
 const double _calendarHorizontalPadding = 20.0;
 const double _weekRowGap = 18.0;
 const double _fadeStop = 0.9634;
+const double _arrowTouchSize = 48.0;
 
 enum _CapType { round, pill, fade }
 
@@ -67,6 +68,7 @@ class _AppCalendarState extends State<AppCalendar> {
   final GlobalKey _gridKey = GlobalKey();
   final Map<String, GlobalKey> _cellKeys = {};
   List<_HighlightPiece> _highlightPieces = [];
+  double? _lastContentWidth;
 
   static const List<String> _weekdayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -435,58 +437,93 @@ class _AppCalendarState extends State<AppCalendar> {
         padding: const EdgeInsets.symmetric(
           horizontal: _calendarHorizontalPadding,
         ),
-        child: Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.topCenter,
-            child: SizedBox(
-              width: _rowContentWidth,
-              child: Column(
-                children: [
-                  const SizedBox(height: 32.0),
-                  SizedBox(
-                    width: _rowContentWidth,
-                    height: 24.0,
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: _goToPrevMonth,
-                          child: SvgPicture.asset(
-                            AppIcons.arrowLeftSmallPurple,
-                            width: 24.0,
-                            height: 24.0,
-                          ),
-                        ),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              '${_displayedMonth.month}월',
-                              style: AppTextStyles.headline.copyWith(
-                                color: AppColors.text,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final contentWidth = constraints.maxWidth.isFinite
+                ? constraints.maxWidth.clamp(0.0, _rowContentWidth).toDouble()
+                : _rowContentWidth;
+
+            var cellWidth = _cellDiameter;
+            var cellGap = _cellGap;
+
+            const cellsWidth = _cellDiameter * 7;
+
+            if (contentWidth < _rowContentWidth) {
+              if (contentWidth >= cellsWidth) {
+                cellGap = (contentWidth - cellsWidth) / 6;
+              } else {
+                cellGap = 0.0;
+                cellWidth = contentWidth / 7;
+              }
+            }
+
+            final rowWidth = cellWidth * 7 + cellGap * 6;
+
+            if (_lastContentWidth != rowWidth) {
+              _lastContentWidth = rowWidth;
+              _scheduleMeasure();
+            }
+
+            return Center(
+              heightFactor: 1.0,
+              child: SizedBox(
+                width: rowWidth,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 20.0),
+                    SizedBox(
+                      height: _arrowTouchSize,
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _goToPrevMonth,
+                            child: SizedBox.square(
+                              dimension: _arrowTouchSize,
+                              child: Center(
+                                child: SvgPicture.asset(
+                                  AppIcons.arrowLeftSmallPurple,
+                                  width: 24.0,
+                                  height: 24.0,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: _goToNextMonth,
-                          child: SvgPicture.asset(
-                            AppIcons.arrowRightSmallPurple,
-                            width: 24.0,
-                            height: 24.0,
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                '${_displayedMonth.month}월',
+                                style: AppTextStyles.headline.copyWith(
+                                  color: AppColors.text,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _goToNextMonth,
+                            child: SizedBox.square(
+                              dimension: _arrowTouchSize,
+                              child: Center(
+                                child: SvgPicture.asset(
+                                  AppIcons.arrowRightSmallPurple,
+                                  width: 24.0,
+                                  height: 24.0,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 34.0),
-                  SizedBox(
-                    width: _rowContentWidth,
-                    child: Row(
+                    const SizedBox(height: 22.0),
+                    Row(
                       children: [
                         for (int i = 0; i < 7; i++) ...[
-                          if (i > 0) const SizedBox(width: _cellGap),
+                          if (i > 0) SizedBox(width: cellGap),
                           SizedBox(
-                            width: _cellDiameter,
+                            width: cellWidth,
                             child: Text(
                               _weekdayLabels[i],
                               textAlign: TextAlign.center,
@@ -496,11 +533,8 @@ class _AppCalendarState extends State<AppCalendar> {
                         ],
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 14.0),
-                  SizedBox(
-                    width: _rowContentWidth,
-                    child: Stack(
+                    const SizedBox(height: 14.0),
+                    Stack(
                       clipBehavior: Clip.none,
                       children: [
                         for (final piece in _highlightPieces)
@@ -524,9 +558,10 @@ class _AppCalendarState extends State<AppCalendar> {
                                 children: [
                                   for (int i = 0; i < 7; i++) ...[
                                     if (i > 0)
-                                      const SizedBox(width: _cellGap),
+                                      SizedBox(width: cellGap),
                                     _DateCell(
                                       key: _keyFor(week[i]),
+                                      width: cellWidth,
                                       date: week[i],
                                       isCurrentMonth:
                                       week[i].month ==
@@ -545,11 +580,11 @@ class _AppCalendarState extends State<AppCalendar> {
                         ),
                       ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -557,6 +592,7 @@ class _AppCalendarState extends State<AppCalendar> {
 }
 
 class _DateCell extends StatelessWidget {
+  final double width;
   final DateTime date;
   final bool isCurrentMonth;
   final bool isEndpoint;
@@ -565,6 +601,7 @@ class _DateCell extends StatelessWidget {
 
   const _DateCell({
     super.key,
+    required this.width,
     required this.date,
     required this.isCurrentMonth,
     required this.isEndpoint,
@@ -575,10 +612,7 @@ class _DateCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!isCurrentMonth) {
-      return const SizedBox(
-        width: _cellDiameter,
-        height: _cellHeight,
-      );
+      return SizedBox(width: width, height: _cellHeight);
     }
 
     final Color color;
@@ -594,7 +628,7 @@ class _DateCell extends StatelessWidget {
     return GestureDetector(
       onTap: isDisabled ? null : () => onTap?.call(date),
       child: SizedBox(
-        width: _cellDiameter,
+        width: width,
         height: _cellHeight,
         child: Center(
           child: Text(
@@ -612,26 +646,36 @@ class _DateCell extends StatelessWidget {
   }
 }
 
-@Preview(group: 'haerim', name: 'AppCalendar - 인터랙티브')
-Widget appCalendarInteractivePreview() => Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 32),
-  child: AppCalendar(
-    initialMonth: DateTime(2026, 7),
-    onRangeSelected: (start, end) {
-      debugPrint('선택됨: $start ~ $end');
-    },
+@Preview(group: 'haerim', name: 'AppCalendar - 인터랙티브', size: Size(409, 480))
+Widget appCalendarInteractivePreview() => Align(
+  alignment: Alignment.topCenter,
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 32),
+    child: AppCalendar(
+      initialMonth: DateTime(2026, 7),
+      onRangeSelected: (start, end) {
+        debugPrint('선택됨: $start ~ $end');
+      },
+    ),
   ),
 );
 
 
-@Preview(group: 'haerim', name: 'AppCalendar - 오늘이 7월 9일이라면')
-Widget appCalendarTodayJuly9Preview() => Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 32),
-  child: AppCalendar(
-    initialMonth: DateTime(2026, 7),
-    minSelectableDate: DateTime(2026, 7, 9),
-    onRangeSelected: (start, end) {
-      debugPrint('선택됨: $start ~ $end');
-    },
+@Preview(
+  group: 'haerim',
+  name: 'AppCalendar - 오늘이 7월 9일이라면',
+  size: Size(409, 480),
+)
+Widget appCalendarTodayJuly9Preview() => Align(
+  alignment: Alignment.topCenter,
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 32),
+    child: AppCalendar(
+      initialMonth: DateTime(2026, 7),
+      minSelectableDate: DateTime(2026, 7, 9),
+      onRangeSelected: (start, end) {
+        debugPrint('선택됨: $start ~ $end');
+      },
+    ),
   ),
 );
