@@ -223,6 +223,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
       body: SafeArea(
         top: false,
+        bottom: false,
         child: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
