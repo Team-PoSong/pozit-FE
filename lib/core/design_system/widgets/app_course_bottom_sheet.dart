@@ -12,13 +12,16 @@ import '../app_text_styles.dart';
 const double _sheetRadius = 20.0;
 const double _defaultExtent = 0.5;
 const double _handleTopOffset = 15.0;
-const double _handleAreaHeight = 34.0;
+const double _handleAreaHeight = 20.0;
 const double _handleWidth = 55.0;
 const double _handleHeight = 6.0;
 const double _floatingButtonMargin = 16.0;
 
-const double _kPeekTextTopGap = 20.0;
-const double _kPeekTextBottomGap = 50.0;
+// 드래그 핸들(회색 바) 하단에서 '올려서 코스 자세히 보기' 텍스트까지의 간격.
+const double _kHandleToPeekTextGap = 10.0;
+const double _kPeekTextTopGap =
+    _kHandleToPeekTextGap - (_handleAreaHeight - _handleHeight) / 2;
+const double _kPeekTextBottomGap = 70.0;
 
 const double _kPeekExtraBuffer = 20.0;
 
