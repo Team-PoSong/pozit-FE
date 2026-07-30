@@ -15,7 +15,8 @@ const double _handleTopOffset = 15.0;
 const double _handleAreaHeight = 20.0;
 const double _handleWidth = 55.0;
 const double _handleHeight = 6.0;
-const double _floatingButtonMargin = 16.0;
+const double _floatingButtonRightMargin = 16.0;
+const double _floatingButtonBottomGap = 18.0;
 
 // 드래그 핸들(회색 바) 하단에서 '올려서 코스 자세히 보기' 텍스트까지의 간격.
 const double _kHandleToPeekTextGap = 10.0;
@@ -313,13 +314,16 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
             animation: _controller,
             builder: (context, _) {
               final extent = _currentExtent(restingExtent);
+              // 시트가 완전히 펼쳐졌을 때는 버튼을 숨깁니다.
+              final isFullyExpanded = extent >= widget.maxChildSize - 0.001;
+              if (isFullyExpanded) return const SizedBox.shrink();
               return Positioned(
-                right: _floatingButtonMargin,
-                bottom: extent * screenHeight + _floatingButtonMargin,
+                right: _floatingButtonRightMargin,
+                bottom: extent * screenHeight + _floatingButtonBottomGap,
                 child: GestureDetector(
                   onTap: widget.onFloatingButtonTap,
                   child: SvgPicture.asset(
-                    AppIcons.gps,
+                    AppIcons.map,
                     width: 36.0,
                     height: 36.0,
                   ),

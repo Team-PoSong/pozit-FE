@@ -50,6 +50,7 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
 
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionSubscription;
+  final AppMapViewController _mapController = AppMapViewController();
 
   int get _dayCount => widget.totalDays;
 
@@ -105,6 +106,25 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
         () => _currentLocation = LatLng(position.latitude, position.longitude),
       );
     });
+  }
+
+  // 지도 위 위치 버튼을 눌렀을 때: 위치를 다시 가져오고, 지도 카메라도 그
+  // 위치로 이동시킵니다.
+  Future<void> _refreshLocation() async {
+    final hasPermission = await _ensureLocationPermission();
+    if (!hasPermission || !mounted) return;
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+      if (!mounted) return;
+      final latLng = LatLng(position.latitude, position.longitude);
+      setState(() => _currentLocation = latLng);
+      await _mapController.moveCamera(latLng);
+    } catch (_) {
+      // 위치를 가져오지 못하면 조용히 무시합니다.
+    }
   }
 
   List<CourseSpotModel> get _spotsForSelectedDay {
@@ -192,10 +212,12 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
               userLocation: widget.status == AppTravelStatus.inProgress
                   ? _currentLocation
                   : null,
+              controller: _mapController,
             ),
           ),
           AppCourseBottomSheet(
-            showFloatingButton: false,
+            showFloatingButton: widget.status == AppTravelStatus.inProgress,
+            onFloatingButtonTap: _refreshLocation,
             maxChildSize: maxChildSize,
             child: Padding(
               padding: const EdgeInsets.symmetric(

@@ -51,6 +51,16 @@ class MapMarker {
   int get hashCode => Object.hash(position, label, status, isSelected);
 }
 
+/// [AppMapView]의 카메라를 외부에서 제어하기 위한 컨트롤러입니다.
+class AppMapViewController {
+  _AppMapViewState? _state;
+
+  /// 지도 카메라를 [position]으로 이동시킵니다.
+  Future<void> moveCamera(LatLng position, {int? zoomLevel}) async {
+    await _state?._moveCameraTo(position, zoomLevel: zoomLevel);
+  }
+}
+
 Widget _slideFadeTransition(Widget child, Animation<double> animation) {
   return FadeTransition(
     opacity: animation,
@@ -72,6 +82,7 @@ class AppMapView extends StatefulWidget {
     this.enableGestures = false,
     this.fitVisibleFraction = 1.0,
     this.userLocation,
+    this.controller,
   }) : assert(
          fitVisibleFraction > 0 && fitVisibleFraction <= 1,
          'fitVisibleFraction은 0보다 크고 1 이하여야 합니다.',
@@ -88,6 +99,9 @@ class AppMapView extends StatefulWidget {
   /// 지도에 표시할 사용자의 현재 위치입니다. null이면 표시하지 않습니다.
   final LatLng? userLocation;
 
+  /// 외부에서 지도 카메라를 제어하기 위한 컨트롤러입니다.
+  final AppMapViewController? controller;
+
   @override
   State<AppMapView> createState() => _AppMapViewState();
 }
@@ -103,6 +117,51 @@ class _AppMapViewState extends State<AppMapView> {
 
   Poi? _userLocationPoi;
   Future<PoiStyle>? _userLocationStyleFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller?._state = this;
+  }
+
+  @override
+  void didUpdateWidget(covariant AppMapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller?._state = null;
+      widget.controller?._state = this;
+    }
+    if (oldWidget.userLocation != widget.userLocation) {
+      _renderUserLocation();
+    }
+
+    if (listEquals(oldWidget.markers, widget.markers)) return;
+
+    if (_samePositions(oldWidget.markers, widget.markers)) {
+      _updateMarkerStyles();
+    } else {
+      _renderOverlays();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller?._state == this) {
+      widget.controller?._state = null;
+    }
+    super.dispose();
+  }
+
+  Future<void> _moveCameraTo(LatLng position, {int? zoomLevel}) async {
+    final controller = _controller;
+    if (controller == null) return;
+    await controller.moveCamera(
+      CameraUpdate.newCenterPosition(
+        position,
+        zoomLevel: zoomLevel ?? _kDefaultZoomLevel,
+      ),
+    );
+  }
 
   Future<PoiStyle> _styleFor(MapMarkerStatus status, bool isSelected) {
     final key = (status, isSelected);
@@ -348,22 +407,6 @@ class _AppMapViewState extends State<AppMapView> {
     final route = await layer.addMultipleRoute(option);
     if (isStale()) return;
     _routes = [route];
-  }
-
-  @override
-  void didUpdateWidget(covariant AppMapView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.userLocation != widget.userLocation) {
-      _renderUserLocation();
-    }
-
-    if (listEquals(oldWidget.markers, widget.markers)) return;
-
-    if (_samePositions(oldWidget.markers, widget.markers)) {
-      _updateMarkerStyles();
-    } else {
-      _renderOverlays();
-    }
   }
 
   Future<void> _renderUserLocation() async {
