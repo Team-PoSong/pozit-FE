@@ -96,13 +96,10 @@ class _TravelDateEditScreenState extends State<TravelDateEditScreen> {
                   padding: const EdgeInsets.symmetric(
                     horizontal: _kHorizontalPadding,
                   ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) => AppCalendar(
-                      width: constraints.maxWidth,
-                      initialMonth: _displayStartDate,
-                      onRangeSelected: _handleRangeSelected,
-                      onSelectionCleared: _handleSelectionCleared,
-                    ),
+                  child: AppCalendar(
+                    initialMonth: _displayStartDate,
+                    onRangeSelected: _handleRangeSelected,
+                    onSelectionCleared: _handleSelectionCleared,
                   ),
                 ),
               ),
