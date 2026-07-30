@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
+import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../data/models/travel_member_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
@@ -33,6 +34,7 @@ class TravelMemberScreen extends StatelessWidget {
   const TravelMemberScreen({
     super.key,
     required this.isLeader,
+    required this.status,
     required this.members,
     this.inviteCode,
     this.onBackTap,
@@ -40,11 +42,12 @@ class TravelMemberScreen extends StatelessWidget {
     this.onShareTap,
     this.onDeleteMember,
   }) : assert(
-         !isLeader || inviteCode != null,
+         !isLeader || status == AppTravelStatus.completed || inviteCode != null,
          '팀장 화면에서는 inviteCode가 필요합니다.',
        );
 
   final bool isLeader;
+  final AppTravelStatus status;
   final List<TravelMemberModel> members;
 
   final String? inviteCode;
@@ -76,7 +79,9 @@ class TravelMemberScreen extends StatelessWidget {
                 onBackTap: () => _handleBack(context),
               ),
               const SizedBox(height: _kTopBarToFirstGap),
-              if (isLeader && inviteCode != null) ...[
+              if (isLeader &&
+                  status != AppTravelStatus.completed &&
+                  inviteCode != null) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: _kHorizontalPadding,
@@ -111,7 +116,6 @@ class TravelMemberScreen extends StatelessWidget {
                       if (i > 0) const SizedBox(height: _kMemberItemGap),
                       TravelMemberItem(
                         nickname: members[i].nickname,
-                        userId: members[i].userId,
                         isLeader: members[i].isLeader,
                         canManage: isLeader && !members[i].isLeader,
                         onDelete: onDeleteMember == null
@@ -246,9 +250,9 @@ class _CodeBox extends StatelessWidget {
 
 List<TravelMemberModel> _previewMembers() {
   return const [
-    TravelMemberModel(nickname: '김윤지', userId: 'yoonji_kim', isLeader: true),
-    TravelMemberModel(nickname: '박서현', userId: 'seohyun_park', isLeader: false),
-    TravelMemberModel(nickname: '이하림', userId: 'harim_lee', isLeader: false),
+    TravelMemberModel(nickname: '김윤지', isLeader: true),
+    TravelMemberModel(nickname: '박서현', isLeader: false),
+    TravelMemberModel(nickname: '이하림', isLeader: false),
   ];
 }
 
@@ -258,6 +262,7 @@ Widget travelMemberScreenLeaderPreview() {
     debugShowCheckedModeBanner: false,
     home: TravelMemberScreen(
       isLeader: true,
+      status: AppTravelStatus.inProgress,
       inviteCode: 'AB12C',
       members: _previewMembers(),
     ),
@@ -268,6 +273,26 @@ Widget travelMemberScreenLeaderPreview() {
 Widget travelMemberScreenMemberPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: TravelMemberScreen(isLeader: false, members: _previewMembers()),
+    home: TravelMemberScreen(
+      isLeader: false,
+      status: AppTravelStatus.inProgress,
+      members: _previewMembers(),
+    ),
+  );
+}
+
+@Preview(
+  group: 'travel_member',
+  name: 'TravelMemberScreen - 팀장, 여행 완료',
+  size: Size(390, 844),
+)
+Widget travelMemberScreenLeaderCompletedPreview() {
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: TravelMemberScreen(
+      isLeader: true,
+      status: AppTravelStatus.completed,
+      members: _previewMembers(),
+    ),
   );
 }

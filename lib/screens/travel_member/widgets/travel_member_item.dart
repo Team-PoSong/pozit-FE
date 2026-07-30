@@ -9,13 +9,11 @@ import '../../../core/design_system/widgets/app_confirm_dialog.dart';
 import '../../../core/design_system/widgets/app_delete_popover.dart';
 
 const double _kLeaderIconStartPadding = 11.0;
-const double _kLeaderIconTopPadding = 14.0;
 const double _kLeaderIconSize = 24.0;
 const double _kLeaderIconToTextGap = 23.0;
 
 const double _kLeadingSpacerWidth =
     _kLeaderIconStartPadding + _kLeaderIconSize + _kLeaderIconToTextGap;
-const double _kNicknameToIdGap = 4.0;
 const double _kMoreIconEndPadding = 10.0;
 const double _kMoreIconSize = 24.0;
 
@@ -23,7 +21,6 @@ class TravelMemberItem extends StatefulWidget {
   const TravelMemberItem({
     super.key,
     required this.nickname,
-    required this.userId,
     required this.isLeader,
     this.canManage = false,
     this.onDelete,
@@ -31,7 +28,6 @@ class TravelMemberItem extends StatefulWidget {
   });
 
   final String nickname;
-  final String userId;
   final bool isLeader;
   final bool canManage;
   final VoidCallback? onDelete;
@@ -67,14 +63,11 @@ class _TravelMemberItemState extends State<TravelMemberItem> {
   Widget build(BuildContext context) {
     return IntrinsicHeight(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (widget.isLeader) ...[
             Padding(
-              padding: const EdgeInsets.only(
-                left: _kLeaderIconStartPadding,
-                top: _kLeaderIconTopPadding,
-              ),
+              padding: const EdgeInsets.only(left: _kLeaderIconStartPadding),
               child: SvgPicture.asset(
                 AppIcons.leader,
                 package: widget.assetPackage,
@@ -86,28 +79,11 @@ class _TravelMemberItemState extends State<TravelMemberItem> {
           ] else
             const SizedBox(width: _kLeadingSpacerWidth),
           Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.nickname,
-                    style: AppTextStyles.subTitle.copyWith(
-                      color: AppColors.text,
-                      package: widget.assetPackage,
-                    ),
-                  ),
-                  const SizedBox(height: _kNicknameToIdGap),
-                  Text(
-                    widget.userId,
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.text,
-                      package: widget.assetPackage,
-                    ),
-                  ),
-                ],
+            child: Text(
+              widget.nickname,
+              style: AppTextStyles.subTitle.copyWith(
+                color: AppColors.text,
+                package: widget.assetPackage,
               ),
             ),
           ),
@@ -149,7 +125,6 @@ Widget travelMemberItemLeaderManageablePreview() {
       padding: EdgeInsets.all(16),
       child: TravelMemberItem(
         nickname: '김윤지',
-        userId: 'yoonji_kim',
         isLeader: true,
         canManage: true,
       ),
@@ -164,7 +139,6 @@ Widget travelMemberItemMemberManageablePreview() {
       padding: EdgeInsets.all(16),
       child: TravelMemberItem(
         nickname: '박서현',
-        userId: 'seohyun_park',
         isLeader: false,
         canManage: true,
       ),
@@ -179,7 +153,6 @@ Widget travelMemberItemMemberReadOnlyPreview() {
       padding: EdgeInsets.all(16),
       child: TravelMemberItem(
         nickname: '이하림',
-        userId: 'harim_lee',
         isLeader: false,
         canManage: false,
       ),
