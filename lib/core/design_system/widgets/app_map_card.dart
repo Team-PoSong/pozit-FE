@@ -11,6 +11,9 @@ import '../app_text_styles.dart';
 
 const Duration _kTransitionDuration = Duration(milliseconds: 260);
 
+const int _kDefaultZoomLevel = 15;
+const int _kFitMapPointsPadding = 120;
+
 const double _kMarkerSize = 16;
 
 const double _kVisitingMarkerSize = 30;
@@ -201,11 +204,14 @@ class _AppMapViewState extends State<AppMapView> {
     if (points.isEmpty) return;
     if (points.length == 1) {
       await controller.moveCamera(
-        CameraUpdate.newCenterPosition(points.first, zoomLevel: 16),
+        CameraUpdate.newCenterPosition(
+          points.first,
+          zoomLevel: _kDefaultZoomLevel,
+        ),
       );
     } else {
       await controller.moveCamera(
-        CameraUpdate.fitMapPoints(points, padding: 80),
+        CameraUpdate.fitMapPoints(points, padding: _kFitMapPointsPadding),
       );
     }
     if (isStale()) return;
@@ -393,7 +399,7 @@ class _AppMapViewState extends State<AppMapView> {
         position: widget.markers.isNotEmpty
             ? widget.markers.first.position
             : const KakaoMapOption().position,
-        zoomLevel: 16,
+        zoomLevel: _kDefaultZoomLevel,
       ),
 
       forceGesture: widget.enableGestures,

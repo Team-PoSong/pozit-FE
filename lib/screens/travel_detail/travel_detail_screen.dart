@@ -225,6 +225,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
         top: false,
         bottom: false,
         child: CustomScrollView(
+          physics: const ClampingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
               child: SizedBox(
