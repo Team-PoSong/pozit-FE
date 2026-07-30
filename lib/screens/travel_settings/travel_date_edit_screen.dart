@@ -3,6 +3,7 @@ import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_dimensions.dart';
+import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_calendar.dart';
 import '../../core/design_system/widgets/app_travel_date_select.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
@@ -12,6 +13,11 @@ const double _kHorizontalPadding = 24.0;
 
 const double _kTopBarToTravelDateGap = 32.0;
 const double _kTravelDateToCalendarGap = 21.0;
+const double _kCalendarToWarningGap = 8.0;
+
+// 포짓이 현재 지원하는 최대 여행 기간(3박 4일 = 3박).
+const int _kMaxTripNights = 3;
+const String _kMaxTripLengthMessage = '아직 포짓에서는 3박 4일까지만 지원해요';
 
 class TravelDateEditScreen extends StatefulWidget {
   const TravelDateEditScreen({
@@ -41,7 +47,10 @@ class _TravelDateEditScreenState extends State<TravelDateEditScreen> {
       !_isSameDay(_displayStartDate, widget.initialStartDate) ||
       !_isSameDay(_displayEndDate, widget.initialEndDate);
 
-  bool get _canSave => _hasValidSelection && _hasChanged;
+  bool get _exceedsMaxNights =>
+      _displayEndDate.difference(_displayStartDate).inDays > _kMaxTripNights;
+
+  bool get _canSave => _hasValidSelection && !_exceedsMaxNights && _hasChanged;
 
   void _handleRangeSelected(DateTime start, DateTime end) {
     setState(() {
@@ -96,10 +105,24 @@ class _TravelDateEditScreenState extends State<TravelDateEditScreen> {
                   padding: const EdgeInsets.symmetric(
                     horizontal: _kHorizontalPadding,
                   ),
-                  child: AppCalendar(
-                    initialMonth: _displayStartDate,
-                    onRangeSelected: _handleRangeSelected,
-                    onSelectionCleared: _handleSelectionCleared,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppCalendar(
+                        initialMonth: _displayStartDate,
+                        onRangeSelected: _handleRangeSelected,
+                        onSelectionCleared: _handleSelectionCleared,
+                      ),
+                      if (_exceedsMaxNights) ...[
+                        const SizedBox(height: _kCalendarToWarningGap),
+                        Text(
+                          _kMaxTripLengthMessage,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
