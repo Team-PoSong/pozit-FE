@@ -17,7 +17,7 @@ const double _cellHeight = 32.0;
 const double _cellGap = 3.0;
 const double _rowContentWidth = _cellDiameter * 7 + _cellGap * 6;
 const double _calendarHorizontalPadding = 20.0;
-const double _weekRowGap = 4.0;
+const double _weekRowGap = 8.0;
 const double _fadeStop = 0.9634;
 
 const double _arrowTouchSize = 48.0;
