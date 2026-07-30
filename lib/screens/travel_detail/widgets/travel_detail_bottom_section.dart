@@ -18,6 +18,7 @@ const double _kTicketToTextGap = 21.0;
 const double _kCarrierTicketWidth = 121.0;
 
 const double _kBottomSafeGap = 7.0;
+const double _kInProgressBottomGap = 10.0;
 
 const Duration _kCourseSwipeCueDuration = Duration(milliseconds: 260);
 // Matches the map card's title label swipe: that text slides by 0.3 of its
@@ -76,11 +77,11 @@ class TravelDetailBottomSection extends StatelessWidget {
         );
       case AppTravelStatus.inProgress:
         return Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            _kBottomSafeGap,
+            _kInProgressBottomGap + MediaQuery.of(context).padding.bottom,
           ),
           child: _CourseSwipeCue(
             courseKey: courseTransitionKey,

@@ -281,7 +281,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
       home: Builder(
         builder: (context) => TravelDetailScreen(
           info: info,
-          status: AppTravelStatus.completed,
+          status: AppTravelStatus.inProgress,
           isLeader: _isLeader,
           courses: courses,
           onSettingsTap: () {
