@@ -51,11 +51,9 @@ class MapMarker {
   int get hashCode => Object.hash(position, label, status, isSelected);
 }
 
-/// [AppMapView]의 카메라를 외부에서 제어하기 위한 컨트롤러입니다.
 class AppMapViewController {
   _AppMapViewState? _state;
 
-  /// 지도 카메라를 [position]으로 이동시킵니다.
   Future<void> moveCamera(LatLng position, {int? zoomLevel}) async {
     await _state?._moveCameraTo(position, zoomLevel: zoomLevel);
   }
@@ -96,10 +94,8 @@ class AppMapView extends StatefulWidget {
 
   final double fitVisibleFraction;
 
-  /// 지도에 표시할 사용자의 현재 위치입니다. null이면 표시하지 않습니다.
   final LatLng? userLocation;
 
-  /// 외부에서 지도 카메라를 제어하기 위한 컨트롤러입니다.
   final AppMapViewController? controller;
 
   @override

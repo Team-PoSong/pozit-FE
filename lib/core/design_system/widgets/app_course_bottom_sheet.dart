@@ -18,7 +18,6 @@ const double _handleHeight = 6.0;
 const double _floatingButtonRightMargin = 16.0;
 const double _floatingButtonBottomGap = 18.0;
 
-// 드래그 핸들(회색 바) 하단에서 '올려서 코스 자세히 보기' 텍스트까지의 간격.
 const double _kHandleToPeekTextGap = 10.0;
 const double _kPeekTextTopGap =
     _kHandleToPeekTextGap - (_handleAreaHeight - _handleHeight) / 2;
@@ -63,10 +62,6 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
   final DraggableScrollableController _controller =
       DraggableScrollableController();
 
-  // 목록 스크롤은 시트 크기와 완전히 분리합니다. DraggableScrollableSheet가
-  // builder에 넘겨주는 scrollController를 목록에 그대로 쓰면, 목록을 위로
-  // 당길 때 시트가 먼저 최대 크기까지 펼쳐진 다음에야 스크롤되는 내장 동작이
-  // 발생합니다. 그 동작을 원치 않으므로 별도의 일반 ScrollController를 씁니다.
   final ScrollController _contentScrollController = ScrollController();
 
   @override
@@ -138,18 +133,6 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // 시트 위쪽(지도 영역)을 탭하면 접히는 레이어입니다. bottom을 시트 높이만큼
-        // 띄워서 시트 영역과 겹치지 않게 해야, 리스트의 스크롤/드래그 제스처가
-        // 이 레이어와 경합하지 않고 정상적으로 인식됩니다.
-        //
-        // AnimatedBuilder로 감싸 _controller의 사이즈 변화에만 반응하도록
-        // 격리합니다. 이 위젯을 AppCourseBottomSheet.build() 안에서 직접
-        // setState로 갱신하면 DraggableScrollableSheet 위젯 자체가 매번
-        // 새로 생성되어, Flutter가 내부적으로 didUpdateWidget에서
-        // extent를 통째로 교체(_replaceExtent)합니다. 이는 진행 중인
-        // 드래그/스크롤 제스처를 매 프레임 끊어버려 목록이 스크롤되지
-        // 않거나 컨트롤러 연결이 끊기는 원인이 되므로, 시트와 무관한
-        // 위젯만 별도로 리빌드되게 분리했습니다.
         AnimatedBuilder(
           animation: _controller,
           builder: (context, _) {
@@ -180,12 +163,6 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
           builder: (context, scrollController) {
             return Stack(
               children: [
-                // DraggableScrollableController는 builder가 넘겨준
-                // scrollController가 실제 Scrollable에 연결되어 있을 때만
-                // isAttached가 true가 된다(핸들 드래그의 jumpTo/animateTo에 필요).
-                // 목록은 시트 크기와 무관하게 독립적으로 스크롤되어야 하므로,
-                // 이 scrollController는 화면에 보이지 않는 크기 0짜리
-                // Scrollable에만 연결해 둔다.
                 SizedBox(
                   width: 0,
                   height: 0,
@@ -234,13 +211,6 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
                       ),
 
                       Expanded(
-                        // isPeeking은 시트 크기(_controller)에 따라 매 프레임
-                        // 바뀌어야 하는 값입니다. 하지만 이 builder 콜백 자체는
-                        // 상위 DraggableScrollableSheet의 크기 애니메이션
-                        // (FractionallySizedBox) 프레임마다 다시 호출되지 않고,
-                        // 위젯이 새로 생성될 때만 호출됩니다. 따라서
-                        // AnimatedBuilder로 별도로 감싸서 드래그 중에도 피크
-                        // 텍스트 ↔ 목록 전환이 실시간으로 반영되게 합니다.
                         child: AnimatedBuilder(
                           animation: _controller,
                           builder: (context, _) {
@@ -275,21 +245,8 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
                                       ),
                                     ),
                                   )
-                                // 목록 스크롤은 시트 크기와 완전히 독립적으로
-                                // 동작해야 하므로, 시트가 제공하는
-                                // scrollController가 아닌 별도의
-                                // _contentScrollController를 사용합니다. 이렇게
-                                // 하면 목록을 위로 당겨도 시트가 펼쳐지지 않고
-                                // 내부 콘텐츠만 스크롤됩니다(시트 크기 조절은
-                                // 핸들 드래그로만 가능).
                                 : SafeArea(
                                     top: false,
-                                    // bottom padding을 바깥 Padding으로 주면
-                                    // 스크롤 뷰포트 자체가 그만큼 줄어들어,
-                                    // 끝까지 스크롤해도 마지막 카드가 불필요하게
-                                    // 더 잘려 보입니다. SingleChildScrollView의
-                                    // padding으로 주면 뷰포트는 그대로 두고
-                                    // 콘텐츠 뒤쪽 여백만 늘어납니다.
                                     child: SingleChildScrollView(
                                       controller: _contentScrollController,
                                       physics: const ClampingScrollPhysics(),
@@ -314,7 +271,6 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
             animation: _controller,
             builder: (context, _) {
               final extent = _currentExtent(restingExtent);
-              // 시트가 완전히 펼쳐졌을 때는 버튼을 숨깁니다.
               final isFullyExpanded = extent >= widget.maxChildSize - 0.001;
               if (isFullyExpanded) return const SizedBox.shrink();
               return Positioned(

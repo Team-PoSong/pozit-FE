@@ -91,9 +91,7 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
           () => _currentLocation = LatLng(position.latitude, position.longitude),
         );
       }
-    } catch (_) {
-      // 스트림에서 최초 위치를 받을 때까지 표시를 미룹니다.
-    }
+    } catch (_) {}
 
     _positionSubscription = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
@@ -108,8 +106,6 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
     });
   }
 
-  // 지도 위 위치 버튼을 눌렀을 때: 위치를 다시 가져오고, 지도 카메라도 그
-  // 위치로 이동시킵니다.
   Future<void> _refreshLocation() async {
     final hasPermission = await _ensureLocationPermission();
     if (!hasPermission || !mounted) return;
@@ -122,9 +118,7 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
       final latLng = LatLng(position.latitude, position.longitude);
       setState(() => _currentLocation = latLng);
       await _mapController.moveCamera(latLng);
-    } catch (_) {
-      // 위치를 가져오지 못하면 조용히 무시합니다.
-    }
+    } catch (_) {}
   }
 
   List<CourseSpotModel> get _spotsForSelectedDay {
