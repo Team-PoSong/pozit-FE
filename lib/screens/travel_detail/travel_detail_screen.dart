@@ -282,47 +282,51 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: _kDateSelectToMapCardGap),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: _kHorizontalPadding,
-                    ),
-
-                    child: GestureDetector(
-                      onHorizontalDragEnd: _handleMapSwipe,
-                      child: AppMapCard(
-                        title: _selectedCourse?.firstSpotName ?? '',
-                        markers: _mergedMarkersForSelectedDay(),
-                        currentPage: coursePageIndex,
-                        pageCount: coursePageCount,
-                        onCourseTap: () => widget.onCourseTap?.call(_selectedDay),
-                        courseButtonKey: _courseButtonKey,
-                        mapKey: _mapKey,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: _kMapCardToStatusGap),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: _kHorizontalPadding,
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: TravelStatusIndicator(
-                        mode: widget.status == AppTravelStatus.inProgress
-                            ? TravelStatusMode.traveling
-                            : TravelStatusMode.notTraveling,
-                      ),
+                  GestureDetector(
+                    onHorizontalDragEnd: _handleMapSwipe,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: _kHorizontalPadding,
+                          ),
+                          child: AppMapCard(
+                            title: _selectedCourse?.firstSpotName ?? '',
+                            markers: _mergedMarkersForSelectedDay(),
+                            currentPage: coursePageIndex,
+                            pageCount: coursePageCount,
+                            onCourseTap: () =>
+                                widget.onCourseTap?.call(_selectedDay),
+                            courseButtonKey: _courseButtonKey,
+                            mapKey: _mapKey,
+                          ),
+                        ),
+                        const SizedBox(height: _kMapCardToStatusGap),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: _kHorizontalPadding,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: TravelStatusIndicator(
+                              mode: widget.status == AppTravelStatus.inProgress
+                                  ? TravelStatusMode.traveling
+                                  : TravelStatusMode.notTraveling,
+                            ),
+                          ),
+                        ),
+                        TravelDetailBottomSection(
+                          status: widget.status,
+                          companionCount: widget.info.companionCount,
+                          onSaveLogTap: widget.onSaveLogTap,
+                          cameraKey: _cameraKey,
+                          courseTransitionKey: '$_selectedDay-$coursePageIndex',
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: TravelDetailBottomSection(
-                status: widget.status,
-                companionCount: widget.info.companionCount,
-                onSaveLogTap: widget.onSaveLogTap,
-                cameraKey: _cameraKey,
               ),
             ),
           ],

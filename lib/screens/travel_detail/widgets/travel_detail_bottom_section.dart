@@ -19,6 +19,14 @@ const double _kCarrierTicketWidth = 121.0;
 
 const double _kBottomSafeGap = 7.0;
 
+const Duration _kCourseSwipeCueDuration = Duration(milliseconds: 260);
+// Matches the map card's title label swipe: that text slides by 0.3 of its
+// own (narrow) width, which works out to roughly this many logical pixels.
+// The camera column is full-width, so it uses this fixed pixel distance
+// instead of the same 0.3 fraction of its own (much wider) width.
+const double _kCourseSwipeCueTranslateX = 24.0;
+const double _kCourseSwipeCueBeginOpacity = 0.6;
+
 class TravelDetailBottomSection extends StatelessWidget {
   const TravelDetailBottomSection({
     super.key,
@@ -26,12 +34,15 @@ class TravelDetailBottomSection extends StatelessWidget {
     required this.companionCount,
     this.onSaveLogTap,
     this.cameraKey,
+    this.courseTransitionKey,
   });
 
   final AppTravelStatus status;
   final int companionCount;
   final VoidCallback? onSaveLogTap;
   final Key? cameraKey;
+
+  final Object? courseTransitionKey;
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +82,12 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kBottomSafeGap,
           ),
-          child: _PosingColumn(
-            companionCount: companionCount,
-            cameraKey: cameraKey,
+          child: _CourseSwipeCue(
+            courseKey: courseTransitionKey,
+            child: _PosingColumn(
+              companionCount: companionCount,
+              cameraKey: cameraKey,
+            ),
           ),
         );
       case AppTravelStatus.completed:
@@ -87,7 +101,10 @@ class TravelDetailBottomSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _PosingColumn(companionCount: companionCount),
+              _CourseSwipeCue(
+                courseKey: courseTransitionKey,
+                child: _PosingColumn(companionCount: companionCount),
+              ),
               const SizedBox(height: _kPosingToButtonGap),
               AppButton(text: '여행 로그 저장하기', onPressed: onSaveLogTap),
             ],
@@ -112,6 +129,66 @@ class _PosingColumn extends StatelessWidget {
           AppPosing(key: i == 0 ? cameraKey : null, isCameraOn: false),
         ],
       ],
+    );
+  }
+}
+
+class _CourseSwipeCue extends StatefulWidget {
+  const _CourseSwipeCue({required this.courseKey, required this.child});
+
+  final Object? courseKey;
+  final Widget child;
+
+  @override
+  State<_CourseSwipeCue> createState() => _CourseSwipeCueState();
+}
+
+class _CourseSwipeCueState extends State<_CourseSwipeCue>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: _kCourseSwipeCueDuration,
+    value: 1,
+  );
+  late final Animation<double> _curve = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeInOutCubic,
+  );
+  late final Animation<double> _opacity = Tween<double>(
+    begin: _kCourseSwipeCueBeginOpacity,
+    end: 1,
+  ).animate(_curve);
+
+  @override
+  void didUpdateWidget(covariant _CourseSwipeCue oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.courseKey != widget.courseKey) {
+      _controller
+        ..value = 0
+        ..forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: AnimatedBuilder(
+        animation: _curve,
+        child: widget.child,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(_kCourseSwipeCueTranslateX * (1 - _curve.value), 0),
+            child: child,
+          );
+        },
+      ),
     );
   }
 }
