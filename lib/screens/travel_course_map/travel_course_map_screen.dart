@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
 import '../../core/design_system/app_travel_status.dart';
@@ -45,7 +48,64 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
 
   int? _selectedSpotId;
 
+  LatLng? _currentLocation;
+  StreamSubscription<Position>? _positionSubscription;
+
   int get _dayCount => widget.totalDays;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.status == AppTravelStatus.inProgress) {
+      _startLocationTracking();
+    }
+  }
+
+  @override
+  void dispose() {
+    _positionSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<bool> _ensureLocationPermission() async {
+    if (!await Geolocator.isLocationServiceEnabled()) return false;
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+  }
+
+  Future<void> _startLocationTracking() async {
+    final hasPermission = await _ensureLocationPermission();
+    if (!hasPermission || !mounted) return;
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+      if (mounted) {
+        setState(
+          () => _currentLocation = LatLng(position.latitude, position.longitude),
+        );
+      }
+    } catch (_) {
+      // 스트림에서 최초 위치를 받을 때까지 표시를 미룹니다.
+    }
+
+    _positionSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 5,
+      ),
+    ).listen((position) {
+      if (!mounted) return;
+      setState(
+        () => _currentLocation = LatLng(position.latitude, position.longitude),
+      );
+    });
+  }
 
   List<CourseSpotModel> get _spotsForSelectedDay {
     final seenSpotIds = <int>{};
@@ -129,6 +189,9 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
               enableGestures: true,
 
               fitVisibleFraction: 1 - AppCourseBottomSheet.defaultRestingExtent,
+              userLocation: widget.status == AppTravelStatus.inProgress
+                  ? _currentLocation
+                  : null,
             ),
           ),
           AppCourseBottomSheet(

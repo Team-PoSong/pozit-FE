@@ -20,9 +20,6 @@ const double _kLockTextGap = 13.0;
 const double _kTitleSidePadding = 60.0;
 const double _kIconTop = (_kHeight - _kIconSize) / 2;
 
-const double _kTravelStatusWidth = 210.0;
-const double _kTravelStatusHeight = 31.0;
-
 class TravelDetailTopBar extends StatelessWidget {
   const TravelDetailTopBar({
     super.key,
@@ -137,11 +134,7 @@ class TravelDetailTopBar extends StatelessWidget {
               Positioned(
                 right: _kHorizontalPadding,
                 top: _kIconTop,
-                child: SizedBox(
-                  width: _kTravelStatusWidth,
-                  height: _kTravelStatusHeight,
-                  child: TravelStatusIndicator(mode: travelStatusMode!),
-                ),
+                child: TravelStatusIndicator(mode: travelStatusMode!),
               )
             else if (showSettingsButton)
               Positioned(

@@ -19,6 +19,8 @@ const double _kMarkerSize = 16;
 const double _kVisitingMarkerSize = 30;
 const double _kVisitingIconScale = _kVisitingMarkerSize / 24;
 
+const double _kUserLocationMarkerSize = 20;
+
 enum MapMarkerStatus { visited, visiting, notVisited }
 
 class MapMarker {
@@ -69,6 +71,7 @@ class AppMapView extends StatefulWidget {
     this.onMarkerTap,
     this.enableGestures = false,
     this.fitVisibleFraction = 1.0,
+    this.userLocation,
   }) : assert(
          fitVisibleFraction > 0 && fitVisibleFraction <= 1,
          'fitVisibleFraction은 0보다 크고 1 이하여야 합니다.',
@@ -82,6 +85,9 @@ class AppMapView extends StatefulWidget {
 
   final double fitVisibleFraction;
 
+  /// 지도에 표시할 사용자의 현재 위치입니다. null이면 표시하지 않습니다.
+  final LatLng? userLocation;
+
   @override
   State<AppMapView> createState() => _AppMapViewState();
 }
@@ -94,6 +100,9 @@ class _AppMapViewState extends State<AppMapView> {
   List<BaseRoute> _routes = const [];
   bool _hasError = false;
   int _renderGeneration = 0;
+
+  Poi? _userLocationPoi;
+  Future<PoiStyle>? _userLocationStyleFuture;
 
   Future<PoiStyle> _styleFor(MapMarkerStatus status, bool isSelected) {
     final key = (status, isSelected);
@@ -173,6 +182,7 @@ class _AppMapViewState extends State<AppMapView> {
       }
     }
     _renderOverlays();
+    _renderUserLocation();
   }
 
   void _handleMapError(Object error) {
@@ -199,6 +209,12 @@ class _AppMapViewState extends State<AppMapView> {
     if (isStale()) return;
     await _renderRoute(controller, generation);
     if (isStale()) return;
+
+    await _fitCamera(controller, generation);
+  }
+
+  Future<void> _fitCamera(KakaoMapController controller, int generation) async {
+    bool isStale() => !mounted || generation != _renderGeneration;
 
     final points = widget.markers.map((m) => m.position).toList();
     if (points.isEmpty) return;
@@ -266,7 +282,13 @@ class _AppMapViewState extends State<AppMapView> {
       if (onMarkerTap != null) {
         onClick = () => onMarkerTap(i);
       }
-      final poi = await _addPoiWithRetry(layer, marker, style, onClick);
+      final poi = await _addPoiWithRetry(
+        layer,
+        marker.position,
+        style,
+        onClick: onClick,
+        label: '마커(${marker.label})',
+      );
       if (isStale()) return;
       if (poi != null) newPois.add(poi);
     }
@@ -276,21 +298,18 @@ class _AppMapViewState extends State<AppMapView> {
 
   Future<Poi?> _addPoiWithRetry(
     LabelController layer,
-    MapMarker marker,
-    PoiStyle style,
+    LatLng position,
+    PoiStyle style, {
     void Function()? onClick,
-  ) async {
+    String label = '마커',
+  }) async {
     const maxAttempts = 3;
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        return await layer.addPoi(
-          marker.position,
-          style: style,
-          onClick: onClick,
-        );
+        return await layer.addPoi(position, style: style, onClick: onClick);
       } on OverlayRegistrationFailedError {
         if (attempt == maxAttempts) {
-          debugPrint('마커(${marker.label}) 추가 실패: 재시도 초과');
+          debugPrint('$label 추가 실패: 재시도 초과');
           return null;
         }
         await Future.delayed(const Duration(milliseconds: 80));
@@ -334,6 +353,10 @@ class _AppMapViewState extends State<AppMapView> {
   @override
   void didUpdateWidget(covariant AppMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.userLocation != widget.userLocation) {
+      _renderUserLocation();
+    }
+
     if (listEquals(oldWidget.markers, widget.markers)) return;
 
     if (_samePositions(oldWidget.markers, widget.markers)) {
@@ -341,6 +364,48 @@ class _AppMapViewState extends State<AppMapView> {
     } else {
       _renderOverlays();
     }
+  }
+
+  Future<void> _renderUserLocation() async {
+    final controller = _controller;
+    if (controller == null) return;
+
+    final location = widget.userLocation;
+    if (location == null) {
+      final poi = _userLocationPoi;
+      if (poi != null) {
+        _userLocationPoi = null;
+        await controller.labelLayer.removePoi(poi);
+      }
+      return;
+    }
+
+    final existing = _userLocationPoi;
+    if (existing != null) {
+      await existing.move(location);
+      return;
+    }
+
+    final style = await (_userLocationStyleFuture ??= _buildUserLocationStyle());
+    if (!mounted || widget.userLocation != location) return;
+    _userLocationPoi = await _addPoiWithRetry(
+      controller.labelLayer,
+      location,
+      style,
+      label: '내 위치 마커',
+    );
+  }
+
+  static Future<PoiStyle> _buildUserLocationStyle() async {
+    final icon = await KImage.fromWidget(
+      SvgPicture.asset(
+        AppIcons.userLocation,
+        width: _kUserLocationMarkerSize,
+        height: _kUserLocationMarkerSize,
+      ),
+      const Size.square(_kUserLocationMarkerSize),
+    );
+    return PoiStyle(icon: icon, anchor: const KPoint(0.5, 0.5), applyDpScale: false);
   }
 
   bool _samePositions(List<MapMarker> a, List<MapMarker> b) {

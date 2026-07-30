@@ -346,7 +346,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
               MaterialPageRoute<void>(
                 builder: (_) => TravelMemberScreen(
                   isLeader: _isLeader,
-                  status: AppTravelStatus.completed,
+                  status: AppTravelStatus.inProgress,
                   inviteCode: 'AB12C',
                   members: const [
                     TravelMemberModel(nickname: '김윤지', isLeader: true),
