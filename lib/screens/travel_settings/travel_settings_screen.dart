@@ -111,7 +111,6 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
   bool get _isCompleted => widget.status == AppTravelStatus.completed;
 
   bool get _isFormValid =>
-      _backgroundImage != null &&
       _travelNameController.text.trim().isNotEmpty &&
       _startDate != null &&
       _endDate != null &&
@@ -185,6 +184,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
         backgroundImage: _backgroundImage,
       ),
     );
+    Navigator.of(context).pop();
   }
 
   void _handleBack() {
