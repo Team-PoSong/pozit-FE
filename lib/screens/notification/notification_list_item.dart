@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
+
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
 
-class NotificationListItem extends StatelessWidget {
-  final String title;
-  final String body;
-  final String time;
+const double _kLeftContentPadding = 31.0;
+const double _kRightContentPadding = 15.0;
+const double _kTopContentPadding = 19.0;
+const double _kBottomContentPadding = 20.0;
+const double _kBorderRadius = 8.0;
+const double _kTitleToBodyGap = 15.0;
+const double _kBodyToTimeGap = 8.0;
+const double _kTimeBottomPadding = 5.0;
 
+class NotificationListItem extends StatelessWidget {
   const NotificationListItem({
     super.key,
     required this.title,
@@ -15,20 +21,24 @@ class NotificationListItem extends StatelessWidget {
     required this.time,
   });
 
+  final String title;
+  final String body;
+  final String time;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 347.0,
-      padding: const EdgeInsets.only(
-        left: 24.0,
-        right: 24.0,
-        top: 19.0,
-        bottom: 20.0,
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(
+        _kLeftContentPadding,
+        _kTopContentPadding,
+        _kRightContentPadding,
+        _kBottomContentPadding,
       ),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: AppColors.gray2, width: 1.0),
+        borderRadius: BorderRadius.circular(_kBorderRadius),
+        border: Border.all(color: AppColors.gray2),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -36,11 +46,9 @@ class NotificationListItem extends StatelessWidget {
         children: [
           Text(
             title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: AppTextStyles.subTitle.copyWith(color: AppColors.purple3),
           ),
-          const SizedBox(height: 15.0),
+          const SizedBox(height: _kTitleToBodyGap),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -50,9 +58,9 @@ class NotificationListItem extends StatelessWidget {
                   style: AppTextStyles.body.copyWith(color: AppColors.text),
                 ),
               ),
-              const SizedBox(width: 8.0),
+              const SizedBox(width: _kBodyToTimeGap),
               Padding(
-                padding: const EdgeInsets.only(bottom: 5.0),
+                padding: const EdgeInsets.only(bottom: _kTimeBottomPadding),
                 child: Text(
                   time,
                   style: AppTextStyles.caption.copyWith(color: AppColors.gray5),
@@ -66,16 +74,20 @@ class NotificationListItem extends StatelessWidget {
   }
 }
 
-@Preview(group: 'haerim', name: 'NotificationListItem')
-Widget notificationListItemPreview() => const NotificationListItem(
-  title: '경주 여행!!!',
-  body: '오늘의 코스를 모두 완료했습니다.',
-  time: '16시간 전',
-);
-
-@Preview(group: 'haerim', name: 'NotificationListItem - 2줄 이상')
-Widget notificationListItemTwoLinesPreview() => const NotificationListItem(
-  title: '경주 여행!!!',
-  body: '오늘의 코스를 모두 완료했습니다. 알림이 길어지면 이렇게 됩니드아아아아아아.',
-  time: '16시간 전',
-);
+@Preview(group: 'haerim', name: 'Notification List Item')
+Widget notificationListItemPreview() {
+  return const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: Scaffold(
+      backgroundColor: AppColors.gray2,
+      body: Padding(
+        padding: EdgeInsets.all(24),
+        child: NotificationListItem(
+          title: '경주 여행!!!',
+          body: '오늘의 코스를 모두 완료했습니다.',
+          time: '16시간 전',
+        ),
+      ),
+    ),
+  );
+}
