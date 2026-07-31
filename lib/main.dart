@@ -290,6 +290,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
                 builder: (_) => TravelSettingsScreen(
                   status: AppTravelStatus.inProgress,
                   destination: info.destination,
+                  initialTravelName: '${info.destination} 여행',
                   initialStartDate: info.startDate,
                   initialEndDate: info.endDate,
                   initialTags: info.tags,

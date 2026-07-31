@@ -110,7 +110,17 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
 
   bool get _isCompleted => widget.status == AppTravelStatus.completed;
 
+  bool get _hasChanges =>
+      _travelNameController.text.trim() != widget.initialTravelName.trim() ||
+      _startDate != widget.initialStartDate ||
+      _endDate != widget.initialEndDate ||
+      _selectedTags.length != widget.initialTags.length ||
+      !_selectedTags.containsAll(widget.initialTags) ||
+      _isPublic != widget.initialIsPublic ||
+      _backgroundImage != widget.initialBackgroundImage;
+
   bool get _isFormValid =>
+      _hasChanges &&
       _travelNameController.text.trim().isNotEmpty &&
       _startDate != null &&
       _endDate != null &&
@@ -243,9 +253,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       const SizedBox(height: _kLabelToFieldGap),
                       AppInputField(
                         controller: _travelNameController,
-                        hintText: widget.initialTravelName.isNotEmpty
-                            ? widget.initialTravelName
-                            : '친구들과 경주 여행',
+                        hintText: '친구들과 경주 여행',
                         onChanged: (_) => setState(() {}),
                       ),
                       const SizedBox(height: _kFieldToNextLabelGap),
@@ -265,12 +273,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       AppInputField(
                         controller: _dateController,
                         readOnly: true,
-                        hintText: _hasInitialDateRange
-                            ? _formatDateRange(
-                                widget.initialStartDate!,
-                                widget.initialEndDate!,
-                              )
-                            : '8/18 - 8/21',
+                        hintText: '8/18 - 8/21',
                         onTap: _handlePickDateRange,
                       ),
                       const SizedBox(height: _kFieldToNextLabelGap),
