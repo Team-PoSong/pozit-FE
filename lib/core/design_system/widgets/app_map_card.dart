@@ -103,7 +103,6 @@ class AppMapView extends StatefulWidget {
 
   final AppMapViewController? controller;
 
-  /// 마커가 하나뿐일 때 카메라가 맞출 확대 레벨입니다.
   final int singleMarkerZoomLevel;
 
   @override
@@ -314,10 +313,6 @@ class _AppMapViewState extends State<AppMapView> {
     final size = context.size;
     if (size == null) return;
 
-    // iOS 네이티브 SDK는 UIKit 포인트(논리 픽셀) 좌표를 그대로 기대하는 반면,
-    // Android 뷰는 디바이스 픽셀 좌표를 기대합니다. 여기에 dpr을 곱해버리면
-    // iOS에서는 화면 밖 좌표를 조회하게 되어, 지도가 지구 반대편처럼 전혀
-    // 엉뚱한 위치로 언프로젝션될 수 있습니다.
     final scale = Platform.isIOS ? 1.0 : MediaQuery.of(context).devicePixelRatio;
 
     final deltaY = size.height / 2 * (1 - fraction);
@@ -326,16 +321,9 @@ class _AppMapViewState extends State<AppMapView> {
     final target = await controller.fromScreenPoint(queryX, queryY);
     if (target == null || !mounted || generation != _renderGeneration) return;
 
-    // zoomLevel을 생략하면 SDK에 -1이 그대로 전달되어, 앞서 fitMapPoints로
-    // 맞춰둔 확대 값이 초기화되고 지도가 국가 단위로 축소돼버립니다.
-    // 현재 확대 값을 조회해서 기준으로 삼습니다.
     final currentZoomLevel = (await controller.getCameraPosition()).zoomLevel;
     if (!mounted || generation != _renderGeneration) return;
 
-    // fitMapPoints는 전체 화면 높이 기준으로 확대 값을 계산하지만, 실제로
-    // 마커가 보여야 하는 영역은 바텀시트에 가려지지 않는 상단 fraction
-    // 만큼뿐입니다. 그대로 두면 코스 범위의 절반 정도만 화면에 들어오므로,
-    // 줄어든 가시 영역만큼 한 단계 더 축소해 전체가 들어오도록 보정합니다.
     final zoomAdjustment = (math.log(1 / fraction) / math.log(2)).ceil();
     final adjustedZoomLevel = currentZoomLevel - zoomAdjustment;
 
@@ -545,8 +533,6 @@ class _AppMapViewState extends State<AppMapView> {
           onMapReady: _handleMapReady,
           onMapError: _handleMapError,
         ),
-        // 카메라가 마커 위치로 정렬되기 전까지는 지도가 엉뚱한 위치를 잠깐
-        // 보여주지 않도록 가려둡니다.
         if (!_hasSettledCamera) const ColoredBox(color: AppColors.gray2),
       ],
     );
