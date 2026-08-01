@@ -26,6 +26,8 @@ const double _kVisitingIconScale = _kVisitingMarkerSize / 24;
 
 const double _kUserLocationMarkerSize = 16;
 
+const String _kPoiLabelLayerId = 'app_map_poi_layer';
+
 enum MapMarkerStatus { visited, visiting, notVisited }
 
 class MapMarker {
@@ -117,11 +119,14 @@ class _AppMapViewState extends State<AppMapView> {
   final Map<(MapMarkerStatus, bool), Future<PoiStyle>> _styleCache = {};
 
   KakaoMapController? _controller;
+  LabelController? _poiLayer;
   List<Poi> _pois = const [];
   List<BaseRoute> _routes = const [];
   bool _hasError = false;
   bool _hasSettledCamera = false;
   int _renderGeneration = 0;
+
+  Future<void> _poiOperationQueue = Future<void>.value();
 
   Poi? _userLocationPoi;
   Future<PoiStyle>? _userLocationStyleFuture;
@@ -161,7 +166,25 @@ class _AppMapViewState extends State<AppMapView> {
     if (widget.controller?._state == this) {
       widget.controller?._state = null;
     }
+    _invalidateMapState();
     super.dispose();
+  }
+
+  /// 진행 중인 렌더링 작업이 다음 체크포인트에서 스스로 중단하도록
+  /// generation을 무효화하고, 더 이상 유효하지 않은 컨트롤러 참조를 해제합니다.
+  /// 단, 이미 네이티브로 전달된 호출 자체를 취소하지는 못합니다.
+  void _invalidateMapState() {
+    _renderGeneration++;
+    _controller = null;
+    _poiLayer = null;
+  }
+
+  /// POI 추가·삭제·스타일 변경 작업이 동시에 네이티브로 전달되지 않도록
+  /// 하나의 큐를 통해 순차적으로 실행합니다.
+  Future<void> _enqueuePoiOperation(Future<void> Function() operation) {
+    final result = _poiOperationQueue.then((_) => operation());
+    _poiOperationQueue = result.then((_) {}, onError: (_) {});
+    return result;
   }
 
   Future<void> _moveCameraTo(LatLng position, {int? zoomLevel}) async {
@@ -244,7 +267,7 @@ class _AppMapViewState extends State<AppMapView> {
     );
   }
 
-  void _handleMapReady(KakaoMapController controller) {
+  Future<void> _handleMapReady(KakaoMapController controller) async {
     _controller = controller;
     if (!widget.enableGestures) {
       for (final gesture in GestureType.values) {
@@ -252,6 +275,9 @@ class _AppMapViewState extends State<AppMapView> {
         controller.setGesture(gesture, false);
       }
     }
+    final poiLayer = await controller.addLabelLayer(_kPoiLabelLayerId);
+    if (!mounted || _controller != controller) return;
+    _poiLayer = poiLayer;
     _renderOverlays().then((_) {
       if (!mounted) return;
       _renderUserLocation();
@@ -261,23 +287,32 @@ class _AppMapViewState extends State<AppMapView> {
 
   void _handleMapError(Object error) {
     if (!mounted) return;
+    _invalidateMapState();
     setState(() => _hasError = true);
   }
 
   void _handleRetry() {
+    _invalidateMapState();
     setState(() {
       _hasError = false;
-      _controller = null;
       _pois = const [];
       _routes = const [];
     });
   }
 
-  Future<void> _renderOverlays() async {
+  Future<void> _renderOverlays() {
     final controller = _controller;
-    if (controller == null) return;
+    if (controller == null) return Future.value();
     final generation = ++_renderGeneration;
+    return _enqueuePoiOperation(() => _runRenderOverlays(controller, generation));
+  }
+
+  Future<void> _runRenderOverlays(
+    KakaoMapController controller,
+    int generation,
+  ) async {
     bool isStale() => !mounted || generation != _renderGeneration;
+    if (isStale()) return;
 
     await _renderMarkers(controller, generation);
     if (isStale()) return;
@@ -345,7 +380,8 @@ class _AppMapViewState extends State<AppMapView> {
     int generation,
   ) async {
     bool isStale() => !mounted || generation != _renderGeneration;
-    final layer = controller.labelLayer;
+    final layer = _poiLayer;
+    if (layer == null) return;
 
     for (final poi in _pois) {
       await layer.removePoi(poi);
@@ -433,16 +469,20 @@ class _AppMapViewState extends State<AppMapView> {
     _routes = [route];
   }
 
-  Future<void> _renderUserLocation() async {
-    final controller = _controller;
-    if (controller == null) return;
+  Future<void> _renderUserLocation() {
+    return _enqueuePoiOperation(_runRenderUserLocation);
+  }
+
+  Future<void> _runRenderUserLocation() async {
+    final layer = _poiLayer;
+    if (layer == null) return;
 
     final location = widget.userLocation;
     if (location == null) {
       final poi = _userLocationPoi;
       if (poi != null) {
         _userLocationPoi = null;
-        await controller.labelLayer.removePoi(poi);
+        await layer.removePoi(poi);
       }
       return;
     }
@@ -461,7 +501,7 @@ class _AppMapViewState extends State<AppMapView> {
       final latestLocation = widget.userLocation;
       if (latestLocation == null) return;
       _userLocationPoi = await _addPoiWithRetry(
-        controller.labelLayer,
+        layer,
         latestLocation,
         style,
         label: '내 위치 마커',
@@ -491,9 +531,14 @@ class _AppMapViewState extends State<AppMapView> {
     return true;
   }
 
-  Future<void> _updateMarkerStyles() async {
+  Future<void> _updateMarkerStyles() {
     final generation = ++_renderGeneration;
+    return _enqueuePoiOperation(() => _runUpdateMarkerStyles(generation));
+  }
+
+  Future<void> _runUpdateMarkerStyles(int generation) async {
     bool isStale() => !mounted || generation != _renderGeneration;
+    if (isStale()) return;
 
     for (var i = 0; i < widget.markers.length && i < _pois.length; i++) {
       final marker = widget.markers[i];

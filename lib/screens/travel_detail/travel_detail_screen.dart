@@ -107,7 +107,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   Future<void> _maybeShowGuide() async {
     if (widget.status == AppTravelStatus.completed) return;
-    final dismissed = await widget.guideStorage.isDismissed();
+    final dismissed = await widget.guideStorage.isDismissed(widget.status);
     if (!mounted || dismissed) return;
     setState(() => _showGuide = true);
   }
@@ -156,7 +156,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   void _dismissGuideForever() {
     _hideGuide();
-    widget.guideStorage.markDismissed();
+    widget.guideStorage.markDismissed(widget.status);
   }
 
   int get _dayCount => widget.info.totalDays;
