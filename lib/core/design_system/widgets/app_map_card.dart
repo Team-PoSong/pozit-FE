@@ -15,8 +15,9 @@ import '../app_text_styles.dart';
 const Duration _kTransitionDuration = Duration(milliseconds: 260);
 
 const int _kDefaultZoomLevel = 15;
-const int _kCardSingleMarkerZoomLevel = 12;
+const int _kCardSingleMarkerZoomLevel = 11;
 const int _kFitMapPointsPadding = 20;
+const int _kCardFitMapPointsPadding = 100;
 
 const double _kMarkerSize = 16;
 
@@ -86,6 +87,7 @@ class AppMapView extends StatefulWidget {
     this.userLocation,
     this.controller,
     this.singleMarkerZoomLevel = _kDefaultZoomLevel,
+    this.fitPointsPadding = _kFitMapPointsPadding,
   }) : assert(
          fitVisibleFraction > 0 && fitVisibleFraction <= 1,
          'fitVisibleFraction은 0보다 크고 1 이하여야 합니다.',
@@ -104,6 +106,8 @@ class AppMapView extends StatefulWidget {
   final AppMapViewController? controller;
 
   final int singleMarkerZoomLevel;
+
+  final int fitPointsPadding;
 
   @override
   State<AppMapView> createState() => _AppMapViewState();
@@ -297,7 +301,7 @@ class _AppMapViewState extends State<AppMapView> {
       );
     } else {
       await controller.moveCamera(
-        CameraUpdate.fitMapPoints(points, padding: _kFitMapPointsPadding),
+        CameraUpdate.fitMapPoints(points, padding: widget.fitPointsPadding),
       );
     }
     if (isStale()) return;
@@ -629,6 +633,7 @@ class AppMapCard extends StatelessWidget {
                     child: AppMapView(
                       markers: markers,
                       singleMarkerZoomLevel: _kCardSingleMarkerZoomLevel,
+                      fitPointsPadding: _kCardFitMapPointsPadding,
                     ),
                   ),
                 ),
