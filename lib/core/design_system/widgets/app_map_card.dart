@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart';
@@ -275,14 +276,26 @@ class _AppMapViewState extends State<AppMapView> {
         controller.setGesture(gesture, false);
       }
     }
-    final poiLayer = await controller.addLabelLayer(_kPoiLabelLayerId);
-    if (!mounted || _controller != controller) return;
-    _poiLayer = poiLayer;
-    _renderOverlays().then((_) {
+    try {
+      // iOS는 기본 라벨 레이어가 네이티브에 생성되어 있지 않아 강제 언래핑 크래시(SIGTRAP)로
+      // 이어지므로 명시적으로 레이어를 만들어야 합니다. 반대로 Android 플러그인은
+      // createLabelLayer 처리 시 대상 레이어를 먼저 조회하려다 존재하지 않으면 그 자리에서
+      // NPE를 던지는 버그가 있어, 이미 네이티브에 존재하는 기본 레이어를 그대로 사용합니다.
+      final poiLayer = Platform.isIOS
+          ? await controller.addLabelLayer(_kPoiLabelLayerId)
+          : controller.labelLayer;
+      if (!mounted || _controller != controller) return;
+      _poiLayer = poiLayer;
+      await _renderOverlays();
       if (!mounted) return;
-      _renderUserLocation();
-      if (!_hasSettledCamera) setState(() => _hasSettledCamera = true);
-    });
+      await _renderUserLocation();
+    } catch (error) {
+      debugPrint('지도 초기화 실패: $error');
+    } finally {
+      if (mounted && !_hasSettledCamera) {
+        setState(() => _hasSettledCamera = true);
+      }
+    }
   }
 
   void _handleMapError(Object error) {
@@ -431,8 +444,15 @@ class _AppMapViewState extends State<AppMapView> {
           debugPrint('$label 추가 실패: 재시도 초과');
           return null;
         }
-        await Future.delayed(const Duration(milliseconds: 80));
+      } on PlatformException {
+        // 레이어 생성 직후에는 네이티브 쪽에서 아직 레이어가 조회되지 않아
+        // 일시적으로 실패할 수 있어 재시도합니다.
+        if (attempt == maxAttempts) {
+          debugPrint('$label 추가 실패: 재시도 초과');
+          return null;
+        }
       }
+      await Future.delayed(const Duration(milliseconds: 80));
     }
     return null;
   }
