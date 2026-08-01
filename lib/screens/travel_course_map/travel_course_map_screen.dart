@@ -10,6 +10,7 @@ import '../../core/design_system/widgets/app_course_bottom_sheet.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
+import '../../core/location/course_visiting.dart';
 import '../../data/models/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import '../travel_detail/widgets/travel_status.dart';
@@ -136,8 +137,12 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
     return merged;
   }
 
+  Set<int> get _nearbySpotIds =>
+      nearbyTouristSpotIds(_currentLocation, _spotsForSelectedDay);
+
   List<MapMarker> _markersForSelectedDay() {
     final allowVisiting = widget.status == AppTravelStatus.inProgress;
+    final nearbySpotIds = _nearbySpotIds;
 
     return [
       for (final spot in _spotsForSelectedDay)
@@ -146,7 +151,8 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
           label: spot.name,
           status: switch (spot.status) {
             'visited' => MapMarkerStatus.visited,
-            'visiting' when allowVisiting => MapMarkerStatus.visiting,
+            _ when allowVisiting && nearbySpotIds.contains(spot.touristSpotId) =>
+              MapMarkerStatus.visiting,
             _ => MapMarkerStatus.notVisited,
           },
           isSelected: spot.touristSpotId == _selectedSpotId,
