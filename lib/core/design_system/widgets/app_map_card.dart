@@ -12,6 +12,7 @@ import '../app_text_styles.dart';
 const Duration _kTransitionDuration = Duration(milliseconds: 260);
 
 const int _kDefaultZoomLevel = 15;
+const int _kCardSingleMarkerZoomLevel = 12;
 const int _kFitMapPointsPadding = 120;
 
 const double _kMarkerSize = 16;
@@ -81,6 +82,7 @@ class AppMapView extends StatefulWidget {
     this.fitVisibleFraction = 1.0,
     this.userLocation,
     this.controller,
+    this.singleMarkerZoomLevel = _kDefaultZoomLevel,
   }) : assert(
          fitVisibleFraction > 0 && fitVisibleFraction <= 1,
          'fitVisibleFraction은 0보다 크고 1 이하여야 합니다.',
@@ -98,6 +100,9 @@ class AppMapView extends StatefulWidget {
 
   final AppMapViewController? controller;
 
+  /// 마커가 하나뿐일 때 카메라가 맞출 확대 레벨입니다.
+  final int singleMarkerZoomLevel;
+
   @override
   State<AppMapView> createState() => _AppMapViewState();
 }
@@ -109,6 +114,7 @@ class _AppMapViewState extends State<AppMapView> {
   List<Poi> _pois = const [];
   List<BaseRoute> _routes = const [];
   bool _hasError = false;
+  bool _hasSettledCamera = false;
   int _renderGeneration = 0;
 
   Poi? _userLocationPoi;
@@ -236,8 +242,11 @@ class _AppMapViewState extends State<AppMapView> {
         controller.setGesture(gesture, false);
       }
     }
-    _renderOverlays();
     _renderUserLocation();
+    _renderOverlays().then((_) {
+      if (!mounted || _hasSettledCamera) return;
+      setState(() => _hasSettledCamera = true);
+    });
   }
 
   void _handleMapError(Object error) {
@@ -277,7 +286,7 @@ class _AppMapViewState extends State<AppMapView> {
       await controller.moveCamera(
         CameraUpdate.newCenterPosition(
           points.first,
-          zoomLevel: _kDefaultZoomLevel,
+          zoomLevel: widget.singleMarkerZoomLevel,
         ),
       );
     } else {
@@ -498,17 +507,25 @@ class _AppMapViewState extends State<AppMapView> {
       );
     }
 
-    return KakaoMap(
-      option: KakaoMapOption(
-        position: widget.markers.isNotEmpty
-            ? widget.markers.first.position
-            : const KakaoMapOption().position,
-        zoomLevel: _kDefaultZoomLevel,
-      ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        KakaoMap(
+          option: KakaoMapOption(
+            position: widget.markers.isNotEmpty
+                ? widget.markers.first.position
+                : const KakaoMapOption().position,
+            zoomLevel: _kDefaultZoomLevel,
+          ),
 
-      forceGesture: widget.enableGestures,
-      onMapReady: _handleMapReady,
-      onMapError: _handleMapError,
+          forceGesture: widget.enableGestures,
+          onMapReady: _handleMapReady,
+          onMapError: _handleMapError,
+        ),
+        // 카메라가 마커 위치로 정렬되기 전까지는 지도가 엉뚱한 위치를 잠깐
+        // 보여주지 않도록 가려둡니다.
+        if (!_hasSettledCamera) const ColoredBox(color: AppColors.gray2),
+      ],
     );
   }
 }
@@ -588,7 +605,10 @@ class AppMapCard extends StatelessWidget {
                   aspectRatio: 319 / 156,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: AppMapView(markers: markers),
+                    child: AppMapView(
+                      markers: markers,
+                      singleMarkerZoomLevel: _kCardSingleMarkerZoomLevel,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
