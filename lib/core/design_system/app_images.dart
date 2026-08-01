@@ -31,4 +31,5 @@ class AppImages {
   static const String posongVisiting = '$_basePath/img_posong_visiting.png';
 
   static const String pointer = '$_basePath/img_pointer.png';
+  static const String tape = '$_basePath/img_tape.png';
 }

@@ -15,6 +15,8 @@ import 'package:pozit/screens/auth/auth_gate.dart';
 import 'package:pozit/screens/course_edit/course_edit_screen.dart';
 import 'package:pozit/screens/travel_course_map/travel_course_map_screen.dart';
 import 'package:pozit/screens/travel_detail/travel_detail_screen.dart';
+import 'package:pozit/screens/travel_log/travel_log_complete_screen.dart';
+import 'package:pozit/screens/travel_log/travel_log_saving_screen.dart';
 import 'package:pozit/screens/travel_member/travel_member_screen.dart';
 import 'package:pozit/screens/travel_settings/travel_settings_screen.dart';
 
@@ -281,14 +283,14 @@ class _MapMarkerPreviewApp extends StatelessWidget {
       home: Builder(
         builder: (context) => TravelDetailScreen(
           info: info,
-          status: AppTravelStatus.inProgress,
+          status: AppTravelStatus.completed,
           isLeader: _isLeader,
           courses: courses,
           onSettingsTap: () {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => TravelSettingsScreen(
-                  status: AppTravelStatus.inProgress,
+                  status: AppTravelStatus.completed,
                   destination: info.destination,
                   initialTravelName: '${info.destination} 여행',
                   initialStartDate: info.startDate,
@@ -350,7 +352,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
               MaterialPageRoute<void>(
                 builder: (_) => TravelMemberScreen(
                   isLeader: _isLeader,
-                  status: AppTravelStatus.inProgress,
+                  status: AppTravelStatus.completed,
                   inviteCode: 'AB12C',
                   members: const [
                     TravelMemberModel(nickname: '김윤지', isLeader: true),
@@ -367,10 +369,34 @@ class _MapMarkerPreviewApp extends StatelessWidget {
               MaterialPageRoute<void>(
                 builder: (_) => TravelCourseMapScreen(
                   courses: courses,
-                  status: AppTravelStatus.inProgress,
+                  status: AppTravelStatus.completed,
                   initialDay: day,
                   totalDays: info.totalDays,
                 ),
+              ),
+            );
+          },
+          onSaveLogTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (routeContext) {
+                  // TODO(travel-log): replace this fixed delay with the real
+                  // local-save flow once it's implemented; for now it just
+                  // demos the loading -> complete transition.
+                  Future.delayed(const Duration(seconds: 2), () {
+                    if (!routeContext.mounted) return;
+                    Navigator.of(routeContext).pushReplacement(
+                      MaterialPageRoute<void>(
+                        builder: (_) => TravelLogCompleteScreen(
+                          travelName: '${info.destination} 여행',
+                        ),
+                      ),
+                    );
+                  });
+                  return TravelLogSavingScreen(
+                    travelName: '${info.destination} 여행',
+                  );
+                },
               ),
             );
           },
