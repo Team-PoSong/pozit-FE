@@ -55,11 +55,11 @@ class TravelDetailBottomSection extends StatelessWidget {
     switch (status) {
       case AppTravelStatus.upcoming:
         return Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            _kBottomSafeGap,
+            _kBottomSafeGap + MediaQuery.of(context).padding.bottom,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
