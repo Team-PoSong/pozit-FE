@@ -350,6 +350,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                   ),
                   const SizedBox(height: _kDateSelectToMapCardGap),
                   GestureDetector(
+                    behavior: HitTestBehavior.translucent,
                     onHorizontalDragEnd: _handleMapSwipe,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
