@@ -100,6 +100,20 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant TravelDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.status == widget.status) return;
+
+    if (widget.status == AppTravelStatus.inProgress) {
+      _startLocationTracking();
+    } else if (oldWidget.status == AppTravelStatus.inProgress) {
+      _positionSubscription?.cancel();
+      _positionSubscription = null;
+      setState(() => _currentLocation = null);
+    }
+  }
+
+  @override
   void dispose() {
     _positionSubscription?.cancel();
     super.dispose();
