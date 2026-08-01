@@ -37,13 +37,13 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('width=$width: 화살표 터치 영역은 24x24로 유지된다', (tester) async {
+    testWidgets('width=$width: 화살표 터치 영역은 48x48로 유지된다', (tester) async {
       await pumpCalendarAt(tester, width);
 
       final arrowFinder = find.byType(GestureDetector).first;
       final size = tester.getSize(arrowFinder);
-      expect(size.width, 24.0);
-      expect(size.height, 24.0);
+      expect(size.width, 48.0);
+      expect(size.height, 48.0);
     });
 
     testWidgets('width=$width: 날짜 셀 터치 영역 높이는 32로 유지되고 폭은 30 이상이다', (

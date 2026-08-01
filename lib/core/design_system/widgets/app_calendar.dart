@@ -225,7 +225,7 @@ class _AppCalendarState extends State<AppCalendar> {
     required bool startsBeforeMonth,
     required bool endsAfterMonth,
   }) {
-    _CapType _capTypeFor(int index) {
+    _CapType capTypeFor(int index) {
       final date = week[index];
 
       if (_isSameDay(date, trueStart) || _isSameDay(date, trueEnd)) {
@@ -283,7 +283,7 @@ class _AppCalendarState extends State<AppCalendar> {
     }
 
     if (segStart == segEnd) {
-      final type = _capTypeFor(segStart);
+      final type = capTypeFor(segStart);
 
       if (type == _CapType.round) {
         final rect = _cellRect(week[segStart], gridBox);
@@ -298,8 +298,8 @@ class _AppCalendarState extends State<AppCalendar> {
       return;
     }
 
-    final leftType = _capTypeFor(segStart);
-    final rightType = _capTypeFor(segEnd);
+    final leftType = capTypeFor(segStart);
+    final rightType = capTypeFor(segEnd);
 
     final startCellRect = _cellRect(week[segStart], gridBox);
 
