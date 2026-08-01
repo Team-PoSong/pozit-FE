@@ -121,6 +121,7 @@ class _AppMapViewState extends State<AppMapView> {
 
   Poi? _userLocationPoi;
   Future<PoiStyle>? _userLocationStyleFuture;
+  bool _isAddingUserLocationPoi = false;
 
   @override
   void initState() {
@@ -135,7 +136,10 @@ class _AppMapViewState extends State<AppMapView> {
       oldWidget.controller?._state = null;
       widget.controller?._state = this;
     }
-    if (oldWidget.userLocation != widget.userLocation) {
+    final userLocationChanged = oldWidget.userLocation != widget.userLocation;
+    final missingUserLocationPoi =
+        widget.userLocation != null && _userLocationPoi == null;
+    if (userLocationChanged || missingUserLocationPoi) {
       _renderUserLocation();
     }
 
@@ -244,10 +248,10 @@ class _AppMapViewState extends State<AppMapView> {
         controller.setGesture(gesture, false);
       }
     }
-    _renderUserLocation();
     _renderOverlays().then((_) {
-      if (!mounted || _hasSettledCamera) return;
-      setState(() => _hasSettledCamera = true);
+      if (!mounted) return;
+      _renderUserLocation();
+      if (!_hasSettledCamera) setState(() => _hasSettledCamera = true);
     });
   }
 
@@ -445,14 +449,22 @@ class _AppMapViewState extends State<AppMapView> {
       return;
     }
 
-    final style = await (_userLocationStyleFuture ??= _buildUserLocationStyle());
-    if (!mounted || widget.userLocation != location) return;
-    _userLocationPoi = await _addPoiWithRetry(
-      controller.labelLayer,
-      location,
-      style,
-      label: '내 위치 마커',
-    );
+    if (_isAddingUserLocationPoi) return;
+    _isAddingUserLocationPoi = true;
+    try {
+      final style = await (_userLocationStyleFuture ??= _buildUserLocationStyle());
+      if (!mounted) return;
+      final latestLocation = widget.userLocation;
+      if (latestLocation == null) return;
+      _userLocationPoi = await _addPoiWithRetry(
+        controller.labelLayer,
+        latestLocation,
+        style,
+        label: '내 위치 마커',
+      );
+    } finally {
+      _isAddingUserLocationPoi = false;
+    }
   }
 
   static Future<PoiStyle> _buildUserLocationStyle() async {
