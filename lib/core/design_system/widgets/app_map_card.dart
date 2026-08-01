@@ -20,7 +20,7 @@ const double _kMarkerSize = 16;
 const double _kVisitingMarkerSize = 30;
 const double _kVisitingIconScale = _kVisitingMarkerSize / 24;
 
-const double _kUserLocationMarkerSize = 20;
+const double _kUserLocationMarkerSize = 16;
 
 enum MapMarkerStatus { visited, visiting, notVisited }
 
