@@ -283,14 +283,14 @@ class _MapMarkerPreviewApp extends StatelessWidget {
       home: Builder(
         builder: (context) => TravelDetailScreen(
           info: info,
-          status: AppTravelStatus.upcoming,
+          status: AppTravelStatus.inProgress,
           isLeader: _isLeader,
           courses: courses,
           onSettingsTap: () {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => TravelSettingsScreen(
-                  status: AppTravelStatus.upcoming,
+                  status: AppTravelStatus.inProgress,
                   destination: info.destination,
                   initialTravelName: '${info.destination} 여행',
                   initialStartDate: info.startDate,
@@ -352,7 +352,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
               MaterialPageRoute<void>(
                 builder: (_) => TravelMemberScreen(
                   isLeader: _isLeader,
-                  status: AppTravelStatus.upcoming,
+                  status: AppTravelStatus.inProgress,
                   inviteCode: 'AB12C',
                   members: const [
                     TravelMemberModel(nickname: '김윤지', isLeader: true),
@@ -369,7 +369,7 @@ class _MapMarkerPreviewApp extends StatelessWidget {
               MaterialPageRoute<void>(
                 builder: (_) => TravelCourseMapScreen(
                   courses: courses,
-                  status: AppTravelStatus.upcoming,
+                  status: AppTravelStatus.inProgress,
                   initialDay: day,
                   totalDays: info.totalDays,
                 ),

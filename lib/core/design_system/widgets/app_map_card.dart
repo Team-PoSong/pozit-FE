@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
@@ -311,11 +313,15 @@ class _AppMapViewState extends State<AppMapView> {
     final size = context.size;
     if (size == null) return;
 
-    final dpr = MediaQuery.of(context).devicePixelRatio;
+    // iOS 네이티브 SDK는 UIKit 포인트(논리 픽셀) 좌표를 그대로 기대하는 반면,
+    // Android 뷰는 디바이스 픽셀 좌표를 기대합니다. 여기에 dpr을 곱해버리면
+    // iOS에서는 화면 밖 좌표를 조회하게 되어, 지도가 지구 반대편처럼 전혀
+    // 엉뚱한 위치로 언프로젝션될 수 있습니다.
+    final scale = Platform.isIOS ? 1.0 : MediaQuery.of(context).devicePixelRatio;
 
     final deltaY = size.height / 2 * (1 - fraction);
-    final queryX = (size.width / 2 * dpr).round();
-    final queryY = ((size.height / 2 + deltaY) * dpr).round();
+    final queryX = (size.width / 2 * scale).round();
+    final queryY = ((size.height / 2 + deltaY) * scale).round();
     final target = await controller.fromScreenPoint(queryX, queryY);
     if (target == null || !mounted || generation != _renderGeneration) return;
     await controller.moveCamera(CameraUpdate.newCenterPosition(target));
