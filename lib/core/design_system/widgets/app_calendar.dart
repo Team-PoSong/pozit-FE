@@ -51,17 +51,33 @@ String _dateKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
 
 class AppCalendar extends StatefulWidget {
   final DateTime initialMonth;
+  final DateTime? initialRangeStart;
+  final DateTime? initialRangeEnd;
   final DateTime? minSelectableDate;
+  final bool isCompact;
   final void Function(DateTime start, DateTime end)? onRangeSelected;
   final VoidCallback? onSelectionCleared;
 
   AppCalendar({
     super.key,
     DateTime? initialMonth,
+    this.initialRangeStart,
+    this.initialRangeEnd,
     this.minSelectableDate,
+    this.isCompact = false,
     this.onRangeSelected,
     this.onSelectionCleared,
-  }) : initialMonth = initialMonth ?? DateTime.now();
+  }) : assert(
+         (initialRangeStart == null) == (initialRangeEnd == null),
+         '초기 날짜 범위는 시작일과 종료일을 함께 전달해야 합니다.',
+       ),
+       assert(
+         initialRangeStart == null ||
+             initialRangeEnd == null ||
+             !initialRangeStart.isAfter(initialRangeEnd),
+         '초기 날짜 범위의 시작일은 종료일 이후일 수 없습니다.',
+       ),
+       initialMonth = initialMonth ?? initialRangeStart ?? DateTime.now();
 
   @override
   State<AppCalendar> createState() => _AppCalendarState();
@@ -89,6 +105,8 @@ class _AppCalendarState extends State<AppCalendar> {
   @override
   void initState() {
     super.initState();
+    _rangeStart = widget.initialRangeStart;
+    _rangeEnd = widget.initialRangeEnd;
     _displayedMonth = DateTime(
       widget.initialMonth.year,
       widget.initialMonth.month,
@@ -457,6 +475,10 @@ class _AppCalendarState extends State<AppCalendar> {
   @override
   Widget build(BuildContext context) {
     final dates = _buildGridDates();
+    final outerBottomPadding = widget.isCompact ? 16.0 : 32.0;
+    final headerTopGap = widget.isCompact ? 12.0 : 20.0;
+    final headerToWeekdayGap = widget.isCompact ? 14.0 : 22.0;
+    final weekdayToGridGap = widget.isCompact ? 10.0 : 14.0;
 
     final weeks = <List<DateTime>>[
       for (int i = 0; i < dates.length; i += 7) dates.sublist(i, i + 7),
@@ -464,7 +486,7 @@ class _AppCalendarState extends State<AppCalendar> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(bottom: 32.0),
+      padding: EdgeInsets.only(bottom: outerBottomPadding),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12.0),
@@ -505,7 +527,7 @@ class _AppCalendarState extends State<AppCalendar> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 20.0),
+                  SizedBox(height: headerTopGap),
 
                   SizedBox(
                     width: headerWidth,
@@ -554,7 +576,7 @@ class _AppCalendarState extends State<AppCalendar> {
                     ),
                   ),
 
-                  const SizedBox(height: 22.0),
+                  SizedBox(height: headerToWeekdayGap),
 
                   SizedBox(
                     width: rowWidth,
@@ -575,7 +597,7 @@ class _AppCalendarState extends State<AppCalendar> {
                     ),
                   ),
 
-                  const SizedBox(height: 14.0),
+                  SizedBox(height: weekdayToGridGap),
 
                   NotificationListener<SizeChangedLayoutNotification>(
                     onNotification: (_) {
