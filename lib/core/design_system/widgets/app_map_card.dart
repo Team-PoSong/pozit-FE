@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,7 @@ const Duration _kTransitionDuration = Duration(milliseconds: 260);
 
 const int _kDefaultZoomLevel = 15;
 const int _kCardSingleMarkerZoomLevel = 12;
-const int _kFitMapPointsPadding = 120;
+const int _kFitMapPointsPadding = 20;
 
 const double _kMarkerSize = 16;
 
@@ -324,7 +325,23 @@ class _AppMapViewState extends State<AppMapView> {
     final queryY = ((size.height / 2 + deltaY) * scale).round();
     final target = await controller.fromScreenPoint(queryX, queryY);
     if (target == null || !mounted || generation != _renderGeneration) return;
-    await controller.moveCamera(CameraUpdate.newCenterPosition(target));
+
+    // zoomLevel을 생략하면 SDK에 -1이 그대로 전달되어, 앞서 fitMapPoints로
+    // 맞춰둔 확대 값이 초기화되고 지도가 국가 단위로 축소돼버립니다.
+    // 현재 확대 값을 조회해서 기준으로 삼습니다.
+    final currentZoomLevel = (await controller.getCameraPosition()).zoomLevel;
+    if (!mounted || generation != _renderGeneration) return;
+
+    // fitMapPoints는 전체 화면 높이 기준으로 확대 값을 계산하지만, 실제로
+    // 마커가 보여야 하는 영역은 바텀시트에 가려지지 않는 상단 fraction
+    // 만큼뿐입니다. 그대로 두면 코스 범위의 절반 정도만 화면에 들어오므로,
+    // 줄어든 가시 영역만큼 한 단계 더 축소해 전체가 들어오도록 보정합니다.
+    final zoomAdjustment = (math.log(1 / fraction) / math.log(2)).ceil();
+    final adjustedZoomLevel = currentZoomLevel - zoomAdjustment;
+
+    await controller.moveCamera(
+      CameraUpdate.newCenterPosition(target, zoomLevel: adjustedZoomLevel),
+    );
   }
 
   Future<void> _renderMarkers(
