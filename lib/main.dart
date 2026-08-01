@@ -387,8 +387,10 @@ class _MapMarkerPreviewApp extends StatelessWidget {
                     if (!routeContext.mounted) return;
                     Navigator.of(routeContext).pushReplacement(
                       MaterialPageRoute<void>(
-                        builder: (_) => TravelLogCompleteScreen(
+                        builder: (completeContext) => TravelLogCompleteScreen(
                           travelName: '${info.destination} 여행',
+                          onCancelTap: () =>
+                              Navigator.of(completeContext).pop(),
                         ),
                       ),
                     );
