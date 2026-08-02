@@ -24,7 +24,7 @@ const double _kDividerThickness = 8.0;
 const double _kDividerToMembersTitleGap = 27.0;
 const double _kMembersTitleToListGap = 24.0;
 
-const double _kMemberItemGap = 16.0;
+const double _kMemberItemGap = 25.0;
 
 const double _kCodeBoxHeight = 67.0;
 const double _kCodeBoxRadius = 4.0;

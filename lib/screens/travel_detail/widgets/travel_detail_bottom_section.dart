@@ -36,6 +36,7 @@ class TravelDetailBottomSection extends StatelessWidget {
     this.onSaveLogTap,
     this.cameraKey,
     this.courseTransitionKey,
+    this.isCameraReady = false,
   });
 
   final AppTravelStatus status;
@@ -45,16 +46,20 @@ class TravelDetailBottomSection extends StatelessWidget {
 
   final Object? courseTransitionKey;
 
+  /// Whether the current user is within the visiting radius of a course
+  /// spot, so their own posing tile's camera should be shown as on.
+  final bool isCameraReady;
+
   @override
   Widget build(BuildContext context) {
     switch (status) {
       case AppTravelStatus.upcoming:
         return Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding: EdgeInsets.fromLTRB(
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            _kBottomSafeGap,
+            _kBottomSafeGap + MediaQuery.of(context).padding.bottom,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -88,6 +93,7 @@ class TravelDetailBottomSection extends StatelessWidget {
             child: _PosingColumn(
               companionCount: companionCount,
               cameraKey: cameraKey,
+              isCameraReady: isCameraReady,
             ),
           ),
         );
@@ -116,10 +122,15 @@ class TravelDetailBottomSection extends StatelessWidget {
 }
 
 class _PosingColumn extends StatelessWidget {
-  const _PosingColumn({required this.companionCount, this.cameraKey});
+  const _PosingColumn({
+    required this.companionCount,
+    this.cameraKey,
+    this.isCameraReady = false,
+  });
 
   final int companionCount;
   final Key? cameraKey;
+  final bool isCameraReady;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +138,10 @@ class _PosingColumn extends StatelessWidget {
       children: [
         for (int i = 0; i < companionCount; i++) ...[
           if (i > 0) const SizedBox(height: _kPosingGap),
-          AppPosing(key: i == 0 ? cameraKey : null, isCameraOn: false),
+          AppPosing(
+            key: i == 0 ? cameraKey : null,
+            isCameraOn: i == 0 && isCameraReady,
+          ),
         ],
       ],
     );

@@ -56,6 +56,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   bool _showLengthError = false;
   bool _isSearching = false;
   bool _hasSearchError = false;
+  int _searchRequestId = 0;
 
   List<TouristSpotModel> get _selectedSpots =>
       _selectedIds.map((id) => _spotById[id]!).toList();
@@ -84,6 +85,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       return;
     }
 
+    final requestId = ++_searchRequestId;
+
     setState(() {
       _showLengthError = false;
       _hasSearchError = false;
@@ -92,7 +95,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
     try {
       final results = await widget.onSearch?.call(query) ?? const [];
-      if (!mounted) return;
+      if (!mounted || requestId != _searchRequestId) return;
       setState(() {
         _hasSearched = true;
         _searchResults = results;
@@ -101,10 +104,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         }
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || requestId != _searchRequestId) return;
       setState(() => _hasSearchError = true);
     } finally {
-      if (mounted) setState(() => _isSearching = false);
+      if (mounted && requestId == _searchRequestId) {
+        setState(() => _isSearching = false);
+      }
     }
   }
 

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
 import '../../core/design_system/app_colors.dart';
@@ -7,6 +10,7 @@ import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
+import '../../core/location/course_visiting.dart';
 import '../../data/datasources/local/travel_detail_guide_storage.dart';
 import '../../data/models/travel_course_model.dart';
 import '../../data/models/travel_info_card_model.dart';
@@ -83,17 +87,81 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   bool _showGuide = false;
 
+  LatLng? _currentLocation;
+  StreamSubscription<Position>? _positionSubscription;
+
   @override
   void initState() {
     super.initState();
     _maybeShowGuide();
+    if (widget.status == AppTravelStatus.inProgress) {
+      _startLocationTracking();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant TravelDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.status == widget.status) return;
+
+    if (widget.status == AppTravelStatus.inProgress) {
+      _startLocationTracking();
+    } else if (oldWidget.status == AppTravelStatus.inProgress) {
+      _positionSubscription?.cancel();
+      _positionSubscription = null;
+      setState(() => _currentLocation = null);
+    }
+  }
+
+  @override
+  void dispose() {
+    _positionSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _maybeShowGuide() async {
     if (widget.status == AppTravelStatus.completed) return;
-    final dismissed = await widget.guideStorage.isDismissed();
+    final dismissed = await widget.guideStorage.isDismissed(widget.status);
     if (!mounted || dismissed) return;
     setState(() => _showGuide = true);
+  }
+
+  Future<bool> _ensureLocationPermission() async {
+    if (!await Geolocator.isLocationServiceEnabled()) return false;
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+  }
+
+  Future<void> _startLocationTracking() async {
+    final hasPermission = await _ensureLocationPermission();
+    if (!hasPermission || !mounted) return;
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+      if (mounted) {
+        setState(
+          () => _currentLocation = LatLng(position.latitude, position.longitude),
+        );
+      }
+    } catch (_) {}
+
+    _positionSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 5,
+      ),
+    ).listen((position) {
+      if (!mounted) return;
+      setState(
+        () => _currentLocation = LatLng(position.latitude, position.longitude),
+      );
+    });
   }
 
   void _hideGuide() {
@@ -102,7 +170,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   void _dismissGuideForever() {
     _hideGuide();
-    widget.guideStorage.markDismissed();
+    widget.guideStorage.markDismissed(widget.status);
   }
 
   int get _dayCount => widget.info.totalDays;
@@ -117,13 +185,10 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     return courses[_selectedCourseIndex.clamp(0, courses.length - 1)];
   }
 
-  List<MapMarker> _mergedMarkersForSelectedDay() {
-    final coursesForDay = _coursesForSelectedDay;
-    if (coursesForDay.isEmpty) return const [];
-
+  List<CourseSpotModel> get _mergedSpotsForSelectedDay {
     final seenSpotIds = <int>{};
     final merged = <CourseSpotModel>[];
-    for (final course in coursesForDay) {
+    for (final course in _coursesForSelectedDay) {
       final sorted = [...course.spots]
         ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
       for (final spot in sorted) {
@@ -132,6 +197,18 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
         }
       }
     }
+    return merged;
+  }
+
+  Set<int> get _nearbySpotIds =>
+      nearbyTouristSpotIds(_currentLocation, _mergedSpotsForSelectedDay);
+
+  bool get _isCameraReady =>
+      widget.status == AppTravelStatus.inProgress && _nearbySpotIds.isNotEmpty;
+
+  List<MapMarker> _mergedMarkersForSelectedDay() {
+    final merged = _mergedSpotsForSelectedDay;
+    if (merged.isEmpty) return const [];
 
     int? selectedSpotId;
     final selected = _selectedCourse;
@@ -142,6 +219,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     }
 
     final allowVisiting = widget.status == AppTravelStatus.inProgress;
+    final nearbySpotIds = _nearbySpotIds;
 
     return [
       for (final spot in merged)
@@ -150,7 +228,8 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
           label: spot.name,
           status: switch (spot.status) {
             'visited' => MapMarkerStatus.visited,
-            'visiting' when allowVisiting => MapMarkerStatus.visiting,
+            _ when allowVisiting && nearbySpotIds.contains(spot.touristSpotId) =>
+              MapMarkerStatus.visiting,
             _ => MapMarkerStatus.notVisited,
           },
           isSelected: spot.touristSpotId == selectedSpotId,
@@ -285,6 +364,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                   ),
                   const SizedBox(height: _kDateSelectToMapCardGap),
                   GestureDetector(
+                    behavior: HitTestBehavior.translucent,
                     onHorizontalDragEnd: _handleMapSwipe,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,6 +404,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                           onSaveLogTap: widget.onSaveLogTap,
                           cameraKey: _cameraKey,
                           courseTransitionKey: '$_selectedDay-$coursePageIndex',
+                          isCameraReady: _isCameraReady,
                         ),
                       ],
                     ),

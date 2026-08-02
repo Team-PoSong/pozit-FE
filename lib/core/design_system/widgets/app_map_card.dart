@@ -1,5 +1,9 @@
+import 'dart:io' show Platform;
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart';
@@ -12,14 +16,18 @@ import '../app_text_styles.dart';
 const Duration _kTransitionDuration = Duration(milliseconds: 260);
 
 const int _kDefaultZoomLevel = 15;
-const int _kFitMapPointsPadding = 120;
+const int _kCardSingleMarkerZoomLevel = 11;
+const int _kFitMapPointsPadding = 20;
+const int _kCardFitMapPointsPadding = 100;
 
 const double _kMarkerSize = 16;
 
 const double _kVisitingMarkerSize = 30;
 const double _kVisitingIconScale = _kVisitingMarkerSize / 24;
 
-const double _kUserLocationMarkerSize = 20;
+const double _kUserLocationMarkerSize = 16;
+
+const String _kPoiLabelLayerId = 'app_map_poi_layer';
 
 enum MapMarkerStatus { visited, visiting, notVisited }
 
@@ -81,6 +89,8 @@ class AppMapView extends StatefulWidget {
     this.fitVisibleFraction = 1.0,
     this.userLocation,
     this.controller,
+    this.singleMarkerZoomLevel = _kDefaultZoomLevel,
+    this.fitPointsPadding = _kFitMapPointsPadding,
   }) : assert(
          fitVisibleFraction > 0 && fitVisibleFraction <= 1,
          'fitVisibleFraction은 0보다 크고 1 이하여야 합니다.',
@@ -98,6 +108,10 @@ class AppMapView extends StatefulWidget {
 
   final AppMapViewController? controller;
 
+  final int singleMarkerZoomLevel;
+
+  final int fitPointsPadding;
+
   @override
   State<AppMapView> createState() => _AppMapViewState();
 }
@@ -106,13 +120,18 @@ class _AppMapViewState extends State<AppMapView> {
   final Map<(MapMarkerStatus, bool), Future<PoiStyle>> _styleCache = {};
 
   KakaoMapController? _controller;
+  LabelController? _poiLayer;
   List<Poi> _pois = const [];
   List<BaseRoute> _routes = const [];
   bool _hasError = false;
+  bool _hasSettledCamera = false;
   int _renderGeneration = 0;
+
+  Future<void> _poiOperationQueue = Future<void>.value();
 
   Poi? _userLocationPoi;
   Future<PoiStyle>? _userLocationStyleFuture;
+  bool _isAddingUserLocationPoi = false;
 
   @override
   void initState() {
@@ -127,7 +146,10 @@ class _AppMapViewState extends State<AppMapView> {
       oldWidget.controller?._state = null;
       widget.controller?._state = this;
     }
-    if (oldWidget.userLocation != widget.userLocation) {
+    final userLocationChanged = oldWidget.userLocation != widget.userLocation;
+    final missingUserLocationPoi =
+        widget.userLocation != null && _userLocationPoi == null;
+    if (userLocationChanged || missingUserLocationPoi) {
       _renderUserLocation();
     }
 
@@ -145,7 +167,25 @@ class _AppMapViewState extends State<AppMapView> {
     if (widget.controller?._state == this) {
       widget.controller?._state = null;
     }
+    _invalidateMapState();
     super.dispose();
+  }
+
+  /// 진행 중인 렌더링 작업이 다음 체크포인트에서 스스로 중단하도록
+  /// generation을 무효화하고, 더 이상 유효하지 않은 컨트롤러 참조를 해제합니다.
+  /// 단, 이미 네이티브로 전달된 호출 자체를 취소하지는 못합니다.
+  void _invalidateMapState() {
+    _renderGeneration++;
+    _controller = null;
+    _poiLayer = null;
+  }
+
+  /// POI 추가·삭제·스타일 변경 작업이 동시에 네이티브로 전달되지 않도록
+  /// 하나의 큐를 통해 순차적으로 실행합니다.
+  Future<void> _enqueuePoiOperation(Future<void> Function() operation) {
+    final result = _poiOperationQueue.then((_) => operation());
+    _poiOperationQueue = result.then((_) {}, onError: (_) {});
+    return result;
   }
 
   Future<void> _moveCameraTo(LatLng position, {int? zoomLevel}) async {
@@ -228,7 +268,7 @@ class _AppMapViewState extends State<AppMapView> {
     );
   }
 
-  void _handleMapReady(KakaoMapController controller) {
+  Future<void> _handleMapReady(KakaoMapController controller) async {
     _controller = controller;
     if (!widget.enableGestures) {
       for (final gesture in GestureType.values) {
@@ -236,29 +276,56 @@ class _AppMapViewState extends State<AppMapView> {
         controller.setGesture(gesture, false);
       }
     }
-    _renderOverlays();
-    _renderUserLocation();
+    try {
+      // iOS는 기본 라벨 레이어가 네이티브에 생성되어 있지 않아 강제 언래핑 크래시(SIGTRAP)로
+      // 이어지므로 명시적으로 레이어를 만들어야 합니다. 반대로 Android 플러그인은
+      // createLabelLayer 처리 시 대상 레이어를 먼저 조회하려다 존재하지 않으면 그 자리에서
+      // NPE를 던지는 버그가 있어, 이미 네이티브에 존재하는 기본 레이어를 그대로 사용합니다.
+      final poiLayer = Platform.isIOS
+          ? await controller.addLabelLayer(_kPoiLabelLayerId)
+          : controller.labelLayer;
+      if (!mounted || _controller != controller) return;
+      _poiLayer = poiLayer;
+      await _renderOverlays();
+      if (!mounted) return;
+      await _renderUserLocation();
+    } catch (error) {
+      debugPrint('지도 초기화 실패: $error');
+    } finally {
+      if (mounted && !_hasSettledCamera) {
+        setState(() => _hasSettledCamera = true);
+      }
+    }
   }
 
   void _handleMapError(Object error) {
     if (!mounted) return;
+    _invalidateMapState();
     setState(() => _hasError = true);
   }
 
   void _handleRetry() {
+    _invalidateMapState();
     setState(() {
       _hasError = false;
-      _controller = null;
       _pois = const [];
       _routes = const [];
     });
   }
 
-  Future<void> _renderOverlays() async {
+  Future<void> _renderOverlays() {
     final controller = _controller;
-    if (controller == null) return;
+    if (controller == null) return Future.value();
     final generation = ++_renderGeneration;
+    return _enqueuePoiOperation(() => _runRenderOverlays(controller, generation));
+  }
+
+  Future<void> _runRenderOverlays(
+    KakaoMapController controller,
+    int generation,
+  ) async {
     bool isStale() => !mounted || generation != _renderGeneration;
+    if (isStale()) return;
 
     await _renderMarkers(controller, generation);
     if (isStale()) return;
@@ -277,12 +344,12 @@ class _AppMapViewState extends State<AppMapView> {
       await controller.moveCamera(
         CameraUpdate.newCenterPosition(
           points.first,
-          zoomLevel: _kDefaultZoomLevel,
+          zoomLevel: widget.singleMarkerZoomLevel,
         ),
       );
     } else {
       await controller.moveCamera(
-        CameraUpdate.fitMapPoints(points, padding: _kFitMapPointsPadding),
+        CameraUpdate.fitMapPoints(points, padding: widget.fitPointsPadding),
       );
     }
     if (isStale()) return;
@@ -302,14 +369,23 @@ class _AppMapViewState extends State<AppMapView> {
     final size = context.size;
     if (size == null) return;
 
-    final dpr = MediaQuery.of(context).devicePixelRatio;
+    final scale = Platform.isIOS ? 1.0 : MediaQuery.of(context).devicePixelRatio;
 
     final deltaY = size.height / 2 * (1 - fraction);
-    final queryX = (size.width / 2 * dpr).round();
-    final queryY = ((size.height / 2 + deltaY) * dpr).round();
+    final queryX = (size.width / 2 * scale).round();
+    final queryY = ((size.height / 2 + deltaY) * scale).round();
     final target = await controller.fromScreenPoint(queryX, queryY);
     if (target == null || !mounted || generation != _renderGeneration) return;
-    await controller.moveCamera(CameraUpdate.newCenterPosition(target));
+
+    final currentZoomLevel = (await controller.getCameraPosition()).zoomLevel;
+    if (!mounted || generation != _renderGeneration) return;
+
+    final zoomAdjustment = (math.log(1 / fraction) / math.log(2)).ceil();
+    final adjustedZoomLevel = currentZoomLevel - zoomAdjustment;
+
+    await controller.moveCamera(
+      CameraUpdate.newCenterPosition(target, zoomLevel: adjustedZoomLevel),
+    );
   }
 
   Future<void> _renderMarkers(
@@ -317,7 +393,8 @@ class _AppMapViewState extends State<AppMapView> {
     int generation,
   ) async {
     bool isStale() => !mounted || generation != _renderGeneration;
-    final layer = controller.labelLayer;
+    final layer = _poiLayer;
+    if (layer == null) return;
 
     for (final poi in _pois) {
       await layer.removePoi(poi);
@@ -367,8 +444,15 @@ class _AppMapViewState extends State<AppMapView> {
           debugPrint('$label 추가 실패: 재시도 초과');
           return null;
         }
-        await Future.delayed(const Duration(milliseconds: 80));
+      } on PlatformException {
+        // 레이어 생성 직후에는 네이티브 쪽에서 아직 레이어가 조회되지 않아
+        // 일시적으로 실패할 수 있어 재시도합니다.
+        if (attempt == maxAttempts) {
+          debugPrint('$label 추가 실패: 재시도 초과');
+          return null;
+        }
       }
+      await Future.delayed(const Duration(milliseconds: 80));
     }
     return null;
   }
@@ -405,16 +489,20 @@ class _AppMapViewState extends State<AppMapView> {
     _routes = [route];
   }
 
-  Future<void> _renderUserLocation() async {
-    final controller = _controller;
-    if (controller == null) return;
+  Future<void> _renderUserLocation() {
+    return _enqueuePoiOperation(_runRenderUserLocation);
+  }
+
+  Future<void> _runRenderUserLocation() async {
+    final layer = _poiLayer;
+    if (layer == null) return;
 
     final location = widget.userLocation;
     if (location == null) {
       final poi = _userLocationPoi;
       if (poi != null) {
         _userLocationPoi = null;
-        await controller.labelLayer.removePoi(poi);
+        await layer.removePoi(poi);
       }
       return;
     }
@@ -425,14 +513,22 @@ class _AppMapViewState extends State<AppMapView> {
       return;
     }
 
-    final style = await (_userLocationStyleFuture ??= _buildUserLocationStyle());
-    if (!mounted || widget.userLocation != location) return;
-    _userLocationPoi = await _addPoiWithRetry(
-      controller.labelLayer,
-      location,
-      style,
-      label: '내 위치 마커',
-    );
+    if (_isAddingUserLocationPoi) return;
+    _isAddingUserLocationPoi = true;
+    try {
+      final style = await (_userLocationStyleFuture ??= _buildUserLocationStyle());
+      if (!mounted) return;
+      final latestLocation = widget.userLocation;
+      if (latestLocation == null) return;
+      _userLocationPoi = await _addPoiWithRetry(
+        layer,
+        latestLocation,
+        style,
+        label: '내 위치 마커',
+      );
+    } finally {
+      _isAddingUserLocationPoi = false;
+    }
   }
 
   static Future<PoiStyle> _buildUserLocationStyle() async {
@@ -455,9 +551,14 @@ class _AppMapViewState extends State<AppMapView> {
     return true;
   }
 
-  Future<void> _updateMarkerStyles() async {
+  Future<void> _updateMarkerStyles() {
     final generation = ++_renderGeneration;
+    return _enqueuePoiOperation(() => _runUpdateMarkerStyles(generation));
+  }
+
+  Future<void> _runUpdateMarkerStyles(int generation) async {
     bool isStale() => !mounted || generation != _renderGeneration;
+    if (isStale()) return;
 
     for (var i = 0; i < widget.markers.length && i < _pois.length; i++) {
       final marker = widget.markers[i];
@@ -498,17 +599,23 @@ class _AppMapViewState extends State<AppMapView> {
       );
     }
 
-    return KakaoMap(
-      option: KakaoMapOption(
-        position: widget.markers.isNotEmpty
-            ? widget.markers.first.position
-            : const KakaoMapOption().position,
-        zoomLevel: _kDefaultZoomLevel,
-      ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        KakaoMap(
+          option: KakaoMapOption(
+            position: widget.markers.isNotEmpty
+                ? widget.markers.first.position
+                : const KakaoMapOption().position,
+            zoomLevel: _kDefaultZoomLevel,
+          ),
 
-      forceGesture: widget.enableGestures,
-      onMapReady: _handleMapReady,
-      onMapError: _handleMapError,
+          forceGesture: widget.enableGestures,
+          onMapReady: _handleMapReady,
+          onMapError: _handleMapError,
+        ),
+        if (!_hasSettledCamera) const ColoredBox(color: AppColors.gray2),
+      ],
     );
   }
 }
@@ -588,7 +695,11 @@ class AppMapCard extends StatelessWidget {
                   aspectRatio: 319 / 156,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: AppMapView(markers: markers),
+                    child: AppMapView(
+                      markers: markers,
+                      singleMarkerZoomLevel: _kCardSingleMarkerZoomLevel,
+                      fitPointsPadding: _kCardFitMapPointsPadding,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),

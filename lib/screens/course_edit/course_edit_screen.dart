@@ -143,7 +143,10 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
   void _handleSave() {
     widget.onSave?.call({
       for (final entry in _spotsByDayIndex.entries)
-        _dayNumberForIndex(entry.key): List.unmodifiable(entry.value),
+        _dayNumberForIndex(entry.key): List.unmodifiable([
+          for (var i = 0; i < entry.value.length; i++)
+            entry.value[i].copyWith(orderIndex: i),
+        ]),
     });
   }
 

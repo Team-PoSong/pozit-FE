@@ -64,6 +64,30 @@ class CourseSpotModel {
           const [],
     );
   }
+
+  CourseSpotModel copyWith({
+    int? courseSpotId,
+    int? touristSpotId,
+    String? name,
+    String? address,
+    double? latitude,
+    double? longitude,
+    int? orderIndex,
+    String? status,
+    List<PozingModel>? pozings,
+  }) {
+    return CourseSpotModel(
+      courseSpotId: courseSpotId ?? this.courseSpotId,
+      touristSpotId: touristSpotId ?? this.touristSpotId,
+      name: name ?? this.name,
+      address: address ?? this.address,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      orderIndex: orderIndex ?? this.orderIndex,
+      status: status ?? this.status,
+      pozings: pozings ?? this.pozings,
+    );
+  }
 }
 
 class TravelCourseModel {
