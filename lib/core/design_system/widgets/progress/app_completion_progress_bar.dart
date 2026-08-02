@@ -11,7 +11,7 @@ class AppCompletionProgressBar extends StatelessWidget {
     super.key,
     required this.progress,
     this.width = 242.0,
-    this.height = 16.0,
+    this.height = 12.0,
   });
 
   @override

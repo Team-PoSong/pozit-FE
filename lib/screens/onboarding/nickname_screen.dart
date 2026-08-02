@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
@@ -83,7 +84,12 @@ class _NicknameScreenState extends State<NicknameScreen> {
       body: SafeArea(
         maintainBottomViewPadding: true,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.fromLTRB(
+            24,
+            0,
+            24,
+            AppDimensions.screenBottomPadding,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

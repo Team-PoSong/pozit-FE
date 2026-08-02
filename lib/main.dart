@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:kakao_map_sdk/kakao_map_sdk.dart';
 
 import 'package:pozit/core/config/app_config.dart';
 import 'package:pozit/core/design_system/app_colors.dart';
@@ -10,6 +11,16 @@ import 'package:pozit/screens/auth/auth_gate.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await KakaoSdk.init(nativeAppKey: AppConfig.kakaoNativeAppKey);
+
+  assert(
+    AppConfig.kakaoMapKey.isNotEmpty,
+    'AppConfig.kakaoMapKey에 카카오맵 네이티브 앱 키를 채워주세요.',
+  );
+  try {
+    await KakaoMapSdk.instance.initialize(AppConfig.kakaoMapKey);
+  } catch (error) {
+    debugPrint('KakaoMapSdk 초기화 실패: $error');
+  }
 
   DioClient.instance.attachAccessTokenProvider(
     () => const AuthTokenStorage().readAccessToken(),

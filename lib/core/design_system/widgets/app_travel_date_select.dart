@@ -6,16 +6,39 @@ import 'package:flutter/widget_previews.dart';
 import '../app_colors.dart';
 import '../app_text_styles.dart';
 
+const double _kStartLeftPadding = 21.0;
+
+const double _kStartRightPadding = 49.0;
+
+const double _kEndLeftPadding = 24.0;
+
+const double _kEndRightPadding = 40.0;
+
+double _measureTextWidth(String text, TextStyle style, TextScaler textScaler) {
+  final painter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    textDirection: TextDirection.ltr,
+    textScaler: textScaler,
+  )..layout();
+  final width = painter.width;
+  painter.dispose();
+  return width;
+}
+
 class AppTravelDate extends StatefulWidget {
   const AppTravelDate({
     super.key,
     required this.startDate,
     required this.endDate,
+    this.showTitle = true,
     this.onTap,
   });
 
   final DateTime startDate;
   final DateTime endDate;
+
+  final bool showTitle;
+
   final VoidCallback? onTap;
 
   @override
@@ -42,6 +65,20 @@ class _AppTravelDateState extends State<AppTravelDate> {
     final formattedStartDate = _formatDate(widget.startDate);
     final formattedEndDate = _formatDate(widget.endDate);
     final isStartSelected = _selection == _TravelDateSelection.start;
+    final textScaler = MediaQuery.textScalerOf(context);
+
+    final startTextWidth = math.max(
+      _measureTextWidth('여행 시작일', AppTextStyles.body, textScaler),
+      _measureTextWidth(formattedStartDate, AppTextStyles.subTitle, textScaler),
+    );
+    final endTextWidth = math.max(
+      _measureTextWidth('여행 종료일', AppTextStyles.body, textScaler),
+      _measureTextWidth(formattedEndDate, AppTextStyles.subTitle, textScaler),
+    );
+    final startShapeWidth =
+        _kStartLeftPadding + startTextWidth + _kStartRightPadding;
+    final endShapeWidth = _kEndLeftPadding + endTextWidth + _kEndRightPadding;
+    final totalWidth = startShapeWidth + endShapeWidth;
 
     return Semantics(
       label: '여행 시작일 $formattedStartDate, 여행 종료일 $formattedEndDate',
@@ -49,95 +86,90 @@ class _AppTravelDateState extends State<AppTravelDate> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _TravelDateTitle(),
-          const SizedBox(height: 14),
+          if (widget.showTitle) ...[
+            const _TravelDateTitle(),
+            const SizedBox(height: 14),
+          ],
           SizedBox(
-            width: double.infinity,
+            width: totalWidth,
             height: 66,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                final startShapeWidth = width * 0.5;
-
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned.fill(
-                      child: ClipPath(
-                        clipper: const _EndDateClipper(),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          color: isStartSelected
-                              ? AppColors.gray2
-                              : AppColors.purple1,
-                        ),
-                      ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: ClipPath(
+                    clipper: const _EndDateClipper(),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      color: isStartSelected
+                          ? AppColors.gray2
+                          : AppColors.purple1,
                     ),
-                    Positioned(
-                      left: startShapeWidth + 26,
-                      right: 20,
-                      top: 0,
-                      bottom: 0,
-                      child: _DateText(label: '여행 종료일', date: formattedEndDate),
+                  ),
+                ),
+                Positioned(
+                  left: startShapeWidth + _kEndLeftPadding,
+                  width: endTextWidth,
+                  top: 0,
+                  bottom: 0,
+                  child: _DateText(label: '여행 종료일', date: formattedEndDate),
+                ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: startShapeWidth,
+                  child: ClipPath(
+                    clipper: const _StartDateClipper(),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      color: isStartSelected
+                          ? AppColors.purple1
+                          : AppColors.gray2,
                     ),
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: startShapeWidth,
-                      child: ClipPath(
-                        clipper: const _StartDateClipper(),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          color: isStartSelected
-                              ? AppColors.purple1
-                              : AppColors.gray2,
-                        ),
-                      ),
+                  ),
+                ),
+                Positioned(
+                  left: _kStartLeftPadding,
+                  width: startTextWidth,
+                  top: 0,
+                  bottom: 0,
+                  child: _DateText(
+                    label: '여행 시작일',
+                    date: formattedStartDate,
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: startShapeWidth,
+                  child: Semantics(
+                    button: true,
+                    selected: isStartSelected,
+                    label: '여행 시작일 $formattedStartDate',
+                    child: GestureDetector(
+                      onTap: () => _select(_TravelDateSelection.start),
+                      behavior: HitTestBehavior.opaque,
                     ),
-                    Positioned(
-                      left: 21,
-                      width: math.max(0, startShapeWidth - 33),
-                      top: 0,
-                      bottom: 0,
-                      child: _DateText(
-                        label: '여행 시작일',
-                        date: formattedStartDate,
-                      ),
+                  ),
+                ),
+                Positioned(
+                  left: startShapeWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: endShapeWidth,
+                  child: Semantics(
+                    button: true,
+                    selected: !isStartSelected,
+                    label: '여행 종료일 $formattedEndDate',
+                    child: GestureDetector(
+                      onTap: () => _select(_TravelDateSelection.end),
+                      behavior: HitTestBehavior.opaque,
                     ),
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: startShapeWidth,
-                      child: Semantics(
-                        button: true,
-                        selected: isStartSelected,
-                        label: '여행 시작일 $formattedStartDate',
-                        child: GestureDetector(
-                          onTap: () => _select(_TravelDateSelection.start),
-                          behavior: HitTestBehavior.opaque,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: width - startShapeWidth,
-                      child: Semantics(
-                        button: true,
-                        selected: !isStartSelected,
-                        label: '여행 종료일 $formattedEndDate',
-                        child: GestureDetector(
-                          onTap: () => _select(_TravelDateSelection.end),
-                          behavior: HitTestBehavior.opaque,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -283,7 +315,7 @@ class _StartDateClipper extends CustomClipper<Path> {
 class _EndDateClipper extends CustomClipper<Path> {
   const _EndDateClipper();
 
-  static const double arrowWidth = 40;
+  static const double arrowWidth = 30;
 
   @override
   Path getClip(Size size) {

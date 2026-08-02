@@ -5,17 +5,18 @@ import '../app_colors.dart';
 import '../app_icons.dart';
 import '../app_text_styles.dart';
 
-/// 선택 가능한 태그 칩 (예: #문화, #예술)
 class AppTagChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback? onTap;
+  final EdgeInsetsGeometry padding;
 
   const AppTagChip({
     super.key,
     required this.label,
     this.isSelected = false,
     this.onTap,
+    this.padding = const EdgeInsets.symmetric(vertical: 10.0, horizontal: 24.0),
   });
 
   @override
@@ -23,7 +24,8 @@ class AppTagChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 24.0),
+        padding: padding,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.purple1 : AppColors.gray2,
           borderRadius: BorderRadius.circular(9999.0),
@@ -33,6 +35,7 @@ class AppTagChip extends StatelessWidget {
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
           style: isSelected
               ? AppTextStyles.caption2.copyWith(color: AppColors.purple3)
               : AppTextStyles.caption.copyWith(color: AppColors.gray5),
@@ -42,7 +45,6 @@ class AppTagChip extends StatelessWidget {
   }
 }
 
-/// 삭제(x) 가능한 칩
 class AppDeletableChip extends StatelessWidget {
   final String label;
   final VoidCallback? onDeleted;

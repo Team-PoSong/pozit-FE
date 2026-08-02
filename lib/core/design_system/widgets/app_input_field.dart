@@ -19,6 +19,7 @@ class AppInputField extends StatefulWidget {
     this.isError = false,
     this.maxLength,
     this.inputFormatters,
+    this.textColor,
   });
 
   final TextEditingController? controller;
@@ -32,6 +33,8 @@ class AppInputField extends StatefulWidget {
   final int? maxLength;
   final List<TextInputFormatter>? inputFormatters;
 
+  final Color? textColor;
+
   @override
   State<AppInputField> createState() => _AppInputFieldState();
 }
@@ -39,12 +42,15 @@ class AppInputField extends StatefulWidget {
 class _AppInputFieldState extends State<AppInputField> {
   late TextEditingController _controller;
   late bool _ownsController;
-  late bool _hasText;
+  late FocusNode _focusNode;
+  late bool _ownsFocusNode;
+  bool _hasFocus = false;
 
   @override
   void initState() {
     super.initState();
     _attachController(widget.controller);
+    _attachFocusNode(widget.focusNode);
   }
 
   @override
@@ -55,32 +61,47 @@ class _AppInputFieldState extends State<AppInputField> {
       _detachController();
       _attachController(widget.controller);
     }
+    if (oldWidget.focusNode != widget.focusNode) {
+      _detachFocusNode();
+      _attachFocusNode(widget.focusNode);
+    }
   }
 
   void _attachController(TextEditingController? controller) {
     _ownsController = controller == null;
     _controller = controller ?? TextEditingController();
-    _hasText = _controller.text.isNotEmpty;
-    _controller.addListener(_handleTextChanged);
   }
 
   void _detachController() {
-    _controller.removeListener(_handleTextChanged);
     if (_ownsController) {
       _controller.dispose();
     }
   }
 
-  void _handleTextChanged() {
-    final hasText = _controller.text.isNotEmpty;
-    if (_hasText != hasText) {
-      setState(() => _hasText = hasText);
+  void _attachFocusNode(FocusNode? focusNode) {
+    _ownsFocusNode = focusNode == null;
+    _focusNode = focusNode ?? FocusNode();
+    _hasFocus = _focusNode.hasFocus;
+    _focusNode.addListener(_handleFocusChanged);
+  }
+
+  void _detachFocusNode() {
+    _focusNode.removeListener(_handleFocusChanged);
+    if (_ownsFocusNode) {
+      _focusNode.dispose();
+    }
+  }
+
+  void _handleFocusChanged() {
+    if (_hasFocus != _focusNode.hasFocus) {
+      setState(() => _hasFocus = _focusNode.hasFocus);
     }
   }
 
   @override
   void dispose() {
     _detachController();
+    _detachFocusNode();
     super.dispose();
   }
 
@@ -89,7 +110,7 @@ class _AppInputFieldState extends State<AppInputField> {
     const borderRadius = BorderRadius.all(Radius.circular(4));
     final borderSide = widget.isError
         ? const BorderSide(width: 1, color: AppColors.error)
-        : _hasText
+        : _hasFocus
         ? const BorderSide(width: 1, color: AppColors.purple3)
         : BorderSide.none;
 
@@ -99,7 +120,7 @@ class _AppInputFieldState extends State<AppInputField> {
       ),
       child: TextField(
         controller: _controller,
-        focusNode: widget.focusNode,
+        focusNode: _focusNode,
         onChanged: widget.onChanged,
         onTap: widget.onTap,
         readOnly: widget.readOnly,
@@ -117,7 +138,7 @@ class _AppInputFieldState extends State<AppInputField> {
         textAlignVertical: TextAlignVertical.center,
         cursorColor: AppColors.text,
         style: AppTextStyles.body.copyWith(
-          color: AppColors.text,
+          color: widget.textColor ?? AppColors.text,
           height: 20 / 14,
           letterSpacing: -0.5,
         ),

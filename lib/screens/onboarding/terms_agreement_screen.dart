@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
@@ -50,7 +51,12 @@ class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
       backgroundColor: AppColors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.fromLTRB(
+            24,
+            0,
+            24,
+            AppDimensions.screenBottomPadding,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

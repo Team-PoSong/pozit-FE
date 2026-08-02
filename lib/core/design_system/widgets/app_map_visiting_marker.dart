@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
-import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_images.dart';
+import '../app_colors.dart';
+import '../app_images.dart';
 
 class MapVisitingMarker extends StatelessWidget {
   const MapVisitingMarker({super.key});
@@ -15,7 +15,7 @@ class MapVisitingMarker extends StatelessWidget {
         shape: BoxShape.circle,
         color: AppColors.white,
         boxShadow: const [
-          BoxShadow(color: AppColors.purple2, blurRadius: 12.0), // 완전 불투명 (기존 방문중 아이콘 그림자와는 다름)
+          BoxShadow(color: AppColors.purple2, blurRadius: 12.0),
         ],
       ),
       child: Padding(

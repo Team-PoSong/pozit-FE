@@ -11,6 +11,7 @@ class AppLocationSelect extends StatefulWidget {
     required this.address,
     this.isSelected,
     this.initiallySelected = false,
+    this.showTrailingIndicator = true,
     this.onChanged,
   });
 
@@ -18,6 +19,8 @@ class AppLocationSelect extends StatefulWidget {
   final String address;
   final bool? isSelected;
   final bool initiallySelected;
+
+  final bool showTrailingIndicator;
   final ValueChanged<bool>? onChanged;
 
   @override
@@ -102,8 +105,10 @@ class _AppLocationSelectState extends State<AppLocationSelect> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              _SelectionIndicator(isSelected: _isSelected),
+              if (widget.showTrailingIndicator) ...[
+                const SizedBox(width: 12),
+                _SelectionIndicator(isSelected: _isSelected),
+              ],
             ],
           ),
         ),

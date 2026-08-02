@@ -66,4 +66,10 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+
+    <!-- 카카오맵 SDK(kakao_map_sdk)가 지도 타일을 내려받고, 필요 시 현재
+         위치를 표시하기 위해 요구하는 권한입니다. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 </manifest>

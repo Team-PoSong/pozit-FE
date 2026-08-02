@@ -17,7 +17,7 @@ const double _cellHeight = 32.0;
 const double _cellGap = 3.0;
 const double _rowContentWidth = _cellDiameter * 7 + _cellGap * 6;
 const double _calendarHorizontalPadding = 20.0;
-const double _weekRowGap = 18.0;
+const double _weekRowGap = 8.0;
 const double _fadeStop = 0.9634;
 
 const double _arrowTouchSize = 48.0;
@@ -225,7 +225,7 @@ class _AppCalendarState extends State<AppCalendar> {
     required bool startsBeforeMonth,
     required bool endsAfterMonth,
   }) {
-    _CapType _capTypeFor(int index) {
+    _CapType capTypeFor(int index) {
       final date = week[index];
 
       if (_isSameDay(date, trueStart) || _isSameDay(date, trueEnd)) {
@@ -283,7 +283,7 @@ class _AppCalendarState extends State<AppCalendar> {
     }
 
     if (segStart == segEnd) {
-      final type = _capTypeFor(segStart);
+      final type = capTypeFor(segStart);
 
       if (type == _CapType.round) {
         final rect = _cellRect(week[segStart], gridBox);
@@ -298,8 +298,8 @@ class _AppCalendarState extends State<AppCalendar> {
       return;
     }
 
-    final leftType = _capTypeFor(segStart);
-    final rightType = _capTypeFor(segEnd);
+    final leftType = capTypeFor(segStart);
+    final rightType = capTypeFor(segEnd);
 
     final startCellRect = _cellRect(week[segStart], gridBox);
 
@@ -691,6 +691,7 @@ class _DateCell extends StatelessWidget {
     }
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: isDisabled ? null : () => onTap?.call(date),
       child: SizedBox(
         width: width,

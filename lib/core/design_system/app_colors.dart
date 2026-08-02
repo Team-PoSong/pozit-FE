@@ -17,6 +17,8 @@ class AppColors {
   static const Color navigationBorderEnd = Color(0xFF9999FF);
   static const Color bottomGradientStart = Color(0x00E3E4FF);
   static const Color bottomGradientEnd = Color(0xB2E3E4FF);
+  static const Color travelLogGradientStart = Color(0xFFFFFFFF);
+  static const Color travelLogGradientEnd = Color(0xFFECECFF);
 
   static const Color gray5 = Color(0xFF7E7E7E);
   static const Color gray4 = Color(0xFFC6C6C6);

@@ -1,5 +1,3 @@
-// 공통적으로 쓰이는 아이콘을 변수화합니다.
-
 class AppIcons {
   AppIcons._();
 
@@ -26,13 +24,14 @@ class AppIcons {
   static const String headerHeart = '$_basePath/ic_header_heart.svg';
   static const String travelPlus = '$_basePath/ic_travel_plus.svg';
 
-  static const String travel = '$_basePath/ic_travel.svg';
+  static const String travelLuggage = '$_basePath/ic_travel_luggage.svg';
   static const String search = '$_basePath/ic_search.svg';
   static const String pin = '$_basePath/ic_pin_gray.svg';
   static const String pinPurple = '$_basePath/ic_pin_purple.svg';
   static const String pinFilter = '$_basePath/ic_pin_filter.svg';
   static const String more = '$_basePath/ic_more.svg';
   static const String mypage = '$_basePath/ic_mypage.svg';
+  static const String mypageFilled = '$_basePath/ic_mypage_filled.svg';
   static const String arrowLeft = '$_basePath/ic_arrow_left_black.svg';
   static const String arrowLeftWhite = '$_basePath/ic_arrow_left_white.svg';
   static const String check = '$_basePath/ic_check.svg';
@@ -78,6 +77,8 @@ class AppIcons {
   static const String map = '$_basePath/ic_map.svg';
   static const String x = '$_basePath/ic_x.svg';
   static const String share = '$_basePath/ic_share.svg';
+  static const String shareWhite = '$_basePath/ic_share_white.svg';
   static const String save = '$_basePath/ic_save.svg';
   static const String posong = '$_basePath/ic_posong.svg';
+  static const String userLocation = '$_basePath/ic_user_location.svg';
 }
