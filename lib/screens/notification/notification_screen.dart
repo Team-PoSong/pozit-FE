@@ -7,8 +7,8 @@ import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/network/api_exception.dart';
-import '../../data/models/notification_model.dart';
-import '../../data/repositories/notification_repository.dart';
+import '../../data/models/notification/notification_model.dart';
+import '../../data/repositories/notification/notification_repository.dart';
 import 'notification_content.dart';
 
 const double _kTopBarTopOffset = 4.0;
@@ -78,7 +78,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           padding: const EdgeInsets.only(top: _kTopBarTopOffset),
           child: Column(
             children: [
-              NotificationTopBar(onBackTap: _handleBack),
+              _NotificationTopBar(onBackTap: _handleBack),
               Expanded(child: _buildBody()),
             ],
           ),
@@ -103,8 +103,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 }
 
-class NotificationTopBar extends StatelessWidget {
-  const NotificationTopBar({super.key, required this.onBackTap});
+class _NotificationTopBar extends StatelessWidget {
+  const _NotificationTopBar({super.key, required this.onBackTap});
 
   final VoidCallback onBackTap;
 

@@ -3,7 +3,7 @@ import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../data/models/notification_model.dart';
+import '../../data/models/notification/notification_model.dart';
 import 'notification_list_item.dart';
 
 const double _kHorizontalPadding = 24.0;
