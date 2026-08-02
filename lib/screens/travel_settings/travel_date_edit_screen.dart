@@ -110,6 +110,7 @@ class _TravelDateEditScreenState extends State<TravelDateEditScreen> {
                     children: [
                       AppCalendar(
                         initialMonth: _displayStartDate,
+                        minSelectableDate: DateTime.now(),
                         onRangeSelected: _handleRangeSelected,
                         onSelectionCleared: _handleSelectionCleared,
                       ),

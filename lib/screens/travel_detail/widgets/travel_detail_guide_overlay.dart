@@ -93,7 +93,10 @@ class _TravelDetailGuideOverlayState extends State<TravelDetailGuideOverlay> {
             as RenderBox?;
     final mapBox =
         widget.mapKey.currentContext?.findRenderObject() as RenderBox?;
-    if (rootBox == null || courseBox == null || mapBox == null) return;
+    if (rootBox == null || courseBox == null || mapBox == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+      return;
+    }
 
     final cameraBox =
         widget.cameraKey?.currentContext?.findRenderObject() as RenderBox?;

@@ -194,7 +194,10 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               ),
             ),
             const SizedBox(height: _kSearchBarToLabelGap),
-            if (!_hasSearched && !_showLengthError) ...[
+            if (!_hasSearched &&
+                !_showLengthError &&
+                !_isSearching &&
+                !_hasSearchError) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: _kHorizontalPadding,

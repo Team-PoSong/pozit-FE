@@ -186,6 +186,7 @@ Future<void> showTravelSettingsPopup(
   VoidCallback? wrap(VoidCallback? callback) {
     if (callback == null) return null;
     return () {
+      if (isClosing) return;
       close().then((_) => callback());
     };
   }

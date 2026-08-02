@@ -185,8 +185,11 @@ class _SettingsButton extends StatefulWidget {
 
 class _SettingsButtonState extends State<_SettingsButton> {
   final LayerLink _anchorLink = LayerLink();
+  bool _isPopupOpen = false;
 
   void _handleTap() {
+    if (_isPopupOpen) return;
+    _isPopupOpen = true;
     showTravelSettingsPopup(
       context,
       anchorLink: _anchorLink,
@@ -197,7 +200,7 @@ class _SettingsButtonState extends State<_SettingsButton> {
       onMemberTap: widget.onMemberTap,
       onLeaveTap: _handleLeaveTap,
       onDeleteTap: _handleDeleteTap,
-    );
+    ).then((_) => _isPopupOpen = false);
   }
 
   void _handleLeaveTap() {

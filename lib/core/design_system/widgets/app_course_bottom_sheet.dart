@@ -273,15 +273,27 @@ class _AppCourseBottomSheetState extends State<AppCourseBottomSheet> {
               final extent = _currentExtent(restingExtent);
               final isFullyExpanded = extent >= widget.maxChildSize - 0.001;
               if (isFullyExpanded) return const SizedBox.shrink();
+              const tapTargetInset =
+                  (AppDimensions.minimumTapTargetSize - 36.0) / 2;
               return Positioned(
-                right: _floatingButtonRightMargin,
-                bottom: extent * screenHeight + _floatingButtonBottomGap,
+                right: _floatingButtonRightMargin - tapTargetInset,
+                bottom:
+                    extent * screenHeight +
+                    _floatingButtonBottomGap -
+                    tapTargetInset,
                 child: GestureDetector(
                   onTap: widget.onFloatingButtonTap,
-                  child: SvgPicture.asset(
-                    AppIcons.map,
-                    width: 36.0,
-                    height: 36.0,
+                  behavior: HitTestBehavior.opaque,
+                  child: SizedBox(
+                    width: AppDimensions.minimumTapTargetSize,
+                    height: AppDimensions.minimumTapTargetSize,
+                    child: Center(
+                      child: SvgPicture.asset(
+                        AppIcons.map,
+                        width: 36.0,
+                        height: 36.0,
+                      ),
+                    ),
                   ),
                 ),
               );

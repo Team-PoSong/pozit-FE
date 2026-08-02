@@ -134,9 +134,12 @@ class _PosingColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // companionCount는 본인을 포함한 전체 인원 수입니다. 0은 정상적으로
+    // 내려올 수 없는 값이지만, 방어적으로 본인 카메라 타일은 항상 보장합니다.
+    final tileCount = companionCount > 0 ? companionCount : 1;
     return Column(
       children: [
-        for (int i = 0; i < companionCount; i++) ...[
+        for (int i = 0; i < tileCount; i++) ...[
           if (i > 0) const SizedBox(height: _kPosingGap),
           AppPosing(
             key: i == 0 ? cameraKey : null,

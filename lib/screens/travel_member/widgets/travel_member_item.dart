@@ -81,10 +81,7 @@ class _TravelMemberItemState extends State<TravelMemberItem> {
           Expanded(
             child: Text(
               widget.nickname,
-              style: AppTextStyles.subTitle.copyWith(
-                color: AppColors.text,
-                package: widget.assetPackage,
-              ),
+              style: AppTextStyles.subTitle.copyWith(color: AppColors.text),
             ),
           ),
           if (widget.canManage)

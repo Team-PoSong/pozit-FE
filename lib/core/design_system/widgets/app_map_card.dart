@@ -121,7 +121,8 @@ class _AppMapViewState extends State<AppMapView> {
 
   KakaoMapController? _controller;
   LabelController? _poiLayer;
-  List<Poi> _pois = const [];
+  /// widget.markers와 동일한 인덱스로 정렬됩니다. 등록에 실패한 자리는 null로 남습니다.
+  List<Poi?> _pois = const [];
   List<BaseRoute> _routes = const [];
   bool _hasError = false;
   bool _hasSettledCamera = false;
@@ -183,8 +184,12 @@ class _AppMapViewState extends State<AppMapView> {
   /// POI 추가·삭제·스타일 변경 작업이 동시에 네이티브로 전달되지 않도록
   /// 하나의 큐를 통해 순차적으로 실행합니다.
   Future<void> _enqueuePoiOperation(Future<void> Function() operation) {
-    final result = _poiOperationQueue.then((_) => operation());
-    _poiOperationQueue = result.then((_) {}, onError: (_) {});
+    final result = _poiOperationQueue.then((_) => operation()).catchError((
+      error,
+    ) {
+      debugPrint('POI 작업 실패: $error');
+    });
+    _poiOperationQueue = result;
     return result;
   }
 
@@ -396,8 +401,12 @@ class _AppMapViewState extends State<AppMapView> {
     final layer = _poiLayer;
     if (layer == null) return;
 
-    for (final poi in _pois) {
-      await layer.removePoi(poi);
+    for (var i = 0; i < _pois.length; i++) {
+      final poi = _pois[i];
+      if (poi != null) {
+        await layer.removePoi(poi);
+        _pois[i] = null;
+      }
       if (isStale()) return;
     }
     _pois = const [];
@@ -405,7 +414,8 @@ class _AppMapViewState extends State<AppMapView> {
     if (widget.markers.isEmpty) return;
 
     final onMarkerTap = widget.onMarkerTap;
-    final newPois = <Poi>[];
+    final newPois = List<Poi?>.filled(widget.markers.length, null);
+    _pois = newPois;
     for (var i = 0; i < widget.markers.length; i++) {
       final marker = widget.markers[i];
       final style = await _styleFor(marker.status, marker.isSelected);
@@ -422,10 +432,8 @@ class _AppMapViewState extends State<AppMapView> {
         label: '마커(${marker.label})',
       );
       if (isStale()) return;
-      if (poi != null) newPois.add(poi);
+      newPois[i] = poi;
     }
-    if (isStale()) return;
-    _pois = newPois;
   }
 
   Future<Poi?> _addPoiWithRetry(
@@ -561,10 +569,12 @@ class _AppMapViewState extends State<AppMapView> {
     if (isStale()) return;
 
     for (var i = 0; i < widget.markers.length && i < _pois.length; i++) {
+      final poi = _pois[i];
+      if (poi == null) continue;
       final marker = widget.markers[i];
       final style = await _styleFor(marker.status, marker.isSelected);
       if (isStale()) return;
-      await _pois[i].changeStyles(style);
+      await poi.changeStyles(style);
       if (isStale()) return;
     }
   }

@@ -20,7 +20,9 @@ double _measureTextWidth(String text, TextStyle style, TextScaler textScaler) {
     textDirection: TextDirection.ltr,
     textScaler: textScaler,
   )..layout();
-  return painter.width;
+  final width = painter.width;
+  painter.dispose();
+  return width;
 }
 
 class AppTravelDate extends StatefulWidget {
