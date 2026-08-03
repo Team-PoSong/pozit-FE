@@ -1,7 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
-import '../../data/models/travel_course_model.dart';
+import '../../data/models/travel/travel_course_model.dart';
 
 /// A course spot is considered "visiting" once the user's current location
 /// is within this many meters of it.
@@ -31,4 +31,31 @@ Set<int> nearbyTouristSpotIds(
     for (final spot in spots)
       if (isWithinCourseVisitingRadius(location, spot)) spot.touristSpotId,
   };
+}
+
+/// The day and within-day course index of the first course (in [allCourses]'
+/// day-ascending, then array order) that has a spot within
+/// [kCourseVisitingRadiusMeters] of [location].
+///
+/// Returns null when [location] is unknown or nothing is nearby, so callers
+/// can fall back to a backend-driven default focus.
+({int dayNumber, int courseIndex})? nearbyCourseFocus(
+  LatLng? location,
+  List<TravelCourseModel> allCourses,
+) {
+  if (location == null) return null;
+
+  final dayNumbers = allCourses.map((c) => c.dayNumber).toSet().toList()
+    ..sort();
+  for (final dayNumber in dayNumbers) {
+    final coursesForDay = allCourses
+        .where((c) => c.dayNumber == dayNumber)
+        .toList();
+    for (var i = 0; i < coursesForDay.length; i++) {
+      if (nearbyTouristSpotIds(location, coursesForDay[i].spots).isNotEmpty) {
+        return (dayNumber: dayNumber, courseIndex: i);
+      }
+    }
+  }
+  return null;
 }

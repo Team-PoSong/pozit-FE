@@ -38,6 +38,7 @@ class AuthRepository {
       await _tokenStorage.save(
         accessToken: token.accessToken,
         tokenType: token.tokenType,
+        userId: token.userId,
       );
       return token;
     } on ApiException {

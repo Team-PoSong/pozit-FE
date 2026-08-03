@@ -1,3 +1,5 @@
+import 'travel_detail_model.dart';
+
 class TravelInfoCardModel {
   final String destination;
   final DateTime startDate;
@@ -31,6 +33,19 @@ class TravelInfoCardModel {
 
   String get dateRangeText =>
       '${startDate.month}/${startDate.day}-${endDate.month}/${endDate.day}';
+
+  factory TravelInfoCardModel.fromTravelDetail(TravelDetailModel detail) {
+    return TravelInfoCardModel(
+      destination: detail.destination,
+      startDate: detail.startDate,
+      endDate: detail.endDate,
+      companionCount: detail.members.length,
+      tags: detail.tags,
+      visitedPlaceCount: detail.totalSpotCount,
+      recordCount: detail.totalPozingCount,
+      completionRate: detail.completionRate / 100.0,
+    );
+  }
 
   factory TravelInfoCardModel.fromJson(Map<String, dynamic> json) {
     final startDate = DateTime.parse(json['startDate'] as String);

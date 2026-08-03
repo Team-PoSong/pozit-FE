@@ -12,8 +12,8 @@ import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/location/course_visiting.dart';
 import '../../data/datasources/local/travel_detail_guide_storage.dart';
-import '../../data/models/travel_course_model.dart';
-import '../../data/models/travel_info_card_model.dart';
+import '../../data/models/travel/travel_course_model.dart';
+import '../../data/models/travel/travel_info_card_model.dart';
 import 'widgets/travel_detail_bottom_section.dart';
 import 'widgets/travel_detail_guide_overlay.dart';
 import 'widgets/travel_detail_top_bar.dart';
@@ -39,6 +39,7 @@ class TravelDetailScreen extends StatefulWidget {
     this.courses = const [],
     this.backgroundImage = const AssetImage(AppImages.travelMockup),
     this.initialDay = 1,
+    this.initialCourseIndex = 0,
     this.onBackTap,
     this.onSettingsTap,
     this.onCourseEditTap,
@@ -59,6 +60,7 @@ class TravelDetailScreen extends StatefulWidget {
   final List<TravelCourseModel> courses;
   final ImageProvider<Object> backgroundImage;
   final int initialDay;
+  final int initialCourseIndex;
   final VoidCallback? onBackTap;
   final VoidCallback? onSettingsTap;
   final VoidCallback? onCourseEditTap;
@@ -79,7 +81,7 @@ class TravelDetailScreen extends StatefulWidget {
 class _TravelDetailScreenState extends State<TravelDetailScreen> {
   late int _selectedDay = widget.initialDay;
 
-  int _selectedCourseIndex = 0;
+  late int _selectedCourseIndex = widget.initialCourseIndex;
 
   final GlobalKey _courseButtonKey = GlobalKey();
   final GlobalKey _mapKey = GlobalKey();

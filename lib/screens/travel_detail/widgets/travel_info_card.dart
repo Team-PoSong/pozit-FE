@@ -6,7 +6,7 @@ import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_icons.dart';
 import '../../../core/design_system/app_text_styles.dart';
 import '../../../core/design_system/widgets/progress/app_completion_progress_bar.dart';
-import '../../../data/models/travel_info_card_model.dart';
+import '../../../data/models/travel/travel_info_card_model.dart';
 
 const TextStyle _tagTextStyle = TextStyle(
   fontFamily: 'Pretendard',

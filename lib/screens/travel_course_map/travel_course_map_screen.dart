@@ -11,7 +11,7 @@ import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/location/course_visiting.dart';
-import '../../data/models/travel_course_model.dart';
+import '../../data/models/travel/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import '../travel_detail/widgets/travel_status.dart';
 

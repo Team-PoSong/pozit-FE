@@ -8,7 +8,7 @@ import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
-import '../../data/models/travel_member_model.dart';
+import '../../data/models/travel/travel_member_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'widgets/travel_member_item.dart';
 
@@ -250,9 +250,9 @@ class _CodeBox extends StatelessWidget {
 
 List<TravelMemberModel> _previewMembers() {
   return const [
-    TravelMemberModel(nickname: '김윤지', isLeader: true),
-    TravelMemberModel(nickname: '박서현', isLeader: false),
-    TravelMemberModel(nickname: '이하림', isLeader: false),
+    TravelMemberModel(userId: 1, nickname: '김윤지', isLeader: true),
+    TravelMemberModel(userId: 2, nickname: '박서현', isLeader: false),
+    TravelMemberModel(userId: 3, nickname: '이하림', isLeader: false),
   ];
 }
 

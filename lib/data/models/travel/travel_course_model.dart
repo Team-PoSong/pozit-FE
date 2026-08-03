@@ -1,3 +1,29 @@
+import 'package:flutter/foundation.dart';
+
+const Set<String> _kVisitedStatusSynonyms = {
+  'visited',
+  'visit',
+  'done',
+  'completed',
+  'complete',
+};
+const Set<String> _kNotVisitedStatusSynonyms = {
+  'notvisited',
+  'notvisit',
+  'unvisited',
+  'pending',
+  'none',
+};
+
+String _normalizeSpotStatus(String raw) {
+  final normalized = raw.toLowerCase().replaceAll('_', '');
+  if (_kVisitedStatusSynonyms.contains(normalized)) return 'visited';
+  if (!_kNotVisitedStatusSynonyms.contains(normalized)) {
+    debugPrint('알 수 없는 코스 스팟 status: $raw');
+  }
+  return 'notVisited';
+}
+
 class PozingModel {
   final int pozingId;
   final int userId;
@@ -39,7 +65,7 @@ class CourseSpotModel {
     required this.courseSpotId,
     required this.touristSpotId,
     required this.name,
-    required this.address,
+    this.address = '',
     required this.latitude,
     required this.longitude,
     required this.orderIndex,
@@ -52,11 +78,11 @@ class CourseSpotModel {
       courseSpotId: json['courseSpotId'] as int,
       touristSpotId: json['touristSpotId'] as int,
       name: json['name'] as String,
-      address: json['address'] as String,
+      address: json['address'] as String? ?? '',
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
       orderIndex: json['orderIndex'] as int,
-      status: json['status'] as String,
+      status: _normalizeSpotStatus(json['status'] as String),
       pozings:
           (json['pozings'] as List<dynamic>?)
               ?.map((e) => PozingModel.fromJson(e as Map<String, dynamic>))

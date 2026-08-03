@@ -8,7 +8,7 @@ import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
-import '../../data/models/travel_course_model.dart';
+import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/tourist_spot_model.dart';
 import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
