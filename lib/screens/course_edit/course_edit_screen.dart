@@ -222,7 +222,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                     itemBuilder: (context, index) {
                       final spot = spots[index];
                       return Padding(
-                        key: ValueKey(spot.courseSpotId),
+                        key: ValueKey(spot.touristSpotId),
                         padding: const EdgeInsets.only(bottom: _kLocationGap),
                         child: AppLocation(
                           name: spot.name,

@@ -164,7 +164,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
         ),
       ),
     );
-    if (range == null) return;
+    if (range == null || !mounted) return;
     setState(() {
       _startDate = range.start;
       _endDate = range.end;

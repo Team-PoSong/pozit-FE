@@ -17,10 +17,11 @@ class TravelInfoCardModel {
     required this.visitedPlaceCount,
     required this.recordCount,
     required this.completionRate,
-  }) : assert(
-         !endDate.isBefore(startDate),
-         'endDate는 startDate보다 빠를 수 없습니다.',
-       );
+  }) {
+    if (endDate.isBefore(startDate)) {
+      throw ArgumentError('endDate는 startDate보다 빠를 수 없습니다.');
+    }
+  }
 
   int get totalDays => endDate.difference(startDate).inDays + 1;
 

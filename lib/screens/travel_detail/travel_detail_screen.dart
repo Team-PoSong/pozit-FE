@@ -136,21 +136,27 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
         permission == LocationPermission.whileInUse;
   }
 
+  bool get _shouldTrackLocation =>
+      mounted && widget.status == AppTravelStatus.inProgress;
+
   Future<void> _startLocationTracking() async {
     final hasPermission = await _ensureLocationPermission();
-    if (!hasPermission || !mounted) return;
+    if (!hasPermission || !_shouldTrackLocation) return;
 
     try {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
-      if (mounted) {
+      if (_shouldTrackLocation) {
         setState(
           () => _currentLocation = LatLng(position.latitude, position.longitude),
         );
       }
     } catch (_) {}
 
+    if (!_shouldTrackLocation) return;
+
+    _positionSubscription?.cancel();
     _positionSubscription = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
