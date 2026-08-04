@@ -12,6 +12,9 @@ import '../../data/datasources/auth/auth_token_storage.dart';
 import '../../data/models/travel/travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/travel/travel_repository.dart';
+import '../course_edit/course_edit_screen.dart';
+import '../travel_course_map/travel_course_map_screen.dart';
+import '../travel_member/travel_member_screen.dart';
 import 'travel_detail_screen.dart';
 
 const Duration _kLocationFixTimeout = Duration(seconds: 3);
@@ -116,6 +119,46 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     }
   }
 
+  void _openMemberScreen(BuildContext context) {
+    final detail = _detail!;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelMemberScreen(
+          isLeader: _isLeader,
+          status: detail.status,
+          members: detail.members,
+          inviteCode: detail.inviteCode,
+        ),
+      ),
+    );
+  }
+
+  void _openCourseMapScreen(BuildContext context, int day) {
+    final detail = _detail!;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelCourseMapScreen(
+          courses: detail.courses,
+          status: detail.status,
+          totalDays: detail.endDate.difference(detail.startDate).inDays + 1,
+          initialDay: day,
+        ),
+      ),
+    );
+  }
+
+  void _openCourseEditScreen(BuildContext context) {
+    final detail = _detail!;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CourseEditScreen(
+          courses: detail.courses,
+          initialDay: _initialDay,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     switch (_status) {
@@ -141,9 +184,11 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       case _LoadStatus.loaded:
         final detail = _detail!;
         return TravelDetailScreen(
+          title: detail.title,
           info: TravelInfoCardModel.fromTravelDetail(detail),
           status: detail.status,
           isLeader: _isLeader,
+          isPublic: detail.isPublic,
           courses: detail.courses,
           initialDay: _initialDay,
           initialCourseIndex: _initialCourseIndex,
@@ -151,6 +196,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
               ? NetworkImage(detail.backgroundImageUrl)
               : const AssetImage(AppImages.travelMockup),
           onBackTap: () => Navigator.of(context).maybePop(),
+          onMemberTap: () => _openMemberScreen(context),
+          onCourseTap: (day) => _openCourseMapScreen(context, day),
+          onCourseEditTap: () => _openCourseEditScreen(context),
         );
     }
   }

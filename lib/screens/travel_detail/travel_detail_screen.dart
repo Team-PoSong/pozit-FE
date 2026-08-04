@@ -33,9 +33,11 @@ const double _kSwipeVelocityThreshold = 200.0;
 class TravelDetailScreen extends StatefulWidget {
   const TravelDetailScreen({
     super.key,
+    required this.title,
     required this.info,
     required this.status,
     required this.isLeader,
+    this.isPublic = true,
     this.courses = const [],
     this.backgroundImage = const AssetImage(AppImages.travelMockup),
     this.initialDay = 1,
@@ -52,10 +54,12 @@ class TravelDetailScreen extends StatefulWidget {
     this.guideStorage = const TravelDetailGuideStorage(),
   });
 
+  final String title;
   final TravelInfoCardModel info;
   final AppTravelStatus status;
 
   final bool isLeader;
+  final bool isPublic;
 
   final List<TravelCourseModel> courses;
   final ImageProvider<Object> backgroundImage;
@@ -329,7 +333,8 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           TravelDetailTopBar(
-                            title: widget.info.destination,
+                            title: widget.title,
+                            showLock: !widget.isPublic,
                             showSettingsButton: true,
                             travelStatus: widget.status,
                             isLeader: widget.isLeader,
@@ -540,6 +545,7 @@ Widget travelDetailScreenUpcomingPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     home: TravelDetailScreen(
+      title: '경주 여행!!',
       info: _previewInfo(),
       status: AppTravelStatus.upcoming,
       isLeader: true,
@@ -553,6 +559,7 @@ Widget travelDetailScreenInProgressPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     home: TravelDetailScreen(
+      title: '경주 여행!!',
       info: _previewInfo(),
       status: AppTravelStatus.inProgress,
       isLeader: true,
@@ -566,6 +573,7 @@ Widget travelDetailScreenCompletedPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     home: TravelDetailScreen(
+      title: '경주 여행!!',
       info: _previewInfo(),
       status: AppTravelStatus.completed,
       isLeader: true,
