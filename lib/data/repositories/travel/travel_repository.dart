@@ -49,6 +49,25 @@ class TravelRepository {
     }
   }
 
+  Future<String> getInviteCode(int travelId) async {
+    try {
+      final result = await DioClient.instance.get(
+        '/api/travels/invite',
+        queryParameters: {'travelId': travelId},
+      );
+
+      if (result is! Map<String, dynamic>) {
+        throw const ApiException('초대 코드 응답 형식이 올바르지 않습니다.');
+      }
+
+      return result['inviteCode'] as String? ?? '';
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('초대 코드를 불러오지 못했습니다.');
+    }
+  }
+
   Future<List<TravelTagModel>> getTags() async {
     try {
       final result = await DioClient.instance.get('/api/tags');

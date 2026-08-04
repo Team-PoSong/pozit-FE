@@ -47,6 +47,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   TravelDetailModel? _detail;
   List<TravelTagModel> _tagOptions = const [];
   List<TravelTagModel> _travelTags = const [];
+  String _inviteCode = '';
   bool _isLeader = false;
   int _initialDay = 1;
   int _initialCourseIndex = 0;
@@ -68,11 +69,13 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         _tryGetCurrentLocation(),
         _tryGetTags(),
         _tryGetTravelTags(),
+        _tryGetInviteCode(),
       ]);
       final detail = results[0] as TravelDetailModel;
       final location = results[1] as LatLng?;
       final tagOptions = results[2] as List<TravelTagModel>;
       final travelTags = results[3] as List<TravelTagModel>;
+      final fetchedInviteCode = results[4] as String?;
 
       final myUserId = await widget.tokenStorage.readUserId();
 
@@ -86,6 +89,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         _detail = detail;
         _tagOptions = tagOptions;
         _travelTags = travelTags;
+        _inviteCode = (fetchedInviteCode != null && fetchedInviteCode.isNotEmpty)
+            ? fetchedInviteCode
+            : detail.inviteCode;
         _isLeader = myUserId != null &&
             detail.members.any(
               (member) => member.userId == myUserId && member.isLeader,
@@ -125,6 +131,14 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     }
   }
 
+  Future<String?> _tryGetInviteCode() async {
+    try {
+      return await widget.repository.getInviteCode(widget.travelId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<LatLng?> _tryGetCurrentLocation() async {
     try {
       if (!await Geolocator.isLocationServiceEnabled()) return null;
@@ -154,7 +168,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           isLeader: _isLeader,
           status: detail.status,
           members: detail.members,
-          inviteCode: detail.inviteCode,
+          inviteCode: _inviteCode,
         ),
       ),
     );
