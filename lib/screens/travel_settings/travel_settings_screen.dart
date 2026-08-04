@@ -13,6 +13,7 @@ import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/app_posing.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/toggle/app_visibility_toggle.dart';
+import '../../data/models/travel/travel_tag_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_date_edit_screen.dart';
 
@@ -29,23 +30,13 @@ const double _kVisibilityToggleToCommonGap = 19.0;
 const double _kVisibilityToggleGap = 9.0;
 
 const int _kMaxTagCount = 2;
-const List<String> _kTravelTagOptions = [
-  '기록',
-  '미식',
-  '힐링',
-  '체험',
-  '문화',
-  '예술',
-  '쇼핑',
-  '탐험',
-];
 
 class TravelSettingsResult {
   const TravelSettingsResult({
     required this.travelName,
     required this.startDate,
     required this.endDate,
-    required this.tags,
+    required this.tagIds,
     required this.isPublic,
     this.backgroundImage,
   });
@@ -53,7 +44,7 @@ class TravelSettingsResult {
   final String travelName;
   final DateTime startDate;
   final DateTime endDate;
-  final List<String> tags;
+  final List<int> tagIds;
   final bool isPublic;
   final File? backgroundImage;
 }
@@ -63,10 +54,11 @@ class TravelSettingsScreen extends StatefulWidget {
     super.key,
     required this.status,
     required this.destination,
+    required this.tagOptions,
     this.initialTravelName = '',
     this.initialStartDate,
     this.initialEndDate,
-    this.initialTags = const [],
+    this.initialTagIds = const [],
     this.initialIsPublic = false,
     this.initialBackgroundImage,
     this.onBackTap,
@@ -75,10 +67,11 @@ class TravelSettingsScreen extends StatefulWidget {
 
   final AppTravelStatus status;
   final String destination;
+  final List<TravelTagModel> tagOptions;
   final String initialTravelName;
   final DateTime? initialStartDate;
   final DateTime? initialEndDate;
-  final List<String> initialTags;
+  final List<int> initialTagIds;
   final bool initialIsPublic;
   final File? initialBackgroundImage;
   final VoidCallback? onBackTap;
@@ -101,7 +94,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
   );
   late DateTime? _startDate = widget.initialStartDate;
   late DateTime? _endDate = widget.initialEndDate;
-  late final Set<String> _selectedTags = {...widget.initialTags};
+  late final Set<int> _selectedTagIds = {...widget.initialTagIds};
   late bool _isPublic = widget.initialIsPublic;
   File? _backgroundImage;
 
@@ -114,8 +107,8 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
       _travelNameController.text.trim() != widget.initialTravelName.trim() ||
       _startDate != widget.initialStartDate ||
       _endDate != widget.initialEndDate ||
-      _selectedTags.length != widget.initialTags.length ||
-      !_selectedTags.containsAll(widget.initialTags) ||
+      _selectedTagIds.length != widget.initialTagIds.length ||
+      !_selectedTagIds.containsAll(widget.initialTagIds) ||
       _isPublic != widget.initialIsPublic ||
       _backgroundImage != widget.initialBackgroundImage;
 
@@ -124,7 +117,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
       _travelNameController.text.trim().isNotEmpty &&
       _startDate != null &&
       _endDate != null &&
-      _selectedTags.isNotEmpty;
+      _selectedTagIds.isNotEmpty;
 
   @override
   void initState() {
@@ -172,13 +165,13 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
     });
   }
 
-  void _handleToggleTag(String tag) {
+  void _handleToggleTag(int tagId) {
     FocusScope.of(context).unfocus();
     setState(() {
-      if (_selectedTags.contains(tag)) {
-        _selectedTags.remove(tag);
-      } else if (_selectedTags.length < _kMaxTagCount) {
-        _selectedTags.add(tag);
+      if (_selectedTagIds.contains(tagId)) {
+        _selectedTagIds.remove(tagId);
+      } else if (_selectedTagIds.length < _kMaxTagCount) {
+        _selectedTagIds.add(tagId);
       }
     });
   }
@@ -189,7 +182,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
         travelName: _travelNameController.text.trim(),
         startDate: _startDate!,
         endDate: _endDate!,
-        tags: _selectedTags.toList(),
+        tagIds: _selectedTagIds.toList(),
         isPublic: _isPublic,
         backgroundImage: _backgroundImage,
       ),
@@ -280,7 +273,8 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       const _SectionLabel('어떤 여행인가요?(최대 2개 선택)'),
                       const SizedBox(height: _kLabelToFieldGap),
                       _TagGrid(
-                        selectedTags: _selectedTags,
+                        tagOptions: widget.tagOptions,
+                        selectedTagIds: _selectedTagIds,
                         onToggle: _handleToggleTag,
                       ),
                       const SizedBox(height: _kTagGridToButtonGap),
@@ -375,21 +369,23 @@ class _VisibilitySection extends StatelessWidget {
 }
 
 class _TagGrid extends StatelessWidget {
-  const _TagGrid({required this.selectedTags, required this.onToggle});
+  const _TagGrid({
+    required this.tagOptions,
+    required this.selectedTagIds,
+    required this.onToggle,
+  });
 
-  final Set<String> selectedTags;
-  final ValueChanged<String> onToggle;
+  final List<TravelTagModel> tagOptions;
+  final Set<int> selectedTagIds;
+  final ValueChanged<int> onToggle;
 
   static const int _columns = 4;
 
   @override
   Widget build(BuildContext context) {
     final rows = [
-      for (var i = 0; i < _kTravelTagOptions.length; i += _columns)
-        _kTravelTagOptions.sublist(
-          i,
-          (i + _columns).clamp(0, _kTravelTagOptions.length),
-        ),
+      for (var i = 0; i < tagOptions.length; i += _columns)
+        tagOptions.sublist(i, (i + _columns).clamp(0, tagOptions.length)),
     ];
 
     return Column(
@@ -403,9 +399,9 @@ class _TagGrid extends StatelessWidget {
                 if (c > 0) const SizedBox(width: 9),
                 Expanded(
                   child: AppTagChip(
-                    label: '# ${rows[r][c]}',
-                    isSelected: selectedTags.contains(rows[r][c]),
-                    onTap: () => onToggle(rows[r][c]),
+                    label: '# ${rows[r][c].name}',
+                    isSelected: selectedTagIds.contains(rows[r][c].id),
+                    onTap: () => onToggle(rows[r][c].id),
 
                     padding: const EdgeInsets.symmetric(
                       vertical: 10.0,
@@ -422,8 +418,23 @@ class _TagGrid extends StatelessWidget {
   }
 }
 
+const List<TravelTagModel> _kPreviewTagOptions = [
+  TravelTagModel(id: 1, name: '기록'),
+  TravelTagModel(id: 2, name: '미식'),
+  TravelTagModel(id: 3, name: '힐링'),
+  TravelTagModel(id: 4, name: '체험'),
+  TravelTagModel(id: 5, name: '문화'),
+  TravelTagModel(id: 6, name: '예술'),
+  TravelTagModel(id: 7, name: '쇼핑'),
+  TravelTagModel(id: 8, name: '탐험'),
+];
+
 TravelSettingsScreen _previewScreen(AppTravelStatus status) {
-  return TravelSettingsScreen(status: status, destination: '경주');
+  return TravelSettingsScreen(
+    status: status,
+    destination: '경주',
+    tagOptions: _kPreviewTagOptions,
+  );
 }
 
 @Preview(

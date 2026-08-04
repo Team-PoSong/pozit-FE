@@ -11,10 +11,13 @@ import '../../core/travel/course_focus.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
 import '../../data/models/travel/travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
+import '../../data/models/travel/travel_tag_model.dart';
+import '../../data/models/travel/travel_update_request.dart';
 import '../../data/repositories/travel/travel_repository.dart';
 import '../course_edit/course_edit_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_member/travel_member_screen.dart';
+import '../travel_settings/travel_settings_screen.dart';
 import 'travel_detail_screen.dart';
 
 const Duration _kLocationFixTimeout = Duration(seconds: 3);
@@ -42,6 +45,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   String _errorMessage = '';
 
   TravelDetailModel? _detail;
+  List<TravelTagModel> _tagOptions = const [];
   bool _isLeader = false;
   int _initialDay = 1;
   int _initialCourseIndex = 0;
@@ -61,9 +65,11 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       final results = await Future.wait([
         widget.repository.getTravelDetail(widget.travelId),
         _tryGetCurrentLocation(),
+        _tryGetTags(),
       ]);
       final detail = results[0] as TravelDetailModel;
       final location = results[1] as LatLng?;
+      final tagOptions = results[2] as List<TravelTagModel>;
 
       final myUserId = await widget.tokenStorage.readUserId();
 
@@ -75,6 +81,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       if (!mounted) return;
       setState(() {
         _detail = detail;
+        _tagOptions = tagOptions;
         _isLeader = myUserId != null &&
             detail.members.any(
               (member) => member.userId == myUserId && member.isLeader,
@@ -95,6 +102,14 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         _errorMessage = '여행 정보를 불러오지 못했어요.';
         _status = _LoadStatus.error;
       });
+    }
+  }
+
+  Future<List<TravelTagModel>> _tryGetTags() async {
+    try {
+      return await widget.repository.getTags();
+    } catch (_) {
+      return const [];
     }
   }
 
@@ -147,6 +162,63 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     );
   }
 
+  void _openSettingsScreen(BuildContext context) {
+    final detail = _detail!;
+    final initialTagIds = _tagOptions
+        .where((tag) => detail.tags.contains(tag.name))
+        .map((tag) => tag.id)
+        .toList();
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelSettingsScreen(
+          status: detail.status,
+          destination: detail.destination,
+          tagOptions: _tagOptions,
+          initialTravelName: detail.title,
+          initialStartDate: detail.startDate,
+          initialEndDate: detail.endDate,
+          initialTagIds: initialTagIds,
+          initialIsPublic: detail.isPublic,
+          onSave: (result) => _handleSettingsSave(context, detail, result),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleSettingsSave(
+    BuildContext context,
+    TravelDetailModel detail,
+    TravelSettingsResult result,
+  ) async {
+    try {
+      await widget.repository.updateTravel(
+        widget.travelId,
+        TravelUpdateRequest(
+          title: result.travelName,
+          destination: detail.destination,
+          startDate: result.startDate,
+          endDate: result.endDate,
+          tagIds: result.tagIds,
+        ),
+      );
+      await _load();
+    } on ApiException catch (error) {
+      if (!context.mounted) return;
+      _showSnackBar(context, error.message);
+    } catch (_) {
+      if (!context.mounted) return;
+      _showSnackBar(context, '여행 정보를 수정하지 못했어요.');
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   void _openCourseEditScreen(BuildContext context) {
     final detail = _detail!;
     Navigator.of(context).push(
@@ -196,6 +268,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
               ? NetworkImage(detail.backgroundImageUrl)
               : const AssetImage(AppImages.travelMockup),
           onBackTap: () => Navigator.of(context).maybePop(),
+          onSettingsTap: () => _openSettingsScreen(context),
           onMemberTap: () => _openMemberScreen(context),
           onCourseTap: (day) => _openCourseMapScreen(context, day),
           onCourseEditTap: () => _openCourseEditScreen(context),
