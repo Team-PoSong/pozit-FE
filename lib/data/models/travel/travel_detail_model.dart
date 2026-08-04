@@ -18,6 +18,21 @@ const Set<String> _kCompletedStatusSynonyms = {
   'end',
 };
 
+String _sanitizeBackgroundImageUrl(String? raw) {
+  if (raw == null || raw.isEmpty) return '';
+
+  final uri = Uri.tryParse(raw);
+  final isAbsoluteHttpUrl =
+      uri != null && (uri.isScheme('http') || uri.isScheme('https'));
+  if (!isAbsoluteHttpUrl) {
+    // 백엔드가 완전한 URL이 아니라 S3 objectKey 등 상대 경로를 내려주면
+    // NetworkImage가 file:// URI로 잘못 해석해 크래시하므로 무시합니다.
+    debugPrint('배경 사진 URL이 http(s) 절대 URL이 아니어서 무시합니다: $raw');
+    return '';
+  }
+  return raw;
+}
+
 AppTravelStatus _parseTravelStatus(String raw) {
   final normalized = raw.toLowerCase().replaceAll('_', '');
   if (_kInProgressStatusSynonyms.contains(normalized)) {
@@ -76,7 +91,9 @@ class TravelDetailModel {
       endDate: DateTime.parse(json['endDate'] as String),
       status: _parseTravelStatus(json['status'] as String),
       isPublic: json['isPublic'] as bool,
-      backgroundImageUrl: json['backgroundImageUrl'] as String? ?? '',
+      backgroundImageUrl: _sanitizeBackgroundImageUrl(
+        json['backgroundImageUrl'] as String?,
+      ),
       inviteCode: json['inviteCode'] as String? ?? '',
       completionRate: json['completionRate'] as int,
       totalSpotCount: json['totalSpotCount'] as int,

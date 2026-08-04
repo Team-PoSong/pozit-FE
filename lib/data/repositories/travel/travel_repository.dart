@@ -1,5 +1,10 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
+import '../../models/travel/presigned_url_response.dart';
 import '../../models/travel/travel_detail_model.dart';
 import '../../models/travel/travel_tag_model.dart';
 import '../../models/travel/travel_update_request.dart';
@@ -66,6 +71,63 @@ class TravelRepository {
     } catch (_) {
       throw const ApiException('초대 코드를 불러오지 못했습니다.');
     }
+  }
+
+  /// 배경 사진을 presigned URL로 S3에 직접 업로드한 뒤, 완료된 objectKey를
+  /// 서버에 저장합니다.
+  Future<void> uploadBackgroundImage(int travelId, File file) async {
+    try {
+      final presigned = await _getBackgroundImageUploadUrl(travelId);
+      await _putFileToPresignedUrl(presigned.presignedUrl, file);
+      await _saveBackgroundImage(travelId, presigned.objectKey);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('배경 사진을 업로드하지 못했습니다.');
+    }
+  }
+
+  Future<PresignedUrlResponse> _getBackgroundImageUploadUrl(
+    int travelId,
+  ) async {
+    final result = await DioClient.instance.post(
+      '/api/travels/presigned-url/$travelId/background-image',
+    );
+
+    if (result is! Map<String, dynamic>) {
+      throw const ApiException('업로드 URL 응답 형식이 올바르지 않습니다.');
+    }
+
+    return PresignedUrlResponse.fromJson(result);
+  }
+
+  // S3 presigned URL은 백엔드 인증 토큰과 무관하므로, 인터셉터가 붙은
+  // DioClient가 아니라 별도의 순수 Dio 인스턴스로 직접 업로드합니다.
+  Future<void> _putFileToPresignedUrl(String presignedUrl, File file) async {
+    final bytes = await file.readAsBytes();
+    await Dio().put(
+      presignedUrl,
+      data: bytes,
+      options: Options(
+        headers: {'Content-Type': _contentTypeFor(file.path)},
+      ),
+    );
+  }
+
+  Future<void> _saveBackgroundImage(int travelId, String objectKey) async {
+    await DioClient.instance.patch(
+      '/api/travels/save/background-image',
+      data: {'travelId': travelId, 'backGroundImgUrl': objectKey},
+    );
+  }
+
+  String _contentTypeFor(String path) {
+    final lower = path.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.heic')) return 'image/heic';
+    return 'application/octet-stream';
   }
 
   Future<List<TravelTagModel>> getTags() async {

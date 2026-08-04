@@ -2,7 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/app_travel_status.dart';
 import 'package:pozit/data/models/travel/travel_detail_model.dart';
 
-Map<String, dynamic> _detailJson({String status = 'IN_PROGRESS'}) {
+Map<String, dynamic> _detailJson({
+  String status = 'IN_PROGRESS',
+  String backgroundImageUrl = 'https://example.com/bg.png',
+}) {
   return {
     'travelId': 1,
     'title': '경주 여행',
@@ -11,7 +14,7 @@ Map<String, dynamic> _detailJson({String status = 'IN_PROGRESS'}) {
     'endDate': '2026-06-07',
     'status': status,
     'isPublic': false,
-    'backgroundImageUrl': 'https://example.com/bg.png',
+    'backgroundImageUrl': backgroundImageUrl,
     'inviteCode': 'AB12C',
     'completionRate': 60,
     'totalSpotCount': 12,
@@ -50,6 +53,7 @@ void main() {
 
       expect(detail.travelId, 1);
       expect(detail.destination, '경주');
+      expect(detail.backgroundImageUrl, 'https://example.com/bg.png');
       expect(detail.startDate, DateTime(2026, 6, 5));
       expect(detail.endDate, DateTime(2026, 6, 7));
       expect(detail.status, AppTravelStatus.inProgress);
@@ -75,6 +79,19 @@ void main() {
           _detailJson(status: entry.key),
         );
         expect(detail.status, entry.value);
+      });
+    }
+
+    for (final invalid in [
+      'travel/4/background/uuid.jpg',
+      '/travel/4/background/uuid.jpg',
+      '',
+    ]) {
+      test('backgroundImageUrl "$invalid"는 http(s) 절대 URL이 아니면 빈 문자열로 무시된다', () {
+        final detail = TravelDetailModel.fromJson(
+          _detailJson(backgroundImageUrl: invalid),
+        );
+        expect(detail.backgroundImageUrl, '');
       });
     }
   });

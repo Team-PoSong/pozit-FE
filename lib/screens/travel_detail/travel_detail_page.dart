@@ -248,6 +248,19 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       }
     }
 
+    if (result.backgroundImage != null) {
+      try {
+        await widget.repository.uploadBackgroundImage(
+          widget.travelId,
+          result.backgroundImage!,
+        );
+      } on ApiException catch (error) {
+        errors.add(error.message);
+      } catch (_) {
+        errors.add('배경 사진을 업로드하지 못했어요.');
+      }
+    }
+
     await _load();
 
     if (errors.isNotEmpty && context.mounted) {
