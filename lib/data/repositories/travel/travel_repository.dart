@@ -52,18 +52,33 @@ class TravelRepository {
   Future<List<TravelTagModel>> getTags() async {
     try {
       final result = await DioClient.instance.get('/api/tags');
-
-      if (result is! List) {
-        throw const ApiException('태그 목록 응답 형식이 올바르지 않습니다.');
-      }
-
-      return result
-          .map((e) => TravelTagModel.fromJson(e as Map<String, dynamic>))
-          .toList();
+      return _parseTagList(result);
     } on ApiException {
       rethrow;
     } catch (_) {
       throw const ApiException('태그 목록을 불러오지 못했습니다.');
     }
+  }
+
+  Future<List<TravelTagModel>> getTravelTags(int travelId) async {
+    try {
+      final result = await DioClient.instance.get(
+        '/api/travels/$travelId/tags',
+      );
+      return _parseTagList(result);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('여행 태그 목록을 불러오지 못했습니다.');
+    }
+  }
+
+  List<TravelTagModel> _parseTagList(dynamic result) {
+    if (result is! List) {
+      throw const ApiException('태그 목록 응답 형식이 올바르지 않습니다.');
+    }
+    return result
+        .map((e) => TravelTagModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

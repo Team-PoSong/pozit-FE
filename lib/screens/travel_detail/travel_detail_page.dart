@@ -46,6 +46,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
 
   TravelDetailModel? _detail;
   List<TravelTagModel> _tagOptions = const [];
+  List<TravelTagModel> _travelTags = const [];
   bool _isLeader = false;
   int _initialDay = 1;
   int _initialCourseIndex = 0;
@@ -66,10 +67,12 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         widget.repository.getTravelDetail(widget.travelId),
         _tryGetCurrentLocation(),
         _tryGetTags(),
+        _tryGetTravelTags(),
       ]);
       final detail = results[0] as TravelDetailModel;
       final location = results[1] as LatLng?;
       final tagOptions = results[2] as List<TravelTagModel>;
+      final travelTags = results[3] as List<TravelTagModel>;
 
       final myUserId = await widget.tokenStorage.readUserId();
 
@@ -82,6 +85,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       setState(() {
         _detail = detail;
         _tagOptions = tagOptions;
+        _travelTags = travelTags;
         _isLeader = myUserId != null &&
             detail.members.any(
               (member) => member.userId == myUserId && member.isLeader,
@@ -108,6 +112,14 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   Future<List<TravelTagModel>> _tryGetTags() async {
     try {
       return await widget.repository.getTags();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<List<TravelTagModel>> _tryGetTravelTags() async {
+    try {
+      return await widget.repository.getTravelTags(widget.travelId);
     } catch (_) {
       return const [];
     }
@@ -164,10 +176,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
 
   void _openSettingsScreen(BuildContext context) {
     final detail = _detail!;
-    final initialTagIds = _tagOptions
-        .where((tag) => detail.tags.contains(tag.name))
-        .map((tag) => tag.id)
-        .toList();
+    final initialTagIds = _travelTags.map((tag) => tag.id).toList();
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -277,7 +286,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         final detail = _detail!;
         return TravelDetailScreen(
           title: detail.title,
-          info: TravelInfoCardModel.fromTravelDetail(detail),
+          info: TravelInfoCardModel.fromTravelDetail(
+            detail,
+            tags: _travelTags.map((tag) => tag.name).toList(),
+          ),
           status: detail.status,
           isLeader: _isLeader,
           isPublic: detail.isPublic,

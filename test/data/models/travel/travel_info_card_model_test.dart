@@ -39,6 +39,15 @@ void main() {
     expect(info.tags, ['기록', '미식']);
   });
 
+  test('tags를 명시하면 detail.tags 대신 그 값을 사용한다', () {
+    final info = TravelInfoCardModel.fromTravelDetail(
+      _detail(),
+      tags: ['힐링'],
+    );
+
+    expect(info.tags, ['힐링']);
+  });
+
   test('companionCount는 members 수를 사용한다', () {
     final info = TravelInfoCardModel.fromTravelDetail(
       _detail(

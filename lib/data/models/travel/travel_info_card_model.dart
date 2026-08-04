@@ -34,13 +34,16 @@ class TravelInfoCardModel {
   String get dateRangeText =>
       '${startDate.month}/${startDate.day}-${endDate.month}/${endDate.day}';
 
-  factory TravelInfoCardModel.fromTravelDetail(TravelDetailModel detail) {
+  factory TravelInfoCardModel.fromTravelDetail(
+    TravelDetailModel detail, {
+    List<String>? tags,
+  }) {
     return TravelInfoCardModel(
       destination: detail.destination,
       startDate: detail.startDate,
       endDate: detail.endDate,
       companionCount: detail.members.length,
-      tags: detail.tags,
+      tags: tags ?? detail.tags,
       visitedPlaceCount: detail.totalSpotCount,
       recordCount: detail.totalPozingCount,
       completionRate: detail.completionRate / 100.0,
