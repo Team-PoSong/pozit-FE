@@ -130,6 +130,22 @@ class TravelRepository {
     return 'application/octet-stream';
   }
 
+  Future<void> updateCourseSpots(
+    int courseId,
+    List<int> touristSpotIds,
+  ) async {
+    try {
+      await DioClient.instance.patch(
+        '/api/courses/$courseId/spots',
+        data: {'touristSpotIds': touristSpotIds},
+      );
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('코스를 수정하지 못했습니다.');
+    }
+  }
+
   Future<List<TravelTagModel>> getTags() async {
     try {
       final result = await DioClient.instance.get('/api/tags');

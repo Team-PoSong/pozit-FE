@@ -9,6 +9,7 @@ import '../../core/location/course_visiting.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/travel/course_focus.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
+import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/travel/travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/models/travel/travel_tag_model.dart';
@@ -282,9 +283,37 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         builder: (_) => CourseEditScreen(
           courses: detail.courses,
           initialDay: _initialDay,
+          onSave: (spotsByCourseId) =>
+              _handleCourseEditSave(context, spotsByCourseId),
         ),
       ),
     );
+  }
+
+  Future<void> _handleCourseEditSave(
+    BuildContext context,
+    Map<int, List<CourseSpotModel>> spotsByCourseId,
+  ) async {
+    final errors = <String>[];
+
+    for (final entry in spotsByCourseId.entries) {
+      try {
+        await widget.repository.updateCourseSpots(
+          entry.key,
+          entry.value.map((spot) => spot.touristSpotId).toList(),
+        );
+      } on ApiException catch (error) {
+        errors.add(error.message);
+      } catch (_) {
+        errors.add('코스를 수정하지 못했어요.');
+      }
+    }
+
+    await _load();
+
+    if (errors.isNotEmpty && context.mounted) {
+      _showSnackBar(context, errors.join('\n'));
+    }
   }
 
   @override

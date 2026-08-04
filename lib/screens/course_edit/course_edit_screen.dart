@@ -41,6 +41,7 @@ class CourseEditScreen extends StatefulWidget {
 
   final VoidCallback? onBackTap;
 
+  /// courseId를 key로, 저장할 최종 장소 순서를 value로 전달합니다.
   final ValueChanged<Map<int, List<CourseSpotModel>>>? onSave;
 
   @override
@@ -140,14 +141,21 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     });
   }
 
+  int _courseIdForDay(int dayNumber) {
+    return widget.courses
+        .firstWhere((course) => course.dayNumber == dayNumber)
+        .courseId;
+  }
+
   void _handleSave() {
     widget.onSave?.call({
       for (final entry in _spotsByDayIndex.entries)
-        _dayNumberForIndex(entry.key): List.unmodifiable([
+        _courseIdForDay(_dayNumberForIndex(entry.key)): List.unmodifiable([
           for (var i = 0; i < entry.value.length; i++)
             entry.value[i].copyWith(orderIndex: i),
         ]),
     });
+    Navigator.of(context).pop();
   }
 
   void _handleBack() {
