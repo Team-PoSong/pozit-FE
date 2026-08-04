@@ -83,6 +83,13 @@ class _ExploreContentState extends State<ExploreContent> {
 
   List<ExploreTravelItem> get _travels => widget.travels;
 
+  String get _dateFilterLabel {
+    final range = _selectedDateRange;
+    if (range == null) return '날짜';
+    return '날짜 ${range.start.month}/${range.start.day}~'
+        '${range.end.month}/${range.end.day}';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -255,7 +262,7 @@ class _ExploreContentState extends State<ExploreContent> {
                 ),
                 const SizedBox(width: _filterChipGap),
                 AppFilterChip(
-                  label: '날짜',
+                  label: _dateFilterLabel,
                   onTap: _selectDate,
                   assetPackage: widget.assetPackage,
                 ),
