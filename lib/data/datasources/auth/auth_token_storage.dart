@@ -1,14 +1,18 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:uuid/uuid.dart';
 
 class AuthTokenStorage {
-  const AuthTokenStorage({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage();
+  const AuthTokenStorage({FlutterSecureStorage? storage, Uuid? uuid})
+    : _storage = storage ?? const FlutterSecureStorage(),
+      _uuid = uuid ?? const Uuid();
 
   static const String _accessTokenKey = 'pozit_access_token';
   static const String _tokenTypeKey = 'pozit_token_type';
   static const String _userIdKey = 'pozit_user_id';
+  static const String _deviceIdKey = 'pozit_device_id';
 
   final FlutterSecureStorage _storage;
+  final Uuid _uuid;
 
   Future<void> save({
     required String accessToken,
@@ -30,6 +34,19 @@ class AuthTokenStorage {
     final raw = await _storage.read(key: _userIdKey);
     if (raw == null) return null;
     return int.tryParse(raw);
+  }
+
+  /// The app-generated device UUID the backend expects on login/reissue/
+  /// logout requests. Persisted for the lifetime of the app install — unlike
+  /// [clear], this is never deleted on logout, since the backend uses it to
+  /// tell devices apart across sessions.
+  Future<String> readOrCreateDeviceId() async {
+    final existing = await _storage.read(key: _deviceIdKey);
+    if (existing != null && existing.isNotEmpty) return existing;
+
+    final generated = _uuid.v4();
+    await _storage.write(key: _deviceIdKey, value: generated);
+    return generated;
   }
 
   Future<void> clear() async {
