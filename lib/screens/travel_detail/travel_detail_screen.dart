@@ -322,6 +322,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                   fit: StackFit.expand,
                   children: [
                     Image(image: widget.backgroundImage, fit: BoxFit.cover),
+                    const ColoredBox(color: AppColors.dim30),
                     SafeArea(
                       bottom: false,
                       child: Column(

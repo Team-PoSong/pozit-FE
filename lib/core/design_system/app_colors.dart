@@ -29,6 +29,7 @@ class AppColors {
   static const Color error = Color(0xFFFF0000);
   static const Color white = Color(0xFFFFFFFF);
   static const Color white20 = Color(0x33FFFFFF);
+  static const Color dim30 = Color(0x4D000000);
   static const Color text = Color(0xFF161424);
   static const Color textSub = Color(0xFF6B7280);
   static const Color shadow = Color(0x19000000);
