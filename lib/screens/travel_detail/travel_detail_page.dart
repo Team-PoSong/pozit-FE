@@ -191,6 +191,8 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     TravelDetailModel detail,
     TravelSettingsResult result,
   ) async {
+    final errors = <String>[];
+
     try {
       await widget.repository.updateTravel(
         widget.travelId,
@@ -202,13 +204,31 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           tagIds: result.tagIds,
         ),
       );
-      await _load();
     } on ApiException catch (error) {
-      if (!context.mounted) return;
-      _showSnackBar(context, error.message);
+      errors.add(error.message);
     } catch (_) {
-      if (!context.mounted) return;
-      _showSnackBar(context, '여행 정보를 수정하지 못했어요.');
+      errors.add('여행 정보를 수정하지 못했어요.');
+    }
+
+    // 완료된 여행만 공개 설정을 변경할 수 있고, 값이 실제로 바뀌었을 때만 호출합니다.
+    if (detail.status == AppTravelStatus.completed &&
+        result.isPublic != detail.isPublic) {
+      try {
+        await widget.repository.updateVisibility(
+          widget.travelId,
+          result.isPublic,
+        );
+      } on ApiException catch (error) {
+        errors.add(error.message);
+      } catch (_) {
+        errors.add('공개 설정을 변경하지 못했어요.');
+      }
+    }
+
+    await _load();
+
+    if (errors.isNotEmpty && context.mounted) {
+      _showSnackBar(context, errors.join('\n'));
     }
   }
 

@@ -36,6 +36,19 @@ class TravelRepository {
     }
   }
 
+  Future<void> updateVisibility(int travelId, bool isPublic) async {
+    try {
+      await DioClient.instance.patch(
+        '/api/travels/$travelId/visibility',
+        data: {'isPublic': isPublic},
+      );
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('공개 설정을 변경하지 못했습니다.');
+    }
+  }
+
   Future<List<TravelTagModel>> getTags() async {
     try {
       final result = await DioClient.instance.get('/api/tags');
