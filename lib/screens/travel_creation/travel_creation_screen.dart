@@ -5,6 +5,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_course_method_select.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
+import 'travel_destination_screen.dart';
 
 class TravelCreationScreen extends StatelessWidget {
   const TravelCreationScreen({
@@ -17,6 +18,17 @@ class TravelCreationScreen extends StatelessWidget {
   final VoidCallback? onRecommendationTap;
   final VoidCallback? onCreateTap;
   final VoidCallback? onWishTap;
+
+  void _openDestinationSearch(BuildContext context, VoidCallback? callback) {
+    if (callback != null) {
+      callback();
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const TravelDestinationScreen()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,12 +64,13 @@ class TravelCreationScreen extends StatelessWidget {
                     const SizedBox(height: 25),
                     AppCourseMethodSelect(
                       method: AppCourseMethod.recommendation,
-                      onTap: onRecommendationTap,
+                      onTap: () =>
+                          _openDestinationSearch(context, onRecommendationTap),
                     ),
                     const SizedBox(height: 12),
                     AppCourseMethodSelect(
                       method: AppCourseMethod.create,
-                      onTap: onCreateTap,
+                      onTap: () => _openDestinationSearch(context, onCreateTap),
                     ),
                     const SizedBox(height: 12),
                     AppCourseMethodSelect(
