@@ -8,9 +8,9 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/app_travel_status.dart';
-import '../../core/design_system/widgets/app_chip.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/app_posing.dart';
+import '../../core/design_system/widgets/app_travel_tag_grid.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/toggle/app_visibility_toggle.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
@@ -29,16 +29,6 @@ const double _kVisibilityToggleToCommonGap = 19.0;
 const double _kVisibilityToggleGap = 9.0;
 
 const int _kMaxTagCount = 2;
-const List<String> _kTravelTagOptions = [
-  '기록',
-  '미식',
-  '힐링',
-  '체험',
-  '문화',
-  '예술',
-  '쇼핑',
-  '탐험',
-];
 
 class TravelSettingsResult {
   const TravelSettingsResult({
@@ -145,9 +135,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
 
   Future<void> _handlePickBackgroundImage() async {
     try {
-      final picked = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-      );
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (picked == null || !mounted) return;
       setState(() => _backgroundImage = File(picked.path));
     } catch (error) {
@@ -244,9 +232,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                         onTap: _handlePickBackgroundImage,
                         child: _backgroundImage == null
                             ? const AppPosing.travelPhoto()
-                            : _BackgroundPhotoPreview(
-                                image: _backgroundImage!,
-                              ),
+                            : _BackgroundPhotoPreview(image: _backgroundImage!),
                       ),
                       const SizedBox(height: _kPhotoToNameLabelGap),
                       const _SectionLabel('여행명'),
@@ -279,7 +265,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       const SizedBox(height: _kFieldToNextLabelGap),
                       const _SectionLabel('어떤 여행인가요?(최대 2개 선택)'),
                       const SizedBox(height: _kLabelToFieldGap),
-                      _TagGrid(
+                      AppTravelTagGrid(
                         selectedTags: _selectedTags,
                         onToggle: _handleToggleTag,
                       ),
@@ -369,54 +355,6 @@ class _VisibilitySection extends StatelessWidget {
             ),
           ],
         ),
-      ],
-    );
-  }
-}
-
-class _TagGrid extends StatelessWidget {
-  const _TagGrid({required this.selectedTags, required this.onToggle});
-
-  final Set<String> selectedTags;
-  final ValueChanged<String> onToggle;
-
-  static const int _columns = 4;
-
-  @override
-  Widget build(BuildContext context) {
-    final rows = [
-      for (var i = 0; i < _kTravelTagOptions.length; i += _columns)
-        _kTravelTagOptions.sublist(
-          i,
-          (i + _columns).clamp(0, _kTravelTagOptions.length),
-        ),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var r = 0; r < rows.length; r++) ...[
-          if (r > 0) const SizedBox(height: 10),
-          Row(
-            children: [
-              for (var c = 0; c < rows[r].length; c++) ...[
-                if (c > 0) const SizedBox(width: 9),
-                Expanded(
-                  child: AppTagChip(
-                    label: '# ${rows[r][c]}',
-                    isSelected: selectedTags.contains(rows[r][c]),
-                    onTap: () => onToggle(rows[r][c]),
-
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10.0,
-                      horizontal: 12.0,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
       ],
     );
   }

@@ -4,8 +4,8 @@ import 'package:flutter/widget_previews.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/widgets/app_chip.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
+import '../../core/design_system/widgets/app_travel_tag_grid.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
@@ -44,17 +44,6 @@ class TravelInfoScreen extends StatefulWidget {
 
 class _TravelInfoScreenState extends State<TravelInfoScreen> {
   static const int _maximumTagCount = 2;
-  static const List<String> _tagOptions = [
-    '기록',
-    '미식',
-    '힐링',
-    '체험',
-    '문화',
-    '예술',
-    '쇼핑',
-    '탐험',
-  ];
-
   final TextEditingController _nameController = TextEditingController();
   final Set<String> _selectedTags = {};
 
@@ -105,12 +94,12 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TravelDetailTopBar(title: '여행 생성하기', onBackTap: _handleBack),
-            const SizedBox(height: 25),
+            const SizedBox(height: 15),
             const Align(
               alignment: Alignment.center,
               child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 1),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 35),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -145,17 +134,9 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    Wrap(
-                      spacing: 9,
-                      runSpacing: 10,
-                      children: [
-                        for (final tag in _tagOptions)
-                          AppTagChip(
-                            label: '# $tag',
-                            isSelected: _selectedTags.contains(tag),
-                            onTap: () => _handleTagTap(tag),
-                          ),
-                      ],
+                    AppTravelTagGrid(
+                      selectedTags: _selectedTags,
+                      onToggle: _handleTagTap,
                     ),
                   ],
                 ),
