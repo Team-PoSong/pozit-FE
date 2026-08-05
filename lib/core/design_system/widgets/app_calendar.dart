@@ -30,6 +30,8 @@ const double _calendarOuterPadding =
 
 enum _CapType { round, pill, fade }
 
+enum AppCalendarSelectionTarget { start, end }
+
 class _HighlightPiece {
   final Rect rect;
   final Color? color;
@@ -52,6 +54,7 @@ String _dateKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
 class AppCalendar extends StatefulWidget {
   final DateTime initialMonth;
   final DateTime? minSelectableDate;
+  final AppCalendarSelectionTarget? selectionTarget;
   final ValueChanged<DateTime>? onSelectionStarted;
   final void Function(DateTime start, DateTime end)? onRangeSelected;
   final VoidCallback? onSelectionCleared;
@@ -60,6 +63,7 @@ class AppCalendar extends StatefulWidget {
     super.key,
     DateTime? initialMonth,
     this.minSelectableDate,
+    this.selectionTarget,
     this.onSelectionStarted,
     this.onRangeSelected,
     this.onSelectionCleared,
@@ -392,9 +396,22 @@ class _AppCalendarState extends State<AppCalendar> {
           _rangeEnd = date;
         }
       } else {
-        _rangeStart = date;
-        _rangeEnd = null;
-        selectionCleared = true;
+        final editsStart =
+            widget.selectionTarget == AppCalendarSelectionTarget.start;
+        final editsEnd =
+            widget.selectionTarget == AppCalendarSelectionTarget.end;
+
+        if (editsStart && date.isBefore(_rangeStart!)) {
+          _rangeStart = date;
+        } else if (editsEnd) {
+          _rangeStart = null;
+          _rangeEnd = null;
+          selectionCleared = true;
+        } else {
+          _rangeStart = null;
+          _rangeEnd = null;
+          selectionCleared = true;
+        }
       }
     });
 

@@ -34,7 +34,7 @@ void main() {
     expect(find.text('7월 10일'), findsOneWidget);
   });
 
-  testWidgets('시작일을 다시 누르면 기존 표시를 유지한 채 새 기간을 선택한다', (tester) async {
+  testWidgets('시작일 활성 상태에서 같은 날이나 이후를 누르면 전체 선택이 해제된다', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -68,12 +68,139 @@ void main() {
     expect(dateDisplay.endDate, DateTime(2026, 7, 12));
     expect(dateDisplay.activeSelection, AppTravelDateSelection.start);
 
-    await tester.tap(find.text('15'));
+    await tester.tap(find.text('12'));
     await tester.pumpAndSettle();
 
     dateDisplay = tester.widget<AppTravelDate>(find.byType(AppTravelDate));
-    expect(dateDisplay.startDate, DateTime(2026, 7, 15));
+    expect(dateDisplay.startDate, isNull);
     expect(dateDisplay.endDate, isNull);
-    expect(dateDisplay.activeSelection, AppTravelDateSelection.end);
+    expect(dateDisplay.activeSelection, AppTravelDateSelection.start);
+  });
+
+  testWidgets('종료일로 시작일보다 앞 날짜를 누르면 전체 선택이 해제된다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelScheduleScreen(
+          destination: '경주',
+          minimumDate: DateTime(2026, 7, 1),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('10'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('8'));
+    await tester.pumpAndSettle();
+
+    final dateDisplay = tester.widget<AppTravelDate>(
+      find.byType(AppTravelDate),
+    );
+    expect(dateDisplay.startDate, isNull);
+    expect(dateDisplay.endDate, isNull);
+    expect(dateDisplay.activeSelection, AppTravelDateSelection.start);
+  });
+
+  testWidgets('시작일 활성 상태에서 앞 날짜를 누르면 시작일만 변경된다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelScheduleScreen(
+          destination: '경주',
+          minimumDate: DateTime(2026, 7, 1),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('10'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('12'));
+    await tester.pumpAndSettle();
+
+    final startDateButton = find
+        .descendant(
+          of: find.byType(AppTravelDate),
+          matching: find.byType(GestureDetector),
+        )
+        .first;
+    await tester.tap(startDateButton);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('8'));
+    await tester.pumpAndSettle();
+
+    final dateDisplay = tester.widget<AppTravelDate>(
+      find.byType(AppTravelDate),
+    );
+    expect(dateDisplay.startDate, DateTime(2026, 7, 8));
+    expect(dateDisplay.endDate, DateTime(2026, 7, 12));
+    expect(dateDisplay.activeSelection, AppTravelDateSelection.start);
+  });
+
+  testWidgets('종료일 활성 상태에서 뒤 날짜를 누르면 전체 선택이 해제된다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelScheduleScreen(
+          destination: '경주',
+          minimumDate: DateTime(2026, 7, 1),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('10'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('12'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('15'));
+    await tester.pumpAndSettle();
+
+    final dateDisplay = tester.widget<AppTravelDate>(
+      find.byType(AppTravelDate),
+    );
+    expect(dateDisplay.startDate, isNull);
+    expect(dateDisplay.endDate, isNull);
+    expect(dateDisplay.activeSelection, AppTravelDateSelection.start);
+  });
+
+  testWidgets('종료일 활성 상태에서 같은 날이나 이전을 누르면 전체 선택이 해제된다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelScheduleScreen(
+          destination: '경주',
+          minimumDate: DateTime(2026, 7, 1),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('10'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('12'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('10'));
+    await tester.pumpAndSettle();
+
+    final dateDisplay = tester.widget<AppTravelDate>(
+      find.byType(AppTravelDate),
+    );
+    expect(dateDisplay.startDate, isNull);
+    expect(dateDisplay.endDate, isNull);
+    expect(dateDisplay.activeSelection, AppTravelDateSelection.start);
   });
 }

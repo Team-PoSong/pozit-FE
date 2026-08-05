@@ -36,7 +36,6 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
   AppTravelDateSelection _activeSelection = AppTravelDateSelection.start;
-  int _calendarRevision = 0;
   bool _hasCompleteRange = false;
 
   static DateTime _dateOnly(DateTime date) =>
@@ -62,7 +61,6 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
     setState(() {
       _startDate = start;
       _endDate = end;
-      _activeSelection = AppTravelDateSelection.end;
       _hasCompleteRange = true;
     });
   }
@@ -80,7 +78,6 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
     setState(() {
       _activeSelection = selection;
       if (selection == AppTravelDateSelection.start) {
-        _calendarRevision++;
         _hasCompleteRange = false;
       }
     });
@@ -155,9 +152,12 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppCalendar(
-                      key: ValueKey(_calendarRevision),
                       initialMonth: minimumDate,
                       minSelectableDate: minimumDate,
+                      selectionTarget:
+                          _activeSelection == AppTravelDateSelection.start
+                          ? AppCalendarSelectionTarget.start
+                          : AppCalendarSelectionTarget.end,
                       onSelectionStarted: _handleSelectionStarted,
                       onRangeSelected: _handleRangeSelected,
                       onSelectionCleared: _handleSelectionCleared,
