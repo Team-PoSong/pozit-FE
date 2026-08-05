@@ -78,7 +78,7 @@ class _TravelCourseCreationScreenState
               alignment: Alignment.center,
               child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 2),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: AppDateDetailSelect(
@@ -153,15 +153,16 @@ class _EmptyCourseState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset(
-            AppImages.posongPlain,
+            AppImages.pin,
             width: 160,
             height: 160,
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
           ),
           const SizedBox(height: 10),
           Text(
             '코스를 만들어볼까요?',
-            style: AppTextStyles.subTitle.copyWith(color: AppColors.gray5),
+            textAlign: TextAlign.center,
+            style: AppTextStyles.body.copyWith(color: AppColors.gray5),
           ),
         ],
       ),
