@@ -11,6 +11,7 @@ import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../explore/explore_content.dart';
+import '../travel_creation/travel_creation_screen.dart';
 import 'widgets/travel_completion_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -105,7 +106,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleCreateTravel() {
     _toggleTravelMenu();
-    widget.onCreateTravelTap?.call();
+    final onCreateTravelTap = widget.onCreateTravelTap;
+    if (onCreateTravelTap != null) {
+      onCreateTravelTap();
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const TravelCreationScreen()),
+    );
   }
 
   void _handleJoinWithInviteCode() {
