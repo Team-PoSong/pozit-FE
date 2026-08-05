@@ -33,28 +33,57 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
   static const int _maximumTripNights = 3;
   static const String _maximumTripLengthMessage = '아직 포짓에서는 3박 4일까지만 지원해요';
 
-  late DateTime _startDate = _dateOnly(widget.minimumDate ?? DateTime.now());
-  late DateTime _endDate = _startDate;
+  DateTime? _startDate;
+  DateTime? _endDate;
+  AppTravelDateSelection _activeSelection = AppTravelDateSelection.start;
+  int _calendarRevision = 0;
   bool _hasCompleteRange = false;
 
   static DateTime _dateOnly(DateTime date) =>
       DateTime(date.year, date.month, date.day);
 
   bool get _exceedsMaximumTripLength =>
-      _endDate.difference(_startDate).inDays > _maximumTripNights;
+      _startDate != null &&
+      _endDate != null &&
+      _endDate!.difference(_startDate!).inDays > _maximumTripNights;
 
   bool get _canContinue => _hasCompleteRange && !_exceedsMaximumTripLength;
+
+  void _handleSelectionStarted(DateTime start) {
+    setState(() {
+      _startDate = start;
+      _endDate = null;
+      _activeSelection = AppTravelDateSelection.end;
+      _hasCompleteRange = false;
+    });
+  }
 
   void _handleRangeSelected(DateTime start, DateTime end) {
     setState(() {
       _startDate = start;
       _endDate = end;
+      _activeSelection = AppTravelDateSelection.end;
       _hasCompleteRange = true;
     });
   }
 
   void _handleSelectionCleared() {
-    setState(() => _hasCompleteRange = false);
+    setState(() {
+      _startDate = null;
+      _endDate = null;
+      _activeSelection = AppTravelDateSelection.start;
+      _hasCompleteRange = false;
+    });
+  }
+
+  void _handleDateFieldSelectionChanged(AppTravelDateSelection selection) {
+    setState(() {
+      _activeSelection = selection;
+      if (selection == AppTravelDateSelection.start) {
+        _calendarRevision++;
+        _hasCompleteRange = false;
+      }
+    });
   }
 
   void _handleBack() {
@@ -64,7 +93,7 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
 
   void _handleNext() {
     if (!_canContinue) return;
-    final range = DateTimeRange(start: _startDate, end: _endDate);
+    final range = DateTimeRange(start: _startDate!, end: _endDate!);
     final onNext = widget.onNext;
     if (onNext != null) {
       onNext(range);
@@ -91,12 +120,12 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TravelDetailTopBar(title: '여행 생성하기', onBackTap: _handleBack),
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
             const Align(
               alignment: Alignment.center,
               child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 0),
             ),
-            const SizedBox(height: 35),
+            const SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
@@ -114,6 +143,8 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
                 startDate: _startDate,
                 endDate: _endDate,
                 showTitle: false,
+                activeSelection: _activeSelection,
+                onSelectionChanged: _handleDateFieldSelectionChanged,
               ),
             ),
             const SizedBox(height: 24),
@@ -124,8 +155,10 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppCalendar(
+                      key: ValueKey(_calendarRevision),
                       initialMonth: minimumDate,
                       minSelectableDate: minimumDate,
+                      onSelectionStarted: _handleSelectionStarted,
                       onRangeSelected: _handleRangeSelected,
                       onSelectionCleared: _handleSelectionCleared,
                     ),

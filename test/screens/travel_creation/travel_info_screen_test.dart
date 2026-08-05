@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/widgets/app_chip.dart';
+import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
+import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_info_screen.dart';
 
 void main() {
@@ -37,9 +39,37 @@ void main() {
     expect(selectedChips.length, 2);
     expect(selectedChips.map((chip) => chip.label), ['# 미식', '# 문화']);
 
-    await tester.tap(find.text('저장'));
+    await tester.tap(find.text('다음'));
     await tester.pump();
     expect(savedResult?.name, '포송한 여행');
     expect(savedResult?.tags, {'미식', '문화'});
+  });
+
+  testWidgets('여행 정보를 저장하면 코스 구성 화면으로 이동한다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelInfoScreen(
+          destination: '경주',
+          dateRange: DateTimeRange(
+            start: DateTime(2026, 7, 3),
+            end: DateTime(2026, 7, 5),
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), '포송한 여행');
+    await tester.tap(find.text('# 미식'));
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('다음'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TravelCourseCreationScreen), findsOneWidget);
   });
 }

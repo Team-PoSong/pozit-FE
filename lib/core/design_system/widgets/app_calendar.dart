@@ -52,6 +52,7 @@ String _dateKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
 class AppCalendar extends StatefulWidget {
   final DateTime initialMonth;
   final DateTime? minSelectableDate;
+  final ValueChanged<DateTime>? onSelectionStarted;
   final void Function(DateTime start, DateTime end)? onRangeSelected;
   final VoidCallback? onSelectionCleared;
 
@@ -59,6 +60,7 @@ class AppCalendar extends StatefulWidget {
     super.key,
     DateTime? initialMonth,
     this.minSelectableDate,
+    this.onSelectionStarted,
     this.onRangeSelected,
     this.onSelectionCleared,
   }) : initialMonth = initialMonth ?? DateTime.now();
@@ -390,17 +392,8 @@ class _AppCalendarState extends State<AppCalendar> {
           _rangeEnd = date;
         }
       } else {
-        final isStrictlyBetween =
-            date.isAfter(_rangeStart!) && date.isBefore(_rangeEnd!);
-
-        if (isStrictlyBetween) {
-          _rangeStart = null;
-          _rangeEnd = null;
-        } else {
-          _rangeStart = date;
-          _rangeEnd = null;
-        }
-
+        _rangeStart = date;
+        _rangeEnd = null;
         selectionCleared = true;
       }
     });
@@ -409,6 +402,10 @@ class _AppCalendarState extends State<AppCalendar> {
 
     if (selectionCleared) {
       widget.onSelectionCleared?.call();
+    }
+
+    if (_rangeStart != null && _rangeEnd == null) {
+      widget.onSelectionStarted?.call(_rangeStart!);
     }
 
     if (_rangeStart != null && _rangeEnd != null) {

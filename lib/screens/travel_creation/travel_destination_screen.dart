@@ -135,12 +135,12 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TravelDetailTopBar(title: '여행 생성하기', onBackTap: _handleBack),
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
             const Align(
               alignment: Alignment.center,
               child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 0),
             ),
-            const SizedBox(height: 35),
+            const SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(

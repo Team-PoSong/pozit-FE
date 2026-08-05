@@ -9,20 +9,8 @@ import '../../core/design_system/widgets/app_travel_tag_grid.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
-
-class TravelInfoResult {
-  const TravelInfoResult({
-    required this.destination,
-    required this.dateRange,
-    required this.name,
-    required this.tags,
-  });
-
-  final String destination;
-  final DateTimeRange dateRange;
-  final String name;
-  final Set<String> tags;
-}
+import 'travel_course_creation_screen.dart';
+import 'travel_creation_data.dart';
 
 class TravelInfoScreen extends StatefulWidget {
   const TravelInfoScreen({
@@ -73,12 +61,21 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
 
   void _handleSave() {
     if (!_canSave) return;
-    widget.onSave?.call(
-      TravelInfoResult(
-        destination: widget.destination,
-        dateRange: widget.dateRange,
-        name: _nameController.text.trim(),
-        tags: Set.unmodifiable(_selectedTags),
+    final result = TravelInfoResult(
+      destination: widget.destination,
+      dateRange: widget.dateRange,
+      name: _nameController.text.trim(),
+      tags: Set.unmodifiable(_selectedTags),
+    );
+    final onSave = widget.onSave;
+    if (onSave != null) {
+      onSave(result);
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelCourseCreationScreen(travelInfo: result),
       ),
     );
   }
@@ -94,12 +91,12 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TravelDetailTopBar(title: '여행 생성하기', onBackTap: _handleBack),
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
             const Align(
               alignment: Alignment.center,
               child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 1),
             ),
-            const SizedBox(height: 35),
+            const SizedBox(height: 40),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -150,7 +147,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
                 AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
-                text: '저장',
+                text: '다음',
                 isEnabled: _canSave,
                 onPressed: _handleSave,
               ),
