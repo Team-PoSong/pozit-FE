@@ -14,7 +14,7 @@ import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
 
-const double _kTopBarToSearchBarGap = 33.0;
+const double _kTopBarToSearchBarGap = 25.0;
 const double _kSearchBarToErrorGap = 4.0;
 const double _kSearchBarToLabelGap = 24.0;
 const double _kLabelToListGap = 24.0;
@@ -114,7 +114,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   }
 
   void _handleQueryChanged(String value) {
-    if (value.trim().isNotEmpty) return;
     setState(() {
       _hasSearched = false;
       _searchResults = [];
@@ -145,7 +144,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final displayedSpots = _hasSearched ? _searchResults : widget.popularSpots;
+    final hasQuery = _controller.text.trim().isNotEmpty;
+    final displayedSpots = _hasSearched
+        ? _searchResults
+        : hasQuery
+        ? const <TouristSpotModel>[]
+        : widget.popularSpots;
 
     final isEmptyResult =
         _showLengthError || (_hasSearched && displayedSpots.isEmpty);
@@ -178,9 +182,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   ),
                   if (_showLengthError)
                     Positioned(
-                      top:
-                          AppDimensions.inputMinHeight +
-                          _kSearchBarToErrorGap,
+                      top: AppDimensions.inputMinHeight + _kSearchBarToErrorGap,
                       left: 0,
                       right: 0,
                       child: Text(
@@ -195,6 +197,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             ),
             const SizedBox(height: _kSearchBarToLabelGap),
             if (!_hasSearched &&
+                !hasQuery &&
                 !_showLengthError &&
                 !_isSearching &&
                 !_hasSearchError) ...[
@@ -339,7 +342,8 @@ class _EmptyResult extends StatelessWidget {
           const SizedBox(height: _kEmptyImageToTextGap),
           Text(
             '검색 결과가 없어요.',
-            style: AppTextStyles.subTitle.copyWith(color: AppColors.gray5),
+            textAlign: TextAlign.center,
+            style: AppTextStyles.body.copyWith(color: AppColors.gray5),
           ),
           const Expanded(flex: _kEmptyResultBottomFlex, child: SizedBox()),
         ],
