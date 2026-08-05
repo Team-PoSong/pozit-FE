@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Pretendard',
       ),
       // TODO(temp-debug): getTravelDetail API 연동 테스트용 임시 진입점입니다.
-      // home: const AuthGate(),
+      //home: const AuthGate(),
       home: const TravelDetailPage(travelId: 4),
     );
   }

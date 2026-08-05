@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
 import '../../models/travel/presigned_url_response.dart';
+import '../../models/travel/travel_course_model.dart';
 import '../../models/travel/travel_detail_model.dart';
 import '../../models/travel/travel_tag_model.dart';
 import '../../models/travel/travel_update_request.dart';
@@ -128,6 +129,22 @@ class TravelRepository {
     if (lower.endsWith('.webp')) return 'image/webp';
     if (lower.endsWith('.heic')) return 'image/heic';
     return 'application/octet-stream';
+  }
+
+  Future<TravelCourseModel> getCourseDetail(int courseId) async {
+    try {
+      final result = await DioClient.instance.get('/api/courses/$courseId');
+
+      if (result is! Map<String, dynamic>) {
+        throw const ApiException('코스 상세 응답 형식이 올바르지 않습니다.');
+      }
+
+      return TravelCourseModel.fromJson(result);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('코스 상세 정보를 불러오지 못했습니다.');
+    }
   }
 
   Future<void> updateCourseSpots(

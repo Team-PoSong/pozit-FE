@@ -59,6 +59,7 @@ class CourseSpotModel {
   final double longitude;
   final int orderIndex;
   final String status;
+  final String imageUrl;
   final List<PozingModel> pozings;
 
   const CourseSpotModel({
@@ -70,6 +71,7 @@ class CourseSpotModel {
     required this.longitude,
     required this.orderIndex,
     required this.status,
+    this.imageUrl = '',
     this.pozings = const [],
   });
 
@@ -83,6 +85,7 @@ class CourseSpotModel {
       longitude: (json['longitude'] as num).toDouble(),
       orderIndex: json['orderIndex'] as int,
       status: _normalizeSpotStatus(json['status'] as String),
+      imageUrl: json['imageUrl'] as String? ?? '',
       pozings:
           (json['pozings'] as List<dynamic>?)
               ?.map((e) => PozingModel.fromJson(e as Map<String, dynamic>))
@@ -100,6 +103,7 @@ class CourseSpotModel {
     double? longitude,
     int? orderIndex,
     String? status,
+    String? imageUrl,
     List<PozingModel>? pozings,
   }) {
     return CourseSpotModel(
@@ -111,6 +115,7 @@ class CourseSpotModel {
       longitude: longitude ?? this.longitude,
       orderIndex: orderIndex ?? this.orderIndex,
       status: status ?? this.status,
+      imageUrl: imageUrl ?? this.imageUrl,
       pozings: pozings ?? this.pozings,
     );
   }
@@ -122,11 +127,16 @@ class TravelCourseModel {
   final DateTime date;
   final List<CourseSpotModel> spots;
 
+  /// getCourseDetail(getTravelDetail의 courses에는 없음)에서만 내려오는,
+  /// 이 코스를 처음 열었을 때 포커스해야 할 장소입니다.
+  final int? initialFocusSpotId;
+
   const TravelCourseModel({
     required this.courseId,
     required this.dayNumber,
     required this.date,
     this.spots = const [],
+    this.initialFocusSpotId,
   });
 
   String get firstSpotName {
@@ -146,6 +156,7 @@ class TravelCourseModel {
               ?.map((e) => CourseSpotModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      initialFocusSpotId: json['initialFocusSpotId'] as int?,
     );
   }
 }

@@ -47,7 +47,7 @@ class TravelCourseMapScreen extends StatefulWidget {
 class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
   late int _selectedDay = widget.initialDay;
 
-  int? _selectedSpotId;
+  late int? _selectedSpotId = _focusSpotIdForDay(widget.initialDay);
 
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionSubscription;
@@ -160,12 +160,19 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
     ];
   }
 
+  int? _focusSpotIdForDay(int dayNumber) {
+    for (final course in widget.courses) {
+      if (course.dayNumber == dayNumber) return course.initialFocusSpotId;
+    }
+    return null;
+  }
+
   void _handleDayChanged(int day) {
     final clamped = day.clamp(1, _dayCount);
     if (clamped == _selectedDay) return;
     setState(() {
       _selectedDay = clamped;
-      _selectedSpotId = null;
+      _selectedSpotId = _focusSpotIdForDay(clamped);
     });
   }
 

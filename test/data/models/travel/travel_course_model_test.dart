@@ -46,6 +46,17 @@ void main() {
       final spot = CourseSpotModel.fromJson(_spotJson());
       expect(spot.pozings, isEmpty);
     });
+
+    test('imageUrl이 없으면 빈 문자열로 채운다 (getTravelDetail 응답 대응)', () {
+      final spot = CourseSpotModel.fromJson(_spotJson());
+      expect(spot.imageUrl, '');
+    });
+
+    test('imageUrl이 있으면 그대로 사용한다 (getCourseDetail 응답 대응)', () {
+      final json = _spotJson()..['imageUrl'] = 'https://example.com/spot.jpg';
+      final spot = CourseSpotModel.fromJson(json);
+      expect(spot.imageUrl, 'https://example.com/spot.jpg');
+    });
   });
 
   group('TravelCourseModel.fromJson', () {
@@ -59,6 +70,29 @@ void main() {
 
       expect(course.spots, hasLength(1));
       expect(course.spots.first.status, 'visited');
+    });
+
+    test('initialFocusSpotId가 없으면 null이다 (getTravelDetail 응답 대응)', () {
+      final course = TravelCourseModel.fromJson({
+        'courseId': 1,
+        'dayNumber': 1,
+        'date': '2026-06-05',
+        'spots': [_spotJson()],
+      });
+
+      expect(course.initialFocusSpotId, isNull);
+    });
+
+    test('initialFocusSpotId가 있으면 그대로 사용한다 (getCourseDetail 응답 대응)', () {
+      final course = TravelCourseModel.fromJson({
+        'courseId': 1,
+        'dayNumber': 1,
+        'date': '2026-06-05',
+        'spots': [_spotJson()],
+        'initialFocusSpotId': 1,
+      });
+
+      expect(course.initialFocusSpotId, 1);
     });
   });
 }

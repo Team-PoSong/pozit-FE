@@ -175,18 +175,40 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     );
   }
 
-  void _openCourseMapScreen(BuildContext context, int day) {
+  Future<void> _openCourseMapScreen(BuildContext context, int day) async {
     final detail = _detail!;
+    final enrichedCourses = await _fetchEnrichedCourses(detail.courses);
+    if (!context.mounted) return;
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => TravelCourseMapScreen(
-          courses: detail.courses,
+          courses: enrichedCourses,
           status: detail.status,
           totalDays: detail.endDate.difference(detail.startDate).inDays + 1,
           initialDay: day,
         ),
       ),
     );
+  }
+
+  /// getTravelDetail의 courses에는 address/imageUrl/initialFocusSpotId가
+  /// 빠져 있어서, getCourseDetail로 코스별 상세 데이터를 보강합니다.
+  /// 코스 하나가 실패해도 나머지는 그대로 쓰고, 실패한 코스만 기존 데이터로
+  /// 대체합니다.
+  Future<List<TravelCourseModel>> _fetchEnrichedCourses(
+    List<TravelCourseModel> courses,
+  ) async {
+    final enriched = await Future.wait(
+      courses.map((course) async {
+        try {
+          return await widget.repository.getCourseDetail(course.courseId);
+        } catch (_) {
+          return course;
+        }
+      }),
+    );
+    return enriched;
   }
 
   void _openSettingsScreen(BuildContext context) {
