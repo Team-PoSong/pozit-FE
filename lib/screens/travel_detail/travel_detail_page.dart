@@ -298,12 +298,15 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     );
   }
 
-  void _openCourseEditScreen(BuildContext context) {
+  Future<void> _openCourseEditScreen(BuildContext context) async {
     final detail = _detail!;
+    final enrichedCourses = await _fetchEnrichedCourses(detail.courses);
+    if (!context.mounted) return;
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => CourseEditScreen(
-          courses: detail.courses,
+          courses: enrichedCourses,
           initialDay: _initialDay,
           onSave: (spotsByCourseId) =>
               _handleCourseEditSave(context, spotsByCourseId),
