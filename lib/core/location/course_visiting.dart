@@ -33,13 +33,14 @@ Set<int> nearbyTouristSpotIds(
   };
 }
 
-/// The day and within-day course index of the first course (in [allCourses]'
-/// day-ascending, then array order) that has a spot within
-/// [kCourseVisitingRadiusMeters] of [location].
+/// The day and within-day spot index (into that day's merged spot list, the
+/// same list the map card pages through) of the first spot in [allCourses]'
+/// day-ascending order that [location] currently falls within
+/// [kCourseVisitingRadiusMeters] of.
 ///
 /// Returns null when [location] is unknown or nothing is nearby, so callers
 /// can fall back to a backend-driven default focus.
-({int dayNumber, int courseIndex})? nearbyCourseFocus(
+({int dayNumber, int spotIndex})? nearbyCourseFocus(
   LatLng? location,
   List<TravelCourseModel> allCourses,
 ) {
@@ -48,12 +49,10 @@ Set<int> nearbyTouristSpotIds(
   final dayNumbers = allCourses.map((c) => c.dayNumber).toSet().toList()
     ..sort();
   for (final dayNumber in dayNumbers) {
-    final coursesForDay = allCourses
-        .where((c) => c.dayNumber == dayNumber)
-        .toList();
-    for (var i = 0; i < coursesForDay.length; i++) {
-      if (nearbyTouristSpotIds(location, coursesForDay[i].spots).isNotEmpty) {
-        return (dayNumber: dayNumber, courseIndex: i);
+    final spotsForDay = mergeSpotsForDay(allCourses, dayNumber);
+    for (var i = 0; i < spotsForDay.length; i++) {
+      if (isWithinCourseVisitingRadius(location, spotsForDay[i])) {
+        return (dayNumber: dayNumber, spotIndex: i);
       }
     }
   }

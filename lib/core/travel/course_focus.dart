@@ -1,10 +1,5 @@
 import '../../data/models/travel/travel_course_model.dart';
 
-bool isCourseCompleted(TravelCourseModel course) {
-  return course.spots.isNotEmpty &&
-      course.spots.every((spot) => spot.status == 'visited');
-}
-
 /// Index of the item right after the last item for which [isDone] is true;
 /// 0 if no item is done, and clamped to the last index if the last item is
 /// done (there's nothing after it to focus on).
@@ -22,22 +17,27 @@ int focusedIndexAfterLastCompleted<T>(
 }
 
 /// The backend-driven default first-open focus: the day and within-day
-/// course index of "what to do next" — the course right after the last
-/// fully-completed one, or the very first course if none are completed yet.
+/// spot index of "what to do next" — the spot right after the last visited
+/// one in that day's merged spot list, or the very first spot if none are
+/// visited yet. The map card pages through spots (not courses) since a day
+/// can have a single course with several spots.
 ///
 /// [allCourses] is assumed to already be in itinerary order (the API doesn't
 /// provide a separate ordering field among courses sharing a day, so array
 /// order is treated as itinerary order, matching the rest of the app).
-({int dayNumber, int courseIndex}) defaultTravelFocus(
+({int dayNumber, int spotIndex}) defaultTravelFocus(
   List<TravelCourseModel> allCourses,
 ) {
   final dayNumbers = allCourses.map((c) => c.dayNumber).toSet().toList()
     ..sort();
-  if (dayNumbers.isEmpty) return (dayNumber: 1, courseIndex: 0);
+  if (dayNumbers.isEmpty) return (dayNumber: 1, spotIndex: 0);
 
-  bool isDayCompleted(int dayNumber) => allCourses
-      .where((c) => c.dayNumber == dayNumber)
-      .every(isCourseCompleted);
+  bool isSpotVisited(CourseSpotModel spot) => spot.status == 'visited';
+
+  bool isDayCompleted(int dayNumber) {
+    final spots = mergeSpotsForDay(allCourses, dayNumber);
+    return spots.isNotEmpty && spots.every(isSpotVisited);
+  }
 
   final focusedDayIndex = focusedIndexAfterLastCompleted(
     dayNumbers,
@@ -45,13 +45,11 @@ int focusedIndexAfterLastCompleted<T>(
   );
   final focusedDay = dayNumbers[focusedDayIndex];
 
-  final coursesForFocusedDay = allCourses
-      .where((c) => c.dayNumber == focusedDay)
-      .toList();
-  final focusedCourseIndex = focusedIndexAfterLastCompleted(
-    coursesForFocusedDay,
-    isCourseCompleted,
+  final spotsForFocusedDay = mergeSpotsForDay(allCourses, focusedDay);
+  final focusedSpotIndex = focusedIndexAfterLastCompleted(
+    spotsForFocusedDay,
+    isSpotVisited,
   );
 
-  return (dayNumber: focusedDay, courseIndex: focusedCourseIndex);
+  return (dayNumber: focusedDay, spotIndex: focusedSpotIndex);
 }

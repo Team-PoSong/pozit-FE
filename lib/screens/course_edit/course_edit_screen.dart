@@ -69,7 +69,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
 
   late final Map<int, List<CourseSpotModel>> _spotsByDayIndex = {
     for (var i = 0; i < _dayNumbers.length; i++)
-      i + 1: _mergeSpotsForDayNumber(_dayNumbers[i]),
+      i + 1: mergeSpotsForDay(widget.courses, _dayNumbers[i]),
   };
 
   late int _selectedDay = widget.initialDay;
@@ -79,21 +79,6 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
 
   List<CourseSpotModel> get _spotsForSelectedDay =>
       _spotsByDayIndex[_selectedDay] ?? const [];
-
-  List<CourseSpotModel> _mergeSpotsForDayNumber(int dayNumber) {
-    final seenSpotIds = <int>{};
-    final merged = <CourseSpotModel>[];
-    for (final course in widget.courses.where(
-      (c) => c.dayNumber == dayNumber,
-    )) {
-      final sorted = [...course.spots]
-        ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
-      for (final spot in sorted) {
-        if (seenSpotIds.add(spot.touristSpotId)) merged.add(spot);
-      }
-    }
-    return merged;
-  }
 
   void _handleDayChanged(int day) {
     setState(() => _selectedDay = day);

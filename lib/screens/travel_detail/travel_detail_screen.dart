@@ -41,7 +41,7 @@ class TravelDetailScreen extends StatefulWidget {
     this.courses = const [],
     this.backgroundImage = const AssetImage(AppImages.travelMockup),
     this.initialDay = 1,
-    this.initialCourseIndex = 0,
+    this.initialSpotIndex = 0,
     this.onBackTap,
     this.onSettingsTap,
     this.onCourseEditTap,
@@ -64,7 +64,11 @@ class TravelDetailScreen extends StatefulWidget {
   final List<TravelCourseModel> courses;
   final ImageProvider<Object> backgroundImage;
   final int initialDay;
-  final int initialCourseIndex;
+
+  /// 지도 카드가 페이지를 넘기는 단위는 코스가 아니라 "그 날의 장소"입니다
+  /// (하루에 코스가 1개뿐이라도 장소는 여러 개일 수 있어서). 이 값은
+  /// [mergeSpotsForDay]로 만든 목록에서의 인덱스입니다.
+  final int initialSpotIndex;
   final VoidCallback? onBackTap;
   final VoidCallback? onSettingsTap;
   final VoidCallback? onCourseEditTap;
@@ -85,7 +89,7 @@ class TravelDetailScreen extends StatefulWidget {
 class _TravelDetailScreenState extends State<TravelDetailScreen> {
   late int _selectedDay = widget.initialDay;
 
-  late int _selectedCourseIndex = widget.initialCourseIndex;
+  late int _selectedSpotIndex = widget.initialSpotIndex;
 
   final GlobalKey _courseButtonKey = GlobalKey();
   final GlobalKey _mapKey = GlobalKey();
@@ -187,29 +191,13 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   int get _dayCount => widget.info.totalDays;
 
-  List<TravelCourseModel> get _coursesForSelectedDay => widget.courses
-      .where((course) => course.dayNumber == _selectedDay)
-      .toList();
+  List<CourseSpotModel> get _mergedSpotsForSelectedDay =>
+      mergeSpotsForDay(widget.courses, _selectedDay);
 
-  TravelCourseModel? get _selectedCourse {
-    final courses = _coursesForSelectedDay;
-    if (courses.isEmpty) return null;
-    return courses[_selectedCourseIndex.clamp(0, courses.length - 1)];
-  }
-
-  List<CourseSpotModel> get _mergedSpotsForSelectedDay {
-    final seenSpotIds = <int>{};
-    final merged = <CourseSpotModel>[];
-    for (final course in _coursesForSelectedDay) {
-      final sorted = [...course.spots]
-        ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
-      for (final spot in sorted) {
-        if (seenSpotIds.add(spot.touristSpotId)) {
-          merged.add(spot);
-        }
-      }
-    }
-    return merged;
+  CourseSpotModel? get _focusedSpot {
+    final merged = _mergedSpotsForSelectedDay;
+    if (merged.isEmpty) return null;
+    return merged[_selectedSpotIndex.clamp(0, merged.length - 1)];
   }
 
   Set<int> get _nearbySpotIds =>
@@ -222,14 +210,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     final merged = _mergedSpotsForSelectedDay;
     if (merged.isEmpty) return const [];
 
-    int? selectedSpotId;
-    final selected = _selectedCourse;
-    if (selected != null && selected.spots.isNotEmpty) {
-      final sortedSelected = [...selected.spots]
-        ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
-      selectedSpotId = sortedSelected.first.touristSpotId;
-    }
-
+    final focusedSpotId = _focusedSpot?.touristSpotId;
     final allowVisiting = widget.status == AppTravelStatus.inProgress;
     final nearbySpotIds = _nearbySpotIds;
 
@@ -244,7 +225,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
               MapMarkerStatus.visiting,
             _ => MapMarkerStatus.notVisited,
           },
-          isSelected: spot.touristSpotId == selectedSpotId,
+          isSelected: spot.touristSpotId == focusedSpotId,
         ),
     ];
   }
@@ -255,27 +236,27 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     setState(() {
       _selectedDay = clamped;
 
-      _selectedCourseIndex = 0;
+      _selectedSpotIndex = 0;
     });
     widget.onDayChanged?.call(clamped);
   }
 
   void _handleMapSwipe(DragEndDetails details) {
-    final courses = _coursesForSelectedDay;
-    if (courses.length <= 1) return;
+    final spotCount = _mergedSpotsForSelectedDay.length;
+    if (spotCount <= 1) return;
     final velocity = details.primaryVelocity ?? 0;
     if (velocity <= -_kSwipeVelocityThreshold) {
       setState(() {
-        _selectedCourseIndex = (_selectedCourseIndex + 1).clamp(
+        _selectedSpotIndex = (_selectedSpotIndex + 1).clamp(
           0,
-          courses.length - 1,
+          spotCount - 1,
         );
       });
     } else if (velocity >= _kSwipeVelocityThreshold) {
       setState(() {
-        _selectedCourseIndex = (_selectedCourseIndex - 1).clamp(
+        _selectedSpotIndex = (_selectedSpotIndex - 1).clamp(
           0,
-          courses.length - 1,
+          spotCount - 1,
         );
       });
     }
@@ -283,17 +264,17 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final coursesForSelectedDay = _coursesForSelectedDay;
-    final coursePageCount = coursesForSelectedDay.isEmpty
+    final spotsForSelectedDay = _mergedSpotsForSelectedDay;
+    final spotPageCount = spotsForSelectedDay.isEmpty
         ? 1
-        : coursesForSelectedDay.length;
-    final coursePageIndex = coursesForSelectedDay.isEmpty
+        : spotsForSelectedDay.length;
+    final spotPageIndex = spotsForSelectedDay.isEmpty
         ? 0
-        : _selectedCourseIndex.clamp(0, coursePageCount - 1);
+        : _selectedSpotIndex.clamp(0, spotPageCount - 1);
 
     return Stack(
       children: [
-        _buildScaffold(coursePageCount, coursePageIndex),
+        _buildScaffold(spotPageCount, spotPageIndex),
         if (_showGuide)
           TravelDetailGuideOverlay(
             courseButtonKey: _courseButtonKey,
@@ -308,7 +289,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     );
   }
 
-  Widget _buildScaffold(int coursePageCount, int coursePageIndex) {
+  Widget _buildScaffold(int spotPageCount, int spotPageIndex) {
     return Scaffold(
       backgroundColor: AppColors.white,
 
@@ -388,10 +369,10 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                             horizontal: _kHorizontalPadding,
                           ),
                           child: AppMapCard(
-                            title: _selectedCourse?.firstSpotName ?? '',
+                            title: _focusedSpot?.name ?? '',
                             markers: _mergedMarkersForSelectedDay(),
-                            currentPage: coursePageIndex,
-                            pageCount: coursePageCount,
+                            currentPage: spotPageIndex,
+                            pageCount: spotPageCount,
                             onCourseTap: () =>
                                 widget.onCourseTap?.call(_selectedDay),
                             courseButtonKey: _courseButtonKey,
@@ -417,7 +398,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                           companionCount: widget.info.companionCount,
                           onSaveLogTap: widget.onSaveLogTap,
                           cameraKey: _cameraKey,
-                          courseTransitionKey: '$_selectedDay-$coursePageIndex',
+                          courseTransitionKey: '$_selectedDay-$spotPageIndex',
                           isCameraReady: _isCameraReady,
                         ),
                       ],

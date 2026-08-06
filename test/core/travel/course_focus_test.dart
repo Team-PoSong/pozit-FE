@@ -2,58 +2,45 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/travel/course_focus.dart';
 import 'package:pozit/data/models/travel/travel_course_model.dart';
 
-CourseSpotModel _spot({required String status}) {
+CourseSpotModel _spot({
+  required int touristSpotId,
+  required int orderIndex,
+  required bool visited,
+}) {
   return CourseSpotModel(
-    courseSpotId: 1,
-    touristSpotId: 1,
-    name: '테스트 스팟',
+    courseSpotId: touristSpotId,
+    touristSpotId: touristSpotId,
+    name: '스팟$touristSpotId',
     latitude: 0,
     longitude: 0,
-    orderIndex: 0,
-    status: status,
+    orderIndex: orderIndex,
+    status: visited ? 'visited' : 'notVisited',
   );
 }
 
-TravelCourseModel _course({
-  required int courseId,
-  required int dayNumber,
-  required bool completed,
-}) {
+/// 하루에 코스가 1개뿐이고 그 코스에 [visitedFlags]개의 장소가 있는,
+/// 실제 서비스에서 관찰되는 형태의 코스를 만듭니다.
+TravelCourseModel _courseWithSpots(
+  int courseId,
+  int dayNumber,
+  List<bool> visitedFlags,
+) {
   return TravelCourseModel(
     courseId: courseId,
     dayNumber: dayNumber,
     date: DateTime(2026, 6, 5),
-    spots: [_spot(status: completed ? 'visited' : 'notVisited')],
+    spots: [
+      for (var i = 0; i < visitedFlags.length; i++)
+        _spot(
+          touristSpotId: courseId * 100 + i,
+          orderIndex: i,
+          visited: visitedFlags[i],
+        ),
+    ],
   );
 }
 
 void main() {
-  group('isCourseCompleted', () {
-    test('모든 스팟이 방문 완료면 완료된 코스다', () {
-      final course = _course(courseId: 1, dayNumber: 1, completed: true);
-      expect(isCourseCompleted(course), isTrue);
-    });
-
-    test('스팟이 하나라도 미방문이면 완료된 코스가 아니다', () {
-      final course = TravelCourseModel(
-        courseId: 1,
-        dayNumber: 1,
-        date: DateTime(2026, 6, 5),
-        spots: [_spot(status: 'visited'), _spot(status: 'notVisited')],
-      );
-      expect(isCourseCompleted(course), isFalse);
-    });
-
-    test('스팟이 없으면 완료된 코스가 아니다', () {
-      final course = TravelCourseModel(
-        courseId: 1,
-        dayNumber: 1,
-        date: DateTime(2026, 6, 5),
-      );
-      expect(isCourseCompleted(course), isFalse);
-    });
-  });
-
   group('focusedIndexAfterLastCompleted', () {
     test('완료, 완료, 미방문(포커스) 패턴', () {
       final done = [true, true, false];
@@ -85,54 +72,54 @@ void main() {
   });
 
   group('defaultTravelFocus', () {
-    test('코스가 없으면 1일차 0번 코스를 기본값으로 반환한다', () {
+    test('코스가 없으면 1일차 0번 장소를 기본값으로 반환한다', () {
       final focus = defaultTravelFocus(const []);
-      expect(focus, (dayNumber: 1, courseIndex: 0));
+      expect(focus, (dayNumber: 1, spotIndex: 0));
     });
 
-    test('완료, 완료, 미방문(포커스) — 같은 날 코스 3개', () {
+    test('완료, 완료, 미방문(포커스) — 하루 코스 1개, 장소 3개', () {
       final courses = [
-        _course(courseId: 1, dayNumber: 1, completed: true),
-        _course(courseId: 2, dayNumber: 1, completed: true),
-        _course(courseId: 3, dayNumber: 1, completed: false),
+        _courseWithSpots(1, 1, [true, true, false]),
       ];
-      expect(defaultTravelFocus(courses), (dayNumber: 1, courseIndex: 2));
+      expect(defaultTravelFocus(courses), (dayNumber: 1, spotIndex: 2));
     });
 
-    test('완료, 미방문, 완료, 미방문(포커스) — 같은 날 코스 4개', () {
+    test('완료, 미방문, 완료, 미방문(포커스) — 하루 코스 1개, 장소 4개', () {
       final courses = [
-        _course(courseId: 1, dayNumber: 1, completed: true),
-        _course(courseId: 2, dayNumber: 1, completed: false),
-        _course(courseId: 3, dayNumber: 1, completed: true),
-        _course(courseId: 4, dayNumber: 1, completed: false),
+        _courseWithSpots(1, 1, [true, false, true, false]),
       ];
-      expect(defaultTravelFocus(courses), (dayNumber: 1, courseIndex: 3));
+      expect(defaultTravelFocus(courses), (dayNumber: 1, spotIndex: 3));
     });
 
-    test('미방문(포커스), 미방문, 미방문 — 완료된 코스가 없는 하루', () {
+    test('미방문(포커스), 미방문, 미방문 — 완료된 장소가 없는 하루', () {
       final courses = [
-        _course(courseId: 1, dayNumber: 1, completed: false),
-        _course(courseId: 2, dayNumber: 1, completed: false),
-        _course(courseId: 3, dayNumber: 1, completed: false),
+        _courseWithSpots(1, 1, [false, false, false]),
       ];
-      expect(defaultTravelFocus(courses), (dayNumber: 1, courseIndex: 0));
+      expect(defaultTravelFocus(courses), (dayNumber: 1, spotIndex: 0));
     });
 
-    test('1일차가 모두 완료되면 2일차의 첫 코스로 넘어간다', () {
+    test('같은 날 코스가 여러 개면 장소를 순서대로 합쳐서 계산한다', () {
       final courses = [
-        _course(courseId: 1, dayNumber: 1, completed: true),
-        _course(courseId: 2, dayNumber: 2, completed: false),
-        _course(courseId: 3, dayNumber: 2, completed: false),
+        _courseWithSpots(1, 1, [true]),
+        _courseWithSpots(2, 1, [false]),
       ];
-      expect(defaultTravelFocus(courses), (dayNumber: 2, courseIndex: 0));
+      expect(defaultTravelFocus(courses), (dayNumber: 1, spotIndex: 1));
     });
 
-    test('모든 날짜가 완료되면 마지막 날 마지막 코스로 고정된다', () {
+    test('1일차가 모두 완료되면 2일차의 첫 장소로 넘어간다', () {
       final courses = [
-        _course(courseId: 1, dayNumber: 1, completed: true),
-        _course(courseId: 2, dayNumber: 2, completed: true),
+        _courseWithSpots(1, 1, [true, true]),
+        _courseWithSpots(2, 2, [false, false]),
       ];
-      expect(defaultTravelFocus(courses), (dayNumber: 2, courseIndex: 0));
+      expect(defaultTravelFocus(courses), (dayNumber: 2, spotIndex: 0));
+    });
+
+    test('모든 날짜가 완료되면 마지막 날 마지막 장소로 고정된다', () {
+      final courses = [
+        _courseWithSpots(1, 1, [true]),
+        _courseWithSpots(2, 2, [true, true]),
+      ];
+      expect(defaultTravelFocus(courses), (dayNumber: 2, spotIndex: 1));
     });
   });
 }

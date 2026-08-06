@@ -80,7 +80,7 @@ void main() {
     expect(nearbyCourseFocus(far, [course]), isNull);
   });
 
-  test('여러 날짜/코스 중 가까운 스팟이 속한 (dayNumber, courseIndex)를 반환한다', () {
+  test('같은 날 여러 장소 중 가까운 장소의 (dayNumber, spotIndex)를 반환한다', () {
     final farSpot = _spot(courseSpotId: 1, touristSpotId: 1, latitude: 35.0);
     final nearSpot = _spot(
       courseSpotId: 2,
@@ -89,20 +89,37 @@ void main() {
       longitude: 129.2247,
     );
 
-    final day1Course0 = TravelCourseModel(
+    final day1Course = TravelCourseModel(
+      courseId: 1,
+      dayNumber: 1,
+      date: DateTime(2026, 6, 5),
+      spots: [farSpot, nearSpot],
+    );
+
+    final location = LatLng(nearSpot.latitude, nearSpot.longitude);
+
+    final focus = nearbyCourseFocus(location, [day1Course]);
+
+    expect(focus, (dayNumber: 1, spotIndex: 1));
+  });
+
+  test('여러 날짜 중 가까운 장소가 속한 (dayNumber, spotIndex)를 반환한다', () {
+    final farSpot = _spot(courseSpotId: 1, touristSpotId: 1, latitude: 35.0);
+    final nearSpot = _spot(
+      courseSpotId: 2,
+      touristSpotId: 2,
+      latitude: 35.8347,
+      longitude: 129.2247,
+    );
+
+    final day1Course = TravelCourseModel(
       courseId: 1,
       dayNumber: 1,
       date: DateTime(2026, 6, 5),
       spots: [farSpot],
     );
-    final day1Course1 = TravelCourseModel(
+    final day2Course = TravelCourseModel(
       courseId: 2,
-      dayNumber: 1,
-      date: DateTime(2026, 6, 5),
-      spots: [farSpot],
-    );
-    final day2Course0 = TravelCourseModel(
-      courseId: 3,
       dayNumber: 2,
       date: DateTime(2026, 6, 6),
       spots: [nearSpot],
@@ -110,12 +127,8 @@ void main() {
 
     final location = LatLng(nearSpot.latitude, nearSpot.longitude);
 
-    final focus = nearbyCourseFocus(location, [
-      day1Course0,
-      day1Course1,
-      day2Course0,
-    ]);
+    final focus = nearbyCourseFocus(location, [day1Course, day2Course]);
 
-    expect(focus, (dayNumber: 2, courseIndex: 0));
+    expect(focus, (dayNumber: 2, spotIndex: 0));
   });
 }

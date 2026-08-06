@@ -160,3 +160,25 @@ class TravelCourseModel {
     );
   }
 }
+
+/// [dayNumber]에 해당하는 모든 코스의 장소를 하나의 목록으로 합칩니다.
+/// 코스별로 orderIndex 순으로 정렬한 뒤, 같은 touristSpotId가 여러 코스에
+/// 걸쳐 나오면 처음 등장한 것만 남깁니다.
+///
+/// 지도 카드/코스 수정/코스 보기 화면이 모두 "하루의 장소 목록"을 같은
+/// 방식으로 계산해야 해서 공유 헬퍼로 뺐습니다.
+List<CourseSpotModel> mergeSpotsForDay(
+  List<TravelCourseModel> courses,
+  int dayNumber,
+) {
+  final seenSpotIds = <int>{};
+  final merged = <CourseSpotModel>[];
+  for (final course in courses.where((c) => c.dayNumber == dayNumber)) {
+    final sorted = [...course.spots]
+      ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
+    for (final spot in sorted) {
+      if (seenSpotIds.add(spot.touristSpotId)) merged.add(spot);
+    }
+  }
+  return merged;
+}

@@ -122,20 +122,8 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
     } catch (_) {}
   }
 
-  List<CourseSpotModel> get _spotsForSelectedDay {
-    final seenSpotIds = <int>{};
-    final merged = <CourseSpotModel>[];
-    for (final course in widget.courses.where(
-      (c) => c.dayNumber == _selectedDay,
-    )) {
-      final sorted = [...course.spots]
-        ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
-      for (final spot in sorted) {
-        if (seenSpotIds.add(spot.touristSpotId)) merged.add(spot);
-      }
-    }
-    return merged;
-  }
+  List<CourseSpotModel> get _spotsForSelectedDay =>
+      mergeSpotsForDay(widget.courses, _selectedDay);
 
   Set<int> get _nearbySpotIds =>
       nearbyTouristSpotIds(_currentLocation, _spotsForSelectedDay);

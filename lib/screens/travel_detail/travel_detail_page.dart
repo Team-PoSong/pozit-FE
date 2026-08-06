@@ -54,7 +54,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   String _inviteCode = '';
   bool _isLeader = false;
   int _initialDay = 1;
-  int _initialCourseIndex = 0;
+  int _initialSpotIndex = 0;
 
   @override
   void initState() {
@@ -101,7 +101,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
               (member) => member.userId == myUserId && member.isLeader,
             );
         _initialDay = focus.dayNumber;
-        _initialCourseIndex = focus.courseIndex;
+        _initialSpotIndex = focus.spotIndex;
         _status = _LoadStatus.loaded;
       });
     } on ApiException catch (error) {
@@ -385,7 +385,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           isPublic: detail.isPublic,
           courses: detail.courses,
           initialDay: _initialDay,
-          initialCourseIndex: _initialCourseIndex,
+          initialSpotIndex: _initialSpotIndex,
           backgroundImage: detail.backgroundImageUrl.isNotEmpty
               ? NetworkImage(detail.backgroundImageUrl)
               : const AssetImage(AppImages.travelMockup),

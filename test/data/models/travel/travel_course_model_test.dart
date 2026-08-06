@@ -95,4 +95,85 @@ void main() {
       expect(course.initialFocusSpotId, 1);
     });
   });
+
+  group('mergeSpotsForDay', () {
+    CourseSpotModel spot({
+      required int touristSpotId,
+      required int orderIndex,
+      String name = '스팟',
+    }) {
+      return CourseSpotModel(
+        courseSpotId: touristSpotId,
+        touristSpotId: touristSpotId,
+        name: name,
+        latitude: 0,
+        longitude: 0,
+        orderIndex: orderIndex,
+        status: 'notVisited',
+      );
+    }
+
+    test('같은 날짜의 코스가 여러 개면 순서대로 합친다', () {
+      final courses = [
+        TravelCourseModel(
+          courseId: 1,
+          dayNumber: 1,
+          date: DateTime(2026, 6, 5),
+          spots: [
+            spot(touristSpotId: 2, orderIndex: 1, name: '두번째'),
+            spot(touristSpotId: 1, orderIndex: 0, name: '첫번째'),
+          ],
+        ),
+        TravelCourseModel(
+          courseId: 2,
+          dayNumber: 1,
+          date: DateTime(2026, 6, 5),
+          spots: [spot(touristSpotId: 3, orderIndex: 0, name: '세번째')],
+        ),
+      ];
+
+      final merged = mergeSpotsForDay(courses, 1);
+
+      expect(merged.map((s) => s.name), ['첫번째', '두번째', '세번째']);
+    });
+
+    test('다른 날짜의 코스는 제외한다', () {
+      final courses = [
+        TravelCourseModel(
+          courseId: 1,
+          dayNumber: 1,
+          date: DateTime(2026, 6, 5),
+          spots: [spot(touristSpotId: 1, orderIndex: 0)],
+        ),
+        TravelCourseModel(
+          courseId: 2,
+          dayNumber: 2,
+          date: DateTime(2026, 6, 6),
+          spots: [spot(touristSpotId: 2, orderIndex: 0)],
+        ),
+      ];
+
+      expect(mergeSpotsForDay(courses, 1), hasLength(1));
+      expect(mergeSpotsForDay(courses, 2), hasLength(1));
+    });
+
+    test('같은 touristSpotId가 여러 코스에 있으면 중복 제거한다', () {
+      final courses = [
+        TravelCourseModel(
+          courseId: 1,
+          dayNumber: 1,
+          date: DateTime(2026, 6, 5),
+          spots: [spot(touristSpotId: 1, orderIndex: 0)],
+        ),
+        TravelCourseModel(
+          courseId: 2,
+          dayNumber: 1,
+          date: DateTime(2026, 6, 5),
+          spots: [spot(touristSpotId: 1, orderIndex: 0)],
+        ),
+      ];
+
+      expect(mergeSpotsForDay(courses, 1), hasLength(1));
+    });
+  });
 }
