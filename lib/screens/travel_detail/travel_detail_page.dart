@@ -313,6 +313,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           initialDay: _initialDay,
           onLoadPopularSpots: (cursor) => widget.touristSpotRepository
               .getHostTouristSpotsRank(cursor: cursor),
+          onSearch: (keyword, cursor) => widget.touristSpotRepository
+              .searchCourseSpots(keyword: keyword, cursor: cursor),
+          onAddSelectedSpots: (selected) =>
+              widget.touristSpotRepository.saveSelectedSpots(selected),
           onSave: (spotsByCourseId) =>
               _handleCourseEditSave(context, spotsByCourseId),
         ),

@@ -12,6 +12,7 @@ import '../../core/design_system/widgets/app_search_bar.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../data/models/tourist_spot_model.dart';
 import '../../data/models/tourist_spot_rank_model.dart';
+import '../../data/models/tourist_spot_search_result_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
@@ -32,19 +33,30 @@ const int _kEmptyResultBottomFlex = 184;
 
 const double _kLoadMoreScrollThreshold = 200.0;
 const int _kInitialPopularSpotsCursor = 1;
+const int _kInitialSearchCursor = 1;
 
 class LocationSearchScreen extends StatefulWidget {
   const LocationSearchScreen({
     super.key,
     this.onLoadPopularSpots,
     this.onSearch,
+    this.onAddSelectedSpots,
     this.onBackTap,
   });
 
   /// 인기 있는 장소 목록을 커서 기반으로 불러옵니다. 첫 호출은 커서 1로 합니다.
   final Future<TouristSpotRankPage> Function(int cursor)? onLoadPopularSpots;
 
-  final Future<List<TouristSpotModel>> Function(String query)? onSearch;
+  /// 키워드로 관광지를 커서 기반으로 검색합니다. 첫 호출은 커서 1로 합니다.
+  final Future<TouristSpotSearchPage> Function(String keyword, int cursor)?
+  onSearch;
+
+  /// 검색 결과에서 선택한 장소를 실제 Pozit 장소로 저장하고, 코스에 쓸 수
+  /// 있는 형태(TouristSpotModel)로 돌려줍니다.
+  final Future<List<TouristSpotModel>> Function(
+    List<TouristSpotSearchResultModel> selected,
+  )?
+  onAddSelectedSpots;
 
   final VoidCallback? onBackTap;
 
@@ -55,14 +67,19 @@ class LocationSearchScreen extends StatefulWidget {
 class _LocationSearchScreenState extends State<LocationSearchScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _popularScrollController = ScrollController();
-  final Map<int, TouristSpotModel> _spotById = {};
-  final Set<int> _selectedIds = {};
+  final ScrollController _searchScrollController = ScrollController();
+  final Map<String, TouristSpotSearchResultModel> _searchResultByContentId = {};
+  final Set<String> _selectedContentIds = {};
 
-  List<TouristSpotModel> _searchResults = [];
+  List<TouristSpotSearchResultModel> _searchResults = [];
+  int? _nextSearchCursor = _kInitialSearchCursor;
+  bool _hasNextSearchPage = false;
+  bool _isLoadingMoreSearch = false;
   bool _hasSearched = false;
   bool _showLengthError = false;
   bool _isSearching = false;
   bool _hasSearchError = false;
+  bool _isAddingSpots = false;
   int _searchRequestId = 0;
 
   List<TouristSpotRankModel> _popularSpots = [];
@@ -72,13 +89,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   bool _isLoadingMorePopular = false;
   bool _hasPopularError = false;
 
-  List<TouristSpotModel> get _selectedSpots =>
-      _selectedIds.map((id) => _spotById[id]!).toList();
+  List<TouristSpotSearchResultModel> get _selectedSearchResults =>
+      _selectedContentIds.map((id) => _searchResultByContentId[id]!).toList();
 
   @override
   void initState() {
     super.initState();
     _popularScrollController.addListener(_handlePopularScroll);
+    _searchScrollController.addListener(_handleSearchScroll);
     _loadPopularSpots();
   }
 
@@ -86,6 +104,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   void dispose() {
     _controller.dispose();
     _popularScrollController.dispose();
+    _searchScrollController.dispose();
     super.dispose();
   }
 
@@ -205,13 +224,15 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     });
 
     try {
-      final results = await widget.onSearch?.call(query) ?? const [];
+      final page = await widget.onSearch?.call(query, _kInitialSearchCursor);
       if (!mounted || requestId != _searchRequestId) return;
       setState(() {
         _hasSearched = true;
-        _searchResults = results;
-        for (final spot in results) {
-          _spotById[spot.touristSpotId] = spot;
+        _searchResults = page?.places ?? const [];
+        _nextSearchCursor = page?.nextCursor;
+        _hasNextSearchPage = page?.hasNext ?? false;
+        for (final spot in _searchResults) {
+          _searchResultByContentId[spot.contentId] = spot;
         }
       });
     } catch (_) {
@@ -221,6 +242,45 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       if (mounted && requestId == _searchRequestId) {
         setState(() => _isSearching = false);
       }
+    }
+  }
+
+  Future<void> _loadMoreSearchResults() async {
+    final cursor = _nextSearchCursor;
+    if (widget.onSearch == null ||
+        _isLoadingMoreSearch ||
+        !_hasNextSearchPage ||
+        cursor == null) {
+      return;
+    }
+
+    final requestId = _searchRequestId;
+    setState(() => _isLoadingMoreSearch = true);
+    try {
+      final page = await widget.onSearch!(_controller.text.trim(), cursor);
+      if (!mounted || requestId != _searchRequestId) return;
+      setState(() {
+        _searchResults = [..._searchResults, ...page.places];
+        _nextSearchCursor = page.nextCursor;
+        _hasNextSearchPage = page.hasNext;
+        for (final spot in page.places) {
+          _searchResultByContentId[spot.contentId] = spot;
+        }
+      });
+    } catch (_) {
+      // 다음 페이지 로드 실패는 조용히 무시합니다. 스크롤하면 다시 시도됩니다.
+    } finally {
+      if (mounted && requestId == _searchRequestId) {
+        setState(() => _isLoadingMoreSearch = false);
+      }
+    }
+  }
+
+  void _handleSearchScroll() {
+    if (!_searchScrollController.hasClients) return;
+    final position = _searchScrollController.position;
+    if (position.pixels >= position.maxScrollExtent - _kLoadMoreScrollThreshold) {
+      _loadMoreSearchResults();
     }
   }
 
@@ -234,19 +294,39 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     });
   }
 
-  void _handleSpotSelectedChanged(TouristSpotModel spot, bool selected) {
+  void _handleSpotSelectedChanged(
+    TouristSpotSearchResultModel spot,
+    bool selected,
+  ) {
     setState(() {
-      _spotById[spot.touristSpotId] = spot;
+      _searchResultByContentId[spot.contentId] = spot;
       if (selected) {
-        _selectedIds.add(spot.touristSpotId);
+        _selectedContentIds.add(spot.contentId);
       } else {
-        _selectedIds.remove(spot.touristSpotId);
+        _selectedContentIds.remove(spot.contentId);
       }
     });
   }
 
-  void _handleAddTap() {
-    Navigator.of(context).pop(_selectedSpots);
+  Future<void> _handleAddTap() async {
+    final selected = _selectedSearchResults;
+    if (widget.onAddSelectedSpots == null) {
+      Navigator.of(context).pop(<TouristSpotModel>[]);
+      return;
+    }
+
+    setState(() => _isAddingSpots = true);
+    try {
+      final saved = await widget.onAddSelectedSpots!(selected);
+      if (!mounted) return;
+      Navigator.of(context).pop(saved);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isAddingSpots = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('선택한 장소를 추가하지 못했어요. 다시 시도해주세요.')),
+      );
+    }
   }
 
   void _handleBack() {
@@ -258,7 +338,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   Widget build(BuildContext context) {
     final isEmptyResult =
         _showLengthError || (_hasSearched && _searchResults.isEmpty);
-    final selectedSpots = _selectedSpots;
+    final selectedSpots = _selectedSearchResults;
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -327,22 +407,33 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   ? const _EmptyResult()
                   : _hasSearched
                   ? ListView.separated(
+                      controller: _searchScrollController,
                       padding: const EdgeInsets.fromLTRB(
                         _kHorizontalPadding,
                         0,
                         _kHorizontalPadding,
                         _kLocationGap,
                       ),
-                      itemCount: _searchResults.length,
+                      itemCount:
+                          _searchResults.length +
+                          (_isLoadingMoreSearch ? 1 : 0),
                       separatorBuilder: (_, _) =>
                           const SizedBox(height: _kLocationGap),
                       itemBuilder: (context, index) {
+                        if (index >= _searchResults.length) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
                         final spot = _searchResults[index];
                         return AppLocationSelect(
-                          key: ValueKey(spot.touristSpotId),
-                          title: spot.name,
+                          key: ValueKey(spot.contentId),
+                          title: spot.title,
                           address: spot.address,
-                          isSelected: _selectedIds.contains(spot.touristSpotId),
+                          isSelected: _selectedContentIds.contains(
+                            spot.contentId,
+                          ),
                           onChanged: (selected) =>
                               _handleSpotSelectedChanged(spot, selected),
                         );
@@ -364,8 +455,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         for (var i = 0; i < selectedSpots.length; i++) ...[
                           if (i > 0) const SizedBox(width: _kChipGap),
                           AppDeletableChip(
-                            key: ValueKey(selectedSpots[i].touristSpotId),
-                            label: selectedSpots[i].name,
+                            key: ValueKey(selectedSpots[i].contentId),
+                            label: selectedSpots[i].title,
                             onDeleted: () => _handleSpotSelectedChanged(
                               selectedSpots[i],
                               false,
@@ -387,8 +478,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
-                text: '장소 추가하기',
-                isEnabled: selectedSpots.isNotEmpty,
+                text: _isAddingSpots ? '추가하는 중...' : '장소 추가하기',
+                isEnabled: selectedSpots.isNotEmpty && !_isAddingSpots,
                 onPressed: _handleAddTap,
               ),
             ),
@@ -462,25 +553,28 @@ class _EmptyResult extends StatelessWidget {
   }
 }
 
-List<TouristSpotModel> _previewPopularSpots() {
+List<TouristSpotSearchResultModel> _previewSearchResults() {
   return const [
-    TouristSpotModel(
-      touristSpotId: 1,
-      name: '첨성대',
+    TouristSpotSearchResultModel(
+      contentId: '1',
+      contentTypeId: '12',
+      title: '첨성대',
       address: '경북 경주시 인왕동 839-1',
       latitude: 35.8347,
       longitude: 129.2194,
     ),
-    TouristSpotModel(
-      touristSpotId: 2,
-      name: '동궁과 월지',
+    TouristSpotSearchResultModel(
+      contentId: '2',
+      contentTypeId: '12',
+      title: '동궁과 월지',
       address: '경북 경주시 원화로 102',
       latitude: 35.8347,
       longitude: 129.2247,
     ),
-    TouristSpotModel(
-      touristSpotId: 3,
-      name: '대릉원',
+    TouristSpotSearchResultModel(
+      contentId: '3',
+      contentTypeId: '12',
+      title: '대릉원',
       address: '경북 경주시 계림로 9',
       latitude: 35.8351,
       longitude: 129.2118,
@@ -530,10 +624,30 @@ Widget locationSearchScreenPreview() {
     debugShowCheckedModeBanner: false,
     home: LocationSearchScreen(
       onLoadPopularSpots: _previewLoadPopularSpots,
-      onSearch: (query) async {
+      onSearch: (keyword, cursor) async {
         await Future.delayed(const Duration(milliseconds: 300));
-        return _previewPopularSpots()
-            .where((spot) => spot.name.contains(query))
+        final matched = _previewSearchResults()
+            .where((spot) => spot.title.contains(keyword))
+            .toList();
+        return TouristSpotSearchPage(
+          places: matched,
+          currentCursor: cursor,
+          nextCursor: null,
+          hasNext: false,
+        );
+      },
+      onAddSelectedSpots: (selected) async {
+        await Future.delayed(const Duration(milliseconds: 300));
+        return selected
+            .map(
+              (spot) => TouristSpotModel(
+                touristSpotId: int.parse(spot.contentId),
+                name: spot.title,
+                address: spot.address,
+                latitude: spot.latitude,
+                longitude: spot.longitude,
+              ),
+            )
             .toList();
       },
     ),

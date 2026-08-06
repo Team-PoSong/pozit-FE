@@ -11,6 +11,7 @@ import '../../core/design_system/widgets/button/app_circle_button.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/tourist_spot_model.dart';
 import '../../data/models/tourist_spot_rank_model.dart';
+import '../../data/models/tourist_spot_search_result_model.dart';
 import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
@@ -30,6 +31,7 @@ class CourseEditScreen extends StatefulWidget {
     this.initialDay = 1,
     this.onLoadPopularSpots,
     this.onSearch,
+    this.onAddSelectedSpots,
     this.onBackTap,
     this.onSave,
   });
@@ -38,7 +40,12 @@ class CourseEditScreen extends StatefulWidget {
   final int initialDay;
 
   final Future<TouristSpotRankPage> Function(int cursor)? onLoadPopularSpots;
-  final Future<List<TouristSpotModel>> Function(String query)? onSearch;
+  final Future<TouristSpotSearchPage> Function(String keyword, int cursor)?
+  onSearch;
+  final Future<List<TouristSpotModel>> Function(
+    List<TouristSpotSearchResultModel> selected,
+  )?
+  onAddSelectedSpots;
 
   final VoidCallback? onBackTap;
 
@@ -114,6 +121,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
         builder: (_) => LocationSearchScreen(
           onLoadPopularSpots: widget.onLoadPopularSpots,
           onSearch: widget.onSearch,
+          onAddSelectedSpots: widget.onAddSelectedSpots,
         ),
       ),
     );
