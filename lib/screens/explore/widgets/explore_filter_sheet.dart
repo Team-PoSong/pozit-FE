@@ -12,10 +12,6 @@ import '../../../core/design_system/widgets/toggle/app_region_toggle.dart';
 import 'explore_filter_actions.dart';
 
 const double _horizontalPadding = 24.0;
-const int _regionColumnCount = 4;
-const double _regionCellGap = 7.0;
-const int _categoryColumnCount = 4;
-const double _categoryCellGap = 8.0;
 
 const List<String> _regions = [
   '전국',
@@ -40,6 +36,52 @@ const List<String> _categories = [
   '체험',
   '미식',
 ];
+
+double _minCellWidthFor({
+  required List<String> labels,
+  required TextStyle style,
+  required double horizontalPadding,
+  required TextScaler textScaler,
+}) {
+  var maxTextWidth = 0.0;
+  for (final label in labels) {
+    final painter = TextPainter(
+      text: TextSpan(text: label, style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: textScaler,
+    )..layout();
+    if (painter.width > maxTextWidth) maxTextWidth = painter.width;
+  }
+  return maxTextWidth + horizontalPadding;
+}
+
+Widget _buildFixedColumnGrid({
+  required int itemCount,
+  required int crossAxisCount,
+  required double cellWidth,
+  required double gap,
+  required double rowGap,
+  required Widget Function(int index) itemBuilder,
+}) {
+  final rows = <Widget>[];
+  for (var start = 0; start < itemCount; start += crossAxisCount) {
+    final end = start + crossAxisCount > itemCount
+        ? itemCount
+        : start + crossAxisCount;
+    rows.add(
+      Row(
+        children: [
+          for (var index = start; index < end; index++) ...[
+            if (index > start) SizedBox(width: gap),
+            SizedBox(width: cellWidth, child: itemBuilder(index)),
+          ],
+        ],
+      ),
+    );
+    if (end < itemCount) rows.add(SizedBox(height: rowGap));
+  }
+  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
+}
 
 enum ExploreFilterTab { region, date, category }
 
@@ -144,42 +186,38 @@ class _ExploreFilterSheetState extends State<ExploreFilterSheet> {
   }
 
   Widget _buildRegionContent() {
+    const crossAxisCount = 4;
+    const idealGap = 7.0;
+    const minGap = 4.0;
+    const cellHorizontalPadding = 20.0 * 2;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final totalGap = _regionCellGap * (_regionColumnCount - 1);
-        final cellWidth = (constraints.maxWidth - totalGap) /
-            _regionColumnCount;
-        final rowCount = (_regions.length / _regionColumnCount).ceil();
+        final minCellWidth = _minCellWidthFor(
+          labels: _regions,
+          style: AppTextStyles.subTitle,
+          horizontalPadding: cellHorizontalPadding,
+          textScaler: MediaQuery.textScalerOf(context),
+        );
+        var gap = idealGap;
+        var cellWidth =
+            (constraints.maxWidth - gap * (crossAxisCount - 1)) /
+            crossAxisCount;
+        if (cellWidth < minCellWidth) {
+          gap = minGap;
+          cellWidth =
+              (constraints.maxWidth - gap * (crossAxisCount - 1)) /
+              crossAxisCount;
+        }
+        cellWidth = cellWidth.clamp(0.0, double.infinity);
 
-        return Column(
-          children: [
-            for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) ...[
-              if (rowIndex > 0) const SizedBox(height: _regionCellGap),
-              Row(
-                children: [
-                  for (
-                    var columnIndex = 0;
-                    columnIndex < _regionColumnCount;
-                    columnIndex++
-                  ) ...[
-                    if (columnIndex > 0)
-                      const SizedBox(width: _regionCellGap),
-                    if (rowIndex * _regionColumnCount + columnIndex <
-                        _regions.length)
-                      SizedBox(
-                        width: cellWidth,
-                        child: _buildRegionToggle(
-                          _regions[
-                              rowIndex * _regionColumnCount + columnIndex],
-                        ),
-                      )
-                    else
-                      SizedBox(width: cellWidth),
-                  ],
-                ],
-              ),
-            ],
-          ],
+        return _buildFixedColumnGrid(
+          itemCount: _regions.length,
+          crossAxisCount: crossAxisCount,
+          cellWidth: cellWidth,
+          gap: gap,
+          rowGap: idealGap,
+          itemBuilder: (index) => _buildRegionToggle(_regions[index]),
         );
       },
     );
@@ -209,62 +247,54 @@ class _ExploreFilterSheetState extends State<ExploreFilterSheet> {
   }
 
   Widget _buildCategoryContent() {
+    const crossAxisCount = 4;
+    const idealGap = 8.0;
+    const minGap = 4.0;
+    const cellHorizontalPadding = 24.0 * 2;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final totalGap = _categoryCellGap * (_categoryColumnCount - 1);
-        final cellWidth = (constraints.maxWidth - totalGap) /
-            _categoryColumnCount;
-        final rowCount = (_categories.length / _categoryColumnCount).ceil();
+        final labels = _categories.map((category) => '#$category').toList();
+        final minCellWidth = _minCellWidthFor(
+          labels: labels,
+          style: AppTextStyles.caption2,
+          horizontalPadding: cellHorizontalPadding,
+          textScaler: MediaQuery.textScalerOf(context),
+        );
 
-        return Column(
-          children: [
-            for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) ...[
-              if (rowIndex > 0) const SizedBox(height: _categoryCellGap),
-              Row(
-                children: [
-                  for (
-                    var columnIndex = 0;
-                    columnIndex < _categoryColumnCount;
-                    columnIndex++
-                  ) ...[
-                    if (columnIndex > 0)
-                      const SizedBox(width: _categoryCellGap),
-                    if (rowIndex * _categoryColumnCount + columnIndex <
-                        _categories.length)
-                      SizedBox(
-                        width: cellWidth,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: _buildCategoryChip(
-                            _categories[
-                                rowIndex * _categoryColumnCount + columnIndex],
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(width: cellWidth),
-                  ],
-                ],
-              ),
-            ],
-          ],
+        var gap = idealGap;
+        var cellWidth =
+            (constraints.maxWidth - gap * (crossAxisCount - 1)) /
+            crossAxisCount;
+        if (cellWidth < minCellWidth) {
+          gap = minGap;
+          cellWidth =
+              (constraints.maxWidth - gap * (crossAxisCount - 1)) /
+              crossAxisCount;
+        }
+        cellWidth = cellWidth.clamp(0.0, double.infinity);
+
+        return _buildFixedColumnGrid(
+          itemCount: _categories.length,
+          crossAxisCount: crossAxisCount,
+          cellWidth: cellWidth,
+          gap: gap,
+          rowGap: idealGap,
+          itemBuilder: (index) {
+            final category = _categories[index];
+            final isSelected = _selectedCategories.contains(category);
+            return AppTagChip(
+              label: '#$category',
+              isSelected: isSelected,
+              onTap: () => setState(() {
+                isSelected
+                    ? _selectedCategories.remove(category)
+                    : _selectedCategories.add(category);
+              }),
+            );
+          },
         );
       },
-    );
-  }
-
-  Widget _buildCategoryChip(String category) {
-    final isSelected = _selectedCategories.contains(category);
-    return AppTagChip(
-      label: '#$category',
-      isSelected: isSelected,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-      onTap: () => setState(() {
-        isSelected
-            ? _selectedCategories.remove(category)
-            : _selectedCategories.add(category);
-      }),
     );
   }
 

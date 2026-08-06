@@ -20,23 +20,19 @@ class AppRegionToggle extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minWidth: 80.0),
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 9.5),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.purple1,
           borderRadius: BorderRadius.circular(8.0),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: AppTextStyles.subTitle.copyWith(
-                color: isSelected ? AppColors.white : AppColors.purple2,
-              ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            style: AppTextStyles.subTitle.copyWith(
+              color: isSelected ? AppColors.white : AppColors.purple2,
             ),
-          ],
+          ),
         ),
       ),
     );

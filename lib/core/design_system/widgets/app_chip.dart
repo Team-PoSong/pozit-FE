@@ -33,12 +33,15 @@ class AppTagChip extends StatelessWidget {
               ? null
               : Border.all(color: AppColors.gray3, width: 0.5),
         ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: isSelected
-              ? AppTextStyles.caption2.copyWith(color: AppColors.purple3)
-              : AppTextStyles.caption.copyWith(color: AppColors.gray5),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: isSelected
+                ? AppTextStyles.caption2.copyWith(color: AppColors.purple3)
+                : AppTextStyles.caption.copyWith(color: AppColors.gray5),
+          ),
         ),
       ),
     );

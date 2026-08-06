@@ -5,6 +5,8 @@ import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_text_styles.dart';
 import '../../../core/design_system/widgets/button/app_button.dart';
 
+const double _buttonVerticalPadding = 21.0;
+
 class ExploreFilterActions extends StatelessWidget {
   const ExploreFilterActions({
     super.key,
@@ -25,7 +27,9 @@ class ExploreFilterActions extends StatelessWidget {
             style: AppButtonStyle.tonal,
             backgroundColor: AppColors.gray2,
             contentColor: AppColors.gray5,
-            padding: const EdgeInsets.symmetric(vertical: 24),
+            padding: const EdgeInsets.symmetric(
+              vertical: _buttonVerticalPadding,
+            ),
             borderRadius: 12,
             textStyle: AppTextStyles.subTitle,
             onPressed: onReset,
@@ -35,7 +39,9 @@ class ExploreFilterActions extends StatelessWidget {
         Expanded(
           child: AppButton(
             text: '적용하기',
-            padding: const EdgeInsets.symmetric(vertical: 24),
+            padding: const EdgeInsets.symmetric(
+              vertical: _buttonVerticalPadding,
+            ),
             borderRadius: 12,
             textStyle: AppTextStyles.subTitle,
             onPressed: onApply,
