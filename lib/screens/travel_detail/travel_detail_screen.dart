@@ -41,7 +41,6 @@ class TravelDetailScreen extends StatefulWidget {
     required this.isLeader,
     this.isMyTravel = true,
     this.authorName = '',
-    this.publicDescription,
     this.isFavorite = false,
     this.courses = const [],
     this.backgroundImage = const AssetImage(AppImages.travelMockup),
@@ -66,7 +65,6 @@ class TravelDetailScreen extends StatefulWidget {
   final bool isLeader;
   final bool isMyTravel;
   final String authorName;
-  final String? publicDescription;
   final bool isFavorite;
 
   final List<TravelCourseModel> courses;
@@ -102,7 +100,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   bool _showGuide = false;
   late bool _isFavorite = widget.isFavorite;
-  bool _isFollowingCourse = false;
 
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionSubscription;
@@ -380,15 +377,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                             padding: const EdgeInsets.symmetric(
                               horizontal: _kHorizontalPadding,
                             ),
-                            child: TravelInfoCard(
-                              info: widget.info,
-                              showProgress: widget.isMyTravel,
-                              showCompanion: widget.isMyTravel,
-                              description: widget.isMyTravel
-                                  ? null
-                                  : (widget.publicDescription ??
-                                        '${widget.authorName}님의 여행 코스'),
-                            ),
+                            child: TravelInfoCard(info: widget.info),
                           ),
                         ],
                       ),
@@ -498,16 +487,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
             },
           ),
           const SizedBox(height: 8),
-          AppButton(
-            text: _isFollowingCourse ? '여행 코스 수정하기' : '이 코스 따라하기',
-            onPressed: () {
-              if (!_isFollowingCourse) {
-                setState(() => _isFollowingCourse = true);
-                return;
-              }
-              widget.onFollowCourseTap?.call();
-            },
-          ),
+          AppButton(text: '이 코스 따라하기', onPressed: widget.onFollowCourseTap),
         ],
       ),
     );

@@ -18,18 +18,9 @@ const TextStyle _tagTextStyle = TextStyle(
 );
 
 class TravelInfoCard extends StatelessWidget {
-  const TravelInfoCard({
-    super.key,
-    required this.info,
-    this.description,
-    this.showProgress = true,
-    this.showCompanion = true,
-  });
+  const TravelInfoCard({super.key, required this.info});
 
   final TravelInfoCardModel info;
-  final String? description;
-  final bool showProgress;
-  final bool showCompanion;
 
   @override
   Widget build(BuildContext context) {
@@ -38,13 +29,6 @@ class TravelInfoCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (description != null) ...[
-          Text(
-            description!,
-            style: AppTextStyles.body.copyWith(color: AppColors.gray2),
-          ),
-          const SizedBox(height: 2),
-        ],
         Row(
           children: [
             Expanded(
@@ -76,22 +60,20 @@ class TravelInfoCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (showCompanion) ...[
-              SvgPicture.asset(
-                AppIcons.mypageFilled,
-                width: 24,
-                height: 24,
-                colorFilter: const ColorFilter.mode(
-                  AppColors.white,
-                  BlendMode.srcIn,
-                ),
+            SvgPicture.asset(
+              AppIcons.mypageFilled,
+              width: 24,
+              height: 24,
+              colorFilter: const ColorFilter.mode(
+                AppColors.white,
+                BlendMode.srcIn,
               ),
-              const SizedBox(width: 4),
-              Text(
-                '${info.companionCount}',
-                style: AppTextStyles.subTitle.copyWith(color: AppColors.white),
-              ),
-            ],
+            ),
+            const SizedBox(width: 4),
+            Text(
+              '${info.companionCount}',
+              style: AppTextStyles.subTitle.copyWith(color: AppColors.white),
+            ),
           ],
         ),
         if (visibleTags.isNotEmpty) ...[
@@ -106,42 +88,40 @@ class TravelInfoCard extends StatelessWidget {
             ],
           ),
         ],
-        if (showProgress) ...[
-          const SizedBox(height: 30),
-          Row(
-            children: [
-              Text(
-                '${info.visitedPlaceCount}개 장소 방문',
-                style: AppTextStyles.caption.copyWith(color: AppColors.white),
-              ),
-              const SizedBox(width: 8),
-              Container(width: 1, height: 10, color: AppColors.white),
-              const SizedBox(width: 8),
-              Text(
-                '${info.recordCount}개 기록',
-                style: AppTextStyles.caption.copyWith(color: AppColors.white),
-              ),
-            ],
-          ),
-          const SizedBox(height: 7),
-          Row(
-            children: [
-              Text(
-                '완주율',
-                style: AppTextStyles.body.copyWith(color: AppColors.white),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: AppCompletionProgressBar(progress: info.completionRate),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${(info.completionRate.clamp(0.0, 1.0) * 100).round()}%',
-                style: AppTextStyles.body.copyWith(color: AppColors.white),
-              ),
-            ],
-          ),
-        ],
+        const SizedBox(height: 30),
+        Row(
+          children: [
+            Text(
+              '${info.visitedPlaceCount}개 장소 방문',
+              style: AppTextStyles.caption.copyWith(color: AppColors.white),
+            ),
+            const SizedBox(width: 8),
+            Container(width: 1, height: 10, color: AppColors.white),
+            const SizedBox(width: 8),
+            Text(
+              '${info.recordCount}개 기록',
+              style: AppTextStyles.caption.copyWith(color: AppColors.white),
+            ),
+          ],
+        ),
+        const SizedBox(height: 7),
+        Row(
+          children: [
+            Text(
+              '완주율',
+              style: AppTextStyles.body.copyWith(color: AppColors.white),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: AppCompletionProgressBar(progress: info.completionRate),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '${(info.completionRate.clamp(0.0, 1.0) * 100).round()}%',
+              style: AppTextStyles.body.copyWith(color: AppColors.white),
+            ),
+          ],
+        ),
       ],
     );
   }
