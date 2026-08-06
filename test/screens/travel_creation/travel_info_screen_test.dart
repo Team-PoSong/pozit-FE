@@ -4,6 +4,7 @@ import 'package:pozit/core/design_system/widgets/app_chip.dart';
 import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_info_screen.dart';
+import 'package:pozit/screens/travel_creation/travel_preferences_screen.dart';
 
 void main() {
   testWidgets('여행 태그는 최대 2개까지 선택하고 저장할 수 있다', (tester) async {
@@ -71,5 +72,34 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TravelCourseCreationScreen), findsOneWidget);
+  });
+
+  testWidgets('추천 받기는 여행 정보 다음에 이동수단과 스타일을 선택한다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelInfoScreen(
+          destination: '경주',
+          dateRange: DateTimeRange(
+            start: DateTime(2026, 7, 3),
+            end: DateTime(2026, 7, 5),
+          ),
+          creationMethod: TravelCreationMethod.recommendation,
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), '포송한 여행');
+    await tester.tap(find.text('# 미식'));
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('다음'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TravelPreferencesScreen), findsOneWidget);
   });
 }

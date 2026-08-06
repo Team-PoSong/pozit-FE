@@ -11,6 +11,7 @@ import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_course_creation_screen.dart';
 import 'travel_creation_data.dart';
+import 'travel_preferences_screen.dart';
 
 class TravelInfoScreen extends StatefulWidget {
   const TravelInfoScreen({
@@ -19,12 +20,14 @@ class TravelInfoScreen extends StatefulWidget {
     required this.dateRange,
     this.onSave,
     this.onBackTap,
+    this.creationMethod = TravelCreationMethod.create,
   });
 
   final String destination;
   final DateTimeRange dateRange;
   final ValueChanged<TravelInfoResult>? onSave;
   final VoidCallback? onBackTap;
+  final TravelCreationMethod creationMethod;
 
   @override
   State<TravelInfoScreen> createState() => _TravelInfoScreenState();
@@ -66,6 +69,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
       dateRange: widget.dateRange,
       name: _nameController.text.trim(),
       tags: Set.unmodifiable(_selectedTags),
+      creationMethod: widget.creationMethod,
     );
     final onSave = widget.onSave;
     if (onSave != null) {
@@ -75,7 +79,10 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => TravelCourseCreationScreen(travelInfo: result),
+        builder: (_) =>
+            widget.creationMethod == TravelCreationMethod.recommendation
+            ? TravelPreferencesScreen(travelInfo: result)
+            : TravelCourseCreationScreen(travelInfo: result),
       ),
     );
   }

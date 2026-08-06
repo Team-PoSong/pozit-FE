@@ -299,21 +299,28 @@ class _TravelCardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 10,
-            runSpacing: 2,
+          Row(
             children: [
-              Text(
-                location,
-                style: AppTextStyles.caption2.copyWith(
-                  color: AppColors.purple3,
+              Flexible(
+                child: Text(
+                  location,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption2.copyWith(
+                    color: AppColors.purple3,
+                  ),
                 ),
               ),
-              Text(
-                dateText,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.gray5,
-                  fontWeight: FontWeight.w400,
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  dateText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.gray5,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             ],
@@ -321,6 +328,8 @@ class _TravelCardContent extends StatelessWidget {
           const SizedBox(height: 9),
           Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppTextStyles.subTitle.copyWith(color: AppColors.text),
           ),
           const SizedBox(height: 15),

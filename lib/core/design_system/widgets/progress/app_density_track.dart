@@ -56,9 +56,14 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
 
   @override
   Widget build(BuildContext context) {
-    final double? circleCenterX = _dragX ??
+    final double? circleCenterX =
+        _dragX ??
         (widget.selectedIndex != null
-            ? _tickLeftOffsets[widget.selectedIndex!.clamp(0, _tickLeftOffsets.length - 1)] + 1.5
+            ? _tickLeftOffsets[widget.selectedIndex!.clamp(
+                    0,
+                    _tickLeftOffsets.length - 1,
+                  )] +
+                  1.5
             : null);
 
     return Padding(
@@ -66,7 +71,13 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('여유롭게', style: _labelStyle.copyWith(color: _labelColor)),
+          SizedBox(
+            width: 42,
+            child: Text(
+              '여유롭게',
+              style: _labelStyle.copyWith(color: _labelColor),
+            ),
+          ),
           const SizedBox(width: 20.0),
           SizedBox(
             width: _trackWidth,
@@ -108,7 +119,10 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
                       height: _selectionRingSize,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.purple3, width: 1.0),
+                        border: Border.all(
+                          color: AppColors.purple3,
+                          width: 1.0,
+                        ),
                         boxShadow: const [
                           BoxShadow(color: AppColors.purple2, blurRadius: 4.0),
                         ],
@@ -139,7 +153,14 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
             ),
           ),
           const SizedBox(width: 20.0),
-          Text('빽빽하게', style: _labelStyle.copyWith(color: _labelColor)),
+          SizedBox(
+            width: 42,
+            child: Text(
+              '빽빽하게',
+              textAlign: TextAlign.end,
+              style: _labelStyle.copyWith(color: _labelColor),
+            ),
+          ),
         ],
       ),
     );

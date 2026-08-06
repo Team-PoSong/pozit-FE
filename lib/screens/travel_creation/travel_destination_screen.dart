@@ -10,6 +10,7 @@ import '../../core/design_system/widgets/app_search_bar.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
+import 'travel_creation_data.dart';
 import 'travel_schedule_screen.dart';
 
 typedef DestinationSearch = Future<List<String>> Function(String query);
@@ -20,11 +21,13 @@ class TravelDestinationScreen extends StatefulWidget {
     this.onSearch,
     this.onSave,
     this.onBackTap,
+    this.creationMethod = TravelCreationMethod.create,
   });
 
   final DestinationSearch? onSearch;
   final ValueChanged<String>? onSave;
   final VoidCallback? onBackTap;
+  final TravelCreationMethod creationMethod;
 
   @override
   State<TravelDestinationScreen> createState() =>
@@ -119,7 +122,10 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => TravelScheduleScreen(destination: destination),
+        builder: (_) => TravelScheduleScreen(
+          destination: destination,
+          creationMethod: widget.creationMethod,
+        ),
       ),
     );
   }
