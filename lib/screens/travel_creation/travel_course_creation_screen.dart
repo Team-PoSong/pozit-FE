@@ -13,6 +13,7 @@ import '../../core/design_system/widgets/button/app_chatbot_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/tourist_spot_model.dart';
+import '../../data/mock/mock_tourist_spots.dart';
 import '../../data/models/saved_travel_model.dart';
 import '../../data/models/travel_course_model.dart';
 import '../../data/models/travel_info_card_model.dart';
@@ -20,30 +21,6 @@ import '../../data/repositories/local/travel_store.dart';
 import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
-
-const List<TouristSpotModel> _mockPopularSpots = [
-  TouristSpotModel(
-    touristSpotId: 1,
-    name: '불국사',
-    address: '경북 경주시 불국로 385',
-    latitude: 35.7900,
-    longitude: 129.3320,
-  ),
-  TouristSpotModel(
-    touristSpotId: 2,
-    name: '미륵사지',
-    address: '경북 경주시 원화로 102',
-    latitude: 35.8347,
-    longitude: 129.2247,
-  ),
-  TouristSpotModel(
-    touristSpotId: 3,
-    name: '경주월드',
-    address: '경북 보문로 544',
-    latitude: 35.8364,
-    longitude: 129.2827,
-  ),
-];
 
 class TravelCourseCreationScreen extends StatefulWidget {
   const TravelCourseCreationScreen({
@@ -89,7 +66,7 @@ class _TravelCourseCreationScreenState
 
   Future<List<TouristSpotModel>> _searchMockSpots(String query) async {
     final normalizedQuery = query.trim().toLowerCase();
-    return _mockPopularSpots
+    return mockPopularTouristSpots
         .where(
           (spot) =>
               spot.name.toLowerCase().contains(normalizedQuery) ||
@@ -108,7 +85,7 @@ class _TravelCourseCreationScreenState
     final spots = await Navigator.of(context).push<List<TouristSpotModel>>(
       MaterialPageRoute<List<TouristSpotModel>>(
         builder: (_) => LocationSearchScreen(
-          popularSpots: _mockPopularSpots,
+          popularSpots: mockPopularTouristSpots,
           onSearch: _searchMockSpots,
         ),
       ),

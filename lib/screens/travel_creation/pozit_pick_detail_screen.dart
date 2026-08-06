@@ -9,6 +9,7 @@ import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
+import '../../core/design_system/widgets/app_info_tag.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../data/models/saved_travel_model.dart';
@@ -232,44 +233,15 @@ class _Hero extends StatelessWidget {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    _Tag(label: '# 기록'),
+                    AppInfoTag(label: '# 기록'),
                     const SizedBox(width: 4),
-                    _Tag(label: '# 미식'),
+                    AppInfoTag(label: '# 미식'),
                   ],
                 ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Tag extends StatelessWidget {
-  const _Tag({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 46,
-      height: 22,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        border: Border.all(color: AppColors.gray5, width: 0.5),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontFamily: 'Pretendard',
-          fontSize: 10,
-          height: 14 / 10,
-          fontWeight: FontWeight.w500,
-          color: AppColors.gray5,
-        ),
       ),
     );
   }

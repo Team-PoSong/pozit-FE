@@ -11,6 +11,7 @@ import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
 import '../../data/models/travel_course_model.dart';
 import '../../data/models/tourist_spot_model.dart';
+import '../../data/mock/mock_tourist_spots.dart';
 import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
@@ -22,30 +23,6 @@ const double _kTitleToListGap = 24.0;
 const double _kLocationGap = 8.0;
 const double _kFabToButtonGap = 22.0;
 const double _kFabSize = 62.0;
-
-const List<TouristSpotModel> _mockPopularSpots = [
-  TouristSpotModel(
-    touristSpotId: 1,
-    name: '불국사',
-    address: '경북 경주시 불국로 385',
-    latitude: 35.7900,
-    longitude: 129.3320,
-  ),
-  TouristSpotModel(
-    touristSpotId: 2,
-    name: '미륵사지',
-    address: '경북 익산시 금마면 미륵사지로 362',
-    latitude: 35.8347,
-    longitude: 129.2247,
-  ),
-  TouristSpotModel(
-    touristSpotId: 3,
-    name: '경주월드',
-    address: '경북 경주시 보문로 544',
-    latitude: 35.8364,
-    longitude: 129.2827,
-  ),
-];
 
 class CourseEditScreen extends StatefulWidget {
   const CourseEditScreen({
@@ -100,7 +77,9 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
       _spotsByDayIndex[_selectedDay] ?? const [];
 
   List<TouristSpotModel> get _resolvedPopularSpots =>
-      widget.popularSpots.isEmpty ? _mockPopularSpots : widget.popularSpots;
+      widget.popularSpots.isEmpty
+      ? mockPopularTouristSpots
+      : widget.popularSpots;
 
   Future<List<TouristSpotModel>> _searchMockSpots(String query) async {
     final normalizedQuery = query.trim().toLowerCase();
