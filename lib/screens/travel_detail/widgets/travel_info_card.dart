@@ -35,7 +35,6 @@ class TravelInfoCard extends StatelessWidget {
               child: Row(
                 children: [
                   Flexible(
-                    flex: 3,
                     child: Text(
                       info.destination,
                       maxLines: 1,
@@ -46,15 +45,11 @@ class TravelInfoCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 22),
-                  Flexible(
-                    flex: 2,
-                    child: Text(
-                      '${info.dateRangeText} · ${info.durationText}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.body.copyWith(
-                        color: AppColors.white,
-                      ),
+                  Text(
+                    '${info.dateRangeText} · ${info.durationText}',
+                    maxLines: 1,
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.white,
                     ),
                   ),
                 ],
