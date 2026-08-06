@@ -41,6 +41,7 @@ class TravelDetailScreen extends StatefulWidget {
     required this.isLeader,
     this.isMyTravel = true,
     this.authorName = '',
+    this.publicDescription,
     this.isFavorite = false,
     this.courses = const [],
     this.backgroundImage = const AssetImage(AppImages.travelMockup),
@@ -65,6 +66,7 @@ class TravelDetailScreen extends StatefulWidget {
   final bool isLeader;
   final bool isMyTravel;
   final String authorName;
+  final String? publicDescription;
   final bool isFavorite;
 
   final List<TravelCourseModel> courses;
@@ -378,7 +380,15 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                             padding: const EdgeInsets.symmetric(
                               horizontal: _kHorizontalPadding,
                             ),
-                            child: TravelInfoCard(info: widget.info),
+                            child: TravelInfoCard(
+                              info: widget.info,
+                              showProgress: widget.isMyTravel,
+                              showCompanion: widget.isMyTravel,
+                              description: widget.isMyTravel
+                                  ? null
+                                  : (widget.publicDescription ??
+                                        '${widget.authorName}님의 여행 코스'),
+                            ),
                           ),
                         ],
                       ),

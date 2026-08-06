@@ -12,6 +12,7 @@ import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_detail/travel_detail_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
+import 'pozit_pick_detail_screen.dart';
 
 class TravelRecommendationResultScreen extends StatelessWidget {
   const TravelRecommendationResultScreen({
@@ -34,11 +35,8 @@ class TravelRecommendationResultScreen extends StatelessWidget {
 
   void _openPozitPick(BuildContext context) {
     onRecommendationTap?.call();
-    _openTravelDetail(
-      context,
-      destination: '강릉',
-      tags: const ['기록', '미식'],
-      authorName: 'Pozit',
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const PozitPickDetailScreen()),
     );
   }
 
