@@ -42,8 +42,14 @@ class DioClient {
     return _send(() => _dio.get(path, queryParameters: queryParameters));
   }
 
-  Future<dynamic> post(String path, {Object? data}) {
-    return _send(() => _dio.post(path, data: data));
+  Future<dynamic> post(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+  }) {
+    return _send(
+      () => _dio.post(path, data: data, queryParameters: queryParameters),
+    );
   }
 
   Future<dynamic> patch(String path, {Object? data}) {
