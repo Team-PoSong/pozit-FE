@@ -12,6 +12,8 @@ import '../../../core/design_system/widgets/toggle/app_region_toggle.dart';
 import 'explore_filter_actions.dart';
 
 const double _horizontalPadding = 24.0;
+const int _regionColumnCount = 4;
+const double _regionCellGap = 7.0;
 
 const List<String> _regions = [
   '전국',
@@ -142,32 +144,51 @@ class _ExploreFilterSheetState extends State<ExploreFilterSheet> {
   Widget _buildRegionContent() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth >= 341
-            ? 4
-            : constraints.maxWidth >= 254
-            ? 3
-            : 2;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 7,
-            mainAxisSpacing: 7,
-            childAspectRatio: 2,
-          ),
-          itemCount: _regions.length,
-          itemBuilder: (context, index) {
-            final region = _regions[index];
-            final value = region == '전국' ? null : region;
-            return AppRegionToggle(
-              label: region,
-              isSelected: _selectedRegion == value,
-              onTap: () => setState(() => _selectedRegion = value),
-            );
-          },
+        final totalGap = _regionCellGap * (_regionColumnCount - 1);
+        final cellWidth = (constraints.maxWidth - totalGap) /
+            _regionColumnCount;
+        final rowCount = (_regions.length / _regionColumnCount).ceil();
+
+        return Column(
+          children: [
+            for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) ...[
+              if (rowIndex > 0) const SizedBox(height: _regionCellGap),
+              Row(
+                children: [
+                  for (
+                    var columnIndex = 0;
+                    columnIndex < _regionColumnCount;
+                    columnIndex++
+                  ) ...[
+                    if (columnIndex > 0)
+                      const SizedBox(width: _regionCellGap),
+                    if (rowIndex * _regionColumnCount + columnIndex <
+                        _regions.length)
+                      SizedBox(
+                        width: cellWidth,
+                        child: _buildRegionToggle(
+                          _regions[
+                              rowIndex * _regionColumnCount + columnIndex],
+                        ),
+                      )
+                    else
+                      SizedBox(width: cellWidth),
+                  ],
+                ],
+              ),
+            ],
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildRegionToggle(String region) {
+    final value = region == '전국' ? null : region;
+    return AppRegionToggle(
+      label: region,
+      isSelected: _selectedRegion == value,
+      onTap: () => setState(() => _selectedRegion = value),
     );
   }
 
