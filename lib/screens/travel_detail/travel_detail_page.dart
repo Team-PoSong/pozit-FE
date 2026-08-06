@@ -14,15 +14,21 @@ import '../../data/models/travel/travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/models/travel/travel_tag_model.dart';
 import '../../data/models/travel/travel_update_request.dart';
+import '../../data/models/pozing_edit_job_model.dart';
+import '../../data/repositories/pozing/pozing_repository.dart';
 import '../../data/repositories/tourist_spot/tourist_spot_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
 import '../course_edit/course_edit_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
+import '../travel_log/travel_log_complete_screen.dart';
+import '../travel_log/travel_log_saving_screen.dart';
 import '../travel_member/travel_member_screen.dart';
 import '../travel_settings/travel_settings_screen.dart';
 import 'travel_detail_screen.dart';
 
 const Duration _kLocationFixTimeout = Duration(seconds: 3);
+const Duration _kEditPozingJobPollInterval = Duration(seconds: 2);
+const int _kEditPozingJobMaxPollAttempts = 30;
 
 enum _LoadStatus { loading, error, loaded }
 
@@ -32,12 +38,14 @@ class TravelDetailPage extends StatefulWidget {
     required this.travelId,
     this.repository = const TravelRepository(),
     this.touristSpotRepository = const TouristSpotRepository(),
+    this.pozingRepository = const PozingRepository(),
     this.tokenStorage = const AuthTokenStorage(),
   });
 
   final int travelId;
   final TravelRepository repository;
   final TouristSpotRepository touristSpotRepository;
+  final PozingRepository pozingRepository;
   final AuthTokenStorage tokenStorage;
 
   @override
@@ -294,6 +302,58 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     }
   }
 
+  Future<void> _handleSaveLogTap(BuildContext context) async {
+    final detail = _detail!;
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelLogSavingScreen(travelName: detail.title),
+      ),
+    );
+
+    try {
+      final job = await widget.pozingRepository.requestEditPozing(
+        widget.travelId,
+      );
+      final status = await _pollEditPozingJob(job.jobId);
+
+      if (!context.mounted) return;
+
+      if (status.status == PozingEditJobStatus.completed) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => TravelLogCompleteScreen(
+              travelName: detail.title,
+              onCancelTap: () => Navigator.of(context).pop(),
+            ),
+          ),
+        );
+      } else {
+        Navigator.of(context).pop();
+        _showSnackBar(context, status.errorMessage ?? '여행 로그를 만들지 못했어요.');
+      }
+    } on ApiException catch (error) {
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      _showSnackBar(context, error.message);
+    } catch (_) {
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      _showSnackBar(context, '여행 로그를 만들지 못했어요.');
+    }
+  }
+
+  Future<PozingEditJobStatusResponse> _pollEditPozingJob(int jobId) async {
+    for (var attempt = 0; attempt < _kEditPozingJobMaxPollAttempts; attempt++) {
+      final status = await widget.pozingRepository.getEditPozingJob(jobId);
+      if (!isPozingEditJobInProgress(status.status)) {
+        return status;
+      }
+      await Future.delayed(_kEditPozingJobPollInterval);
+    }
+    throw const ApiException('여행 로그 생성이 너무 오래 걸리고 있어요.');
+  }
+
   void _showSnackBar(BuildContext context, String message) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -394,6 +454,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           onMemberTap: () => _openMemberScreen(context),
           onCourseTap: (day) => _openCourseMapScreen(context, day),
           onCourseEditTap: () => _openCourseEditScreen(context),
+          onSaveLogTap: () => _handleSaveLogTap(context),
         );
     }
   }

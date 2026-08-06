@@ -4,10 +4,48 @@ import 'package:dio/dio.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
+import '../../models/pozing_edit_job_model.dart';
 import '../../models/pozing_upload_model.dart';
 
 class PozingRepository {
   const PozingRepository();
+
+  /// 여행의 포징 영상들을 하나의 타임랩스로 편집하는 작업을 요청합니다.
+  Future<PozingEditJobCreateResponse> requestEditPozing(int travelId) async {
+    try {
+      final result = await DioClient.instance.post(
+        '/api/pozing/local-save',
+        queryParameters: {'travelId': travelId},
+      );
+
+      if (result is! Map<String, dynamic>) {
+        throw const ApiException('여행 로그 생성 응답 형식이 올바르지 않습니다.');
+      }
+
+      return PozingEditJobCreateResponse.fromJson(result);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('여행 로그 생성을 요청하지 못했습니다.');
+    }
+  }
+
+  /// 편집 작업 상태를 조회합니다. 완료되면 다운로드 URL이 함께 내려옵니다.
+  Future<PozingEditJobStatusResponse> getEditPozingJob(int jobId) async {
+    try {
+      final result = await DioClient.instance.get('/api/pozing/edit-jobs/$jobId');
+
+      if (result is! Map<String, dynamic>) {
+        throw const ApiException('여행 로그 상태 응답 형식이 올바르지 않습니다.');
+      }
+
+      return PozingEditJobStatusResponse.fromJson(result);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('여행 로그 상태를 확인하지 못했습니다.');
+    }
+  }
 
   /// 코스 장소에서 촬영한 타임랩스 영상을 presigned URL로 S3에 직접
   /// 업로드한 뒤, 업로드 완료를 서버에 알려 Pozing으로 저장합니다.
