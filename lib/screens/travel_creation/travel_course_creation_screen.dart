@@ -13,6 +13,10 @@ import '../../core/design_system/widgets/button/app_chatbot_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/tourist_spot_model.dart';
+import '../../data/models/saved_travel_model.dart';
+import '../../data/models/travel_course_model.dart';
+import '../../data/models/travel_info_card_model.dart';
+import '../../data/repositories/local/travel_store.dart';
 import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
@@ -147,6 +151,64 @@ class _TravelCourseCreationScreenState
     Navigator.of(context).maybePop();
   }
 
+  void _handleStartTravel() {
+    final courses = List.generate(_dayCount, (index) {
+      final dayNumber = index + 1;
+      final spots = _spotsByDay[dayNumber] ?? const <TouristSpotModel>[];
+      return TravelCourseModel(
+        courseId: dayNumber,
+        dayNumber: dayNumber,
+        date: widget.travelInfo.dateRange.start.add(Duration(days: index)),
+        spots: [
+          for (var spotIndex = 0; spotIndex < spots.length; spotIndex++)
+            CourseSpotModel(
+              courseSpotId: spots[spotIndex].touristSpotId,
+              touristSpotId: spots[spotIndex].touristSpotId,
+              name: spots[spotIndex].name,
+              address: spots[spotIndex].address,
+              latitude: spots[spotIndex].latitude,
+              longitude: spots[spotIndex].longitude,
+              orderIndex: spotIndex,
+              status: 'notVisited',
+            ),
+        ],
+      );
+    });
+    final dateRange = widget.travelInfo.dateRange;
+    final durationDays = dateRange.duration.inDays + 1;
+    TravelStore.instance.save(
+      SavedTravelModel(
+        id: 'created-' + dateRange.start.millisecondsSinceEpoch.toString(),
+        title: widget.travelInfo.name,
+        location: widget.travelInfo.destination,
+        dateText:
+            dateRange.start.month.toString() +
+            '/' +
+            dateRange.start.day.toString() +
+            ' ~ ' +
+            dateRange.end.month.toString() +
+            '/' +
+            dateRange.end.day.toString(),
+        author: '나',
+        info: TravelInfoCardModel(
+          destination: widget.travelInfo.destination,
+          startDate: dateRange.start,
+          endDate: dateRange.end,
+          companionCount: 1,
+          tags: widget.travelInfo.tags.toList(),
+          visitedPlaceCount: 0,
+          recordCount: 0,
+          completionRate: 0,
+        ),
+        courses: courses,
+        dDay: durationDays > 0 ? 'D-Day' : null,
+        tags: widget.travelInfo.tags.toList(),
+        participantCount: 1,
+      ),
+    );
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedDaySpots = _spotsByDay[_selectedDay] ?? const [];
@@ -254,7 +316,7 @@ class _TravelCourseCreationScreenState
               child: AppButton(
                 text: '여행 시작하기',
                 isEnabled: _hasAnyCourse,
-                onPressed: widget.onStartTravel,
+                onPressed: widget.onStartTravel ?? _handleStartTravel,
               ),
             ),
           ],

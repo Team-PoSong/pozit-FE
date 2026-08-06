@@ -6,6 +6,7 @@ import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location.dart';
+import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
 import '../../data/models/travel_course_model.dart';
@@ -22,11 +23,36 @@ const double _kLocationGap = 8.0;
 const double _kFabToButtonGap = 22.0;
 const double _kFabSize = 62.0;
 
+const List<TouristSpotModel> _mockPopularSpots = [
+  TouristSpotModel(
+    touristSpotId: 1,
+    name: '불국사',
+    address: '경북 경주시 불국로 385',
+    latitude: 35.7900,
+    longitude: 129.3320,
+  ),
+  TouristSpotModel(
+    touristSpotId: 2,
+    name: '미륵사지',
+    address: '경북 익산시 금마면 미륵사지로 362',
+    latitude: 35.8347,
+    longitude: 129.2247,
+  ),
+  TouristSpotModel(
+    touristSpotId: 3,
+    name: '경주월드',
+    address: '경북 경주시 보문로 544',
+    latitude: 35.8364,
+    longitude: 129.2827,
+  ),
+];
+
 class CourseEditScreen extends StatefulWidget {
   const CourseEditScreen({
     super.key,
     required this.courses,
     this.initialDay = 1,
+    this.isCreationFlow = false,
     this.popularSpots = const [],
     this.onSearch,
     this.onBackTap,
@@ -35,6 +61,7 @@ class CourseEditScreen extends StatefulWidget {
 
   final List<TravelCourseModel> courses;
   final int initialDay;
+  final bool isCreationFlow;
 
   final List<TouristSpotModel> popularSpots;
   final Future<List<TouristSpotModel>> Function(String query)? onSearch;
@@ -64,12 +91,27 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
   };
 
   late int _selectedDay = widget.initialDay;
-  bool _hasChanges = false;
+  // 외부 저장 콜백이 있으면 추천 코스를 수정하지 않아도 바로 저장할 수 있습니다.
+  late bool _hasChanges = widget.onSave != null;
 
   int get _dayCount => _dayNumbers.isEmpty ? 1 : _dayNumbers.length;
 
   List<CourseSpotModel> get _spotsForSelectedDay =>
       _spotsByDayIndex[_selectedDay] ?? const [];
+
+  List<TouristSpotModel> get _resolvedPopularSpots =>
+      widget.popularSpots.isEmpty ? _mockPopularSpots : widget.popularSpots;
+
+  Future<List<TouristSpotModel>> _searchMockSpots(String query) async {
+    final normalizedQuery = query.trim().toLowerCase();
+    return _resolvedPopularSpots
+        .where(
+          (spot) =>
+              spot.name.toLowerCase().contains(normalizedQuery) ||
+              spot.address.toLowerCase().contains(normalizedQuery),
+        )
+        .toList();
+  }
 
   List<CourseSpotModel> _mergeSpotsForDayNumber(int dayNumber) {
     final seenSpotIds = <int>{};
@@ -110,8 +152,8 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     final added = await Navigator.of(context).push<List<TouristSpotModel>>(
       MaterialPageRoute<List<TouristSpotModel>>(
         builder: (_) => LocationSearchScreen(
-          popularSpots: widget.popularSpots,
-          onSearch: widget.onSearch,
+          popularSpots: _resolvedPopularSpots,
+          onSearch: widget.onSearch ?? _searchMockSpots,
         ),
       ),
     );
@@ -165,8 +207,19 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TravelDetailTopBar(title: '코스 수정', onBackTap: _handleBack),
-            const SizedBox(height: _kTopBarToDateDetailGap),
+            TravelDetailTopBar(
+              title: widget.isCreationFlow ? '여행 생성하기' : '코스 수정',
+              onBackTap: _handleBack,
+            ),
+            if (widget.isCreationFlow) ...[
+              const SizedBox(height: 10),
+              const Align(
+                alignment: Alignment.center,
+                child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 2),
+              ),
+              const SizedBox(height: 40),
+            ] else
+              const SizedBox(height: _kTopBarToDateDetailGap),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: _kHorizontalPadding,
@@ -254,7 +307,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                 AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
-                text: '저장하기',
+                text: widget.isCreationFlow ? '여행 시작하기' : '저장하기',
                 isEnabled: _hasChanges,
                 onPressed: _handleSave,
               ),

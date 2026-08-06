@@ -11,10 +11,14 @@ import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
+import '../../data/models/saved_travel_model.dart';
 import '../../data/models/travel_course_model.dart';
+import '../../data/models/travel_info_card_model.dart';
+import '../../data/repositories/local/travel_store.dart';
 import '../course_edit/course_edit_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 
+/// Pozit이 추천한 강릉 코스를 확인하고 저장하는 화면입니다.
 class PozitPickDetailScreen extends StatefulWidget {
   const PozitPickDetailScreen({super.key});
 
@@ -51,8 +55,48 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
   void _handlePrimaryTap() {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            CourseEditScreen(courses: _courses, initialDay: _selectedDay),
+        builder: (_) => CourseEditScreen(
+          courses: _courses,
+          initialDay: _selectedDay,
+          isCreationFlow: true,
+          onSave: (spotsByDay) {
+            final savedCourses = _courses
+                .map(
+                  (course) => TravelCourseModel(
+                    courseId: course.courseId,
+                    dayNumber: course.dayNumber,
+                    date: course.date,
+                    spots: spotsByDay[course.dayNumber] ?? course.spots,
+                  ),
+                )
+                .toList();
+            TravelStore.instance.save(
+              SavedTravelModel(
+                id: 'pozit-pick-gangneung',
+                title: '6월 추천, 강릉은 어때요?',
+                location: '강원 강릉',
+                dateText: '1박 2일',
+                author: '나',
+                info: TravelInfoCardModel(
+                  destination: '강릉',
+                  startDate: DateTime(2026, 6, 1),
+                  endDate: DateTime(2026, 6, 2),
+                  companionCount: 1,
+                  tags: const ['기록', '미식'],
+                  visitedPlaceCount: 0,
+                  recordCount: 0,
+                  completionRate: 0,
+                ),
+                courses: savedCourses,
+                dDay: 'D-30',
+                backgroundImage: const AssetImage(AppImages.travelMockup),
+                tags: const ['기록', '미식'],
+                participantCount: 1,
+              ),
+            );
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+        ),
       ),
     );
   }
