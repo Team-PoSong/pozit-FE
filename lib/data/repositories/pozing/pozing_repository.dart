@@ -20,7 +20,7 @@ class PozingRepository {
       await _putVideoToPresignedUrl(presigned.presignedUrl, videoFile);
       return await _savePozing(
         courseSpotId: courseSpotId,
-        uploadId: presigned.uploadId,
+        objectKey: presigned.objectKey,
       );
     } on ApiException {
       rethrow;
@@ -58,17 +58,11 @@ class PozingRepository {
 
   Future<PozingSaveResponse> _savePozing({
     required int courseSpotId,
-    required String uploadId,
+    required String objectKey,
   }) async {
     final result = await DioClient.instance.post(
       '/api/pozing/save',
-      // PozingPresignedUrlResponse.uploadId를 그대로 넘겨받아 전달합니다.
-      // savePozing 요청 스키마의 필드명은 objectKey지만, 스펙 설명상
-      // "업로드 완료 후 savePozing 호출 시 전달할 식별자"가 uploadId라고
-      // 되어 있어 여기 그 값을 그대로 씁니다. (백엔드 문서상 명명 불일치로
-      // 보이며, 실제로 objectKey를 별도로 받아야 한다면 백엔드 확인이
-      // 필요합니다.)
-      data: {'objectKey': uploadId, 'courseSpotId': courseSpotId},
+      data: {'objectKey': objectKey, 'courseSpotId': courseSpotId},
     );
 
     if (result is! Map<String, dynamic>) {
