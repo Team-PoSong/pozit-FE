@@ -14,6 +14,7 @@ import '../../data/models/travel/travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/models/travel/travel_tag_model.dart';
 import '../../data/models/travel/travel_update_request.dart';
+import '../../data/repositories/tourist_spot/tourist_spot_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
 import '../course_edit/course_edit_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
@@ -30,11 +31,13 @@ class TravelDetailPage extends StatefulWidget {
     super.key,
     required this.travelId,
     this.repository = const TravelRepository(),
+    this.touristSpotRepository = const TouristSpotRepository(),
     this.tokenStorage = const AuthTokenStorage(),
   });
 
   final int travelId;
   final TravelRepository repository;
+  final TouristSpotRepository touristSpotRepository;
   final AuthTokenStorage tokenStorage;
 
   @override
@@ -308,6 +311,8 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         builder: (_) => CourseEditScreen(
           courses: enrichedCourses,
           initialDay: _initialDay,
+          onLoadPopularSpots: (cursor) => widget.touristSpotRepository
+              .getHostTouristSpotsRank(cursor: cursor),
           onSave: (spotsByCourseId) =>
               _handleCourseEditSave(context, spotsByCourseId),
         ),
