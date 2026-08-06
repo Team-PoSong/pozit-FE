@@ -32,15 +32,18 @@ class TravelDetailBottomSection extends StatelessWidget {
   const TravelDetailBottomSection({
     super.key,
     required this.status,
-    required this.companionCount,
+    required this.memberNames,
     this.onSaveLogTap,
     this.cameraKey,
     this.courseTransitionKey,
     this.isCameraReady = false,
+    this.onCameraTap,
   });
 
   final AppTravelStatus status;
-  final int companionCount;
+
+  /// 본인의 타일이 항상 맨 앞에 오도록 정렬된 참여 멤버 이름 목록입니다.
+  final List<String> memberNames;
   final VoidCallback? onSaveLogTap;
   final Key? cameraKey;
 
@@ -49,6 +52,9 @@ class TravelDetailBottomSection extends StatelessWidget {
   /// Whether the current user is within the visiting radius of a course
   /// spot, so their own posing tile's camera should be shown as on.
   final bool isCameraReady;
+
+  /// 본인 타일의 카메라가 켜져 있을 때 탭하면 촬영 화면으로 이동합니다.
+  final VoidCallback? onCameraTap;
 
   @override
   Widget build(BuildContext context) {
@@ -91,9 +97,10 @@ class TravelDetailBottomSection extends StatelessWidget {
           child: _CourseSwipeCue(
             courseKey: courseTransitionKey,
             child: _PosingColumn(
-              companionCount: companionCount,
+              memberNames: memberNames,
               cameraKey: cameraKey,
               isCameraReady: isCameraReady,
+              onCameraTap: onCameraTap,
             ),
           ),
         );
@@ -110,7 +117,7 @@ class TravelDetailBottomSection extends StatelessWidget {
             children: [
               _CourseSwipeCue(
                 courseKey: courseTransitionKey,
-                child: _PosingColumn(companionCount: companionCount),
+                child: _PosingColumn(memberNames: memberNames),
               ),
               const SizedBox(height: _kPosingToButtonGap),
               AppButton(text: '여행 로그 저장하기', onPressed: onSaveLogTap),
@@ -123,27 +130,31 @@ class TravelDetailBottomSection extends StatelessWidget {
 
 class _PosingColumn extends StatelessWidget {
   const _PosingColumn({
-    required this.companionCount,
+    required this.memberNames,
     this.cameraKey,
     this.isCameraReady = false,
+    this.onCameraTap,
   });
 
-  final int companionCount;
+  final List<String> memberNames;
   final Key? cameraKey;
   final bool isCameraReady;
+  final VoidCallback? onCameraTap;
 
   @override
   Widget build(BuildContext context) {
-    // companionCount는 본인을 포함한 전체 인원 수입니다. 0은 정상적으로
-    // 내려올 수 없는 값이지만, 방어적으로 본인 카메라 타일은 항상 보장합니다.
-    final tileCount = companionCount > 0 ? companionCount : 1;
+    // memberNames는 본인을 포함한 전체 참여 멤버 이름 목록입니다(본인이 0번).
+    // 멤버 정보가 아직 없을 때도 방어적으로 본인 카메라 타일은 항상 보장합니다.
+    final names = memberNames.isNotEmpty ? memberNames : const [''];
     return Column(
       children: [
-        for (int i = 0; i < tileCount; i++) ...[
+        for (int i = 0; i < names.length; i++) ...[
           if (i > 0) const SizedBox(height: _kPosingGap),
           AppPosing(
             key: i == 0 ? cameraKey : null,
+            name: names[i].isEmpty ? null : names[i],
             isCameraOn: i == 0 && isCameraReady,
+            onTap: i == 0 && isCameraReady ? onCameraTap : null,
           ),
         ],
       ],
@@ -219,7 +230,7 @@ Widget travelDetailBottomSectionUpcomingPreview() {
         height: 300,
         child: TravelDetailBottomSection(
           status: AppTravelStatus.upcoming,
-          companionCount: 3,
+          memberNames: ['현영', '윤지', '해림'],
         ),
       ),
     ),
@@ -232,7 +243,7 @@ Widget travelDetailBottomSectionInProgressPreview() {
     home: Scaffold(
       body: TravelDetailBottomSection(
         status: AppTravelStatus.inProgress,
-        companionCount: 3,
+        memberNames: ['현영', '윤지', '해림'],
       ),
     ),
   );
@@ -244,7 +255,7 @@ Widget travelDetailBottomSectionCompletedPreview() {
     home: Scaffold(
       body: TravelDetailBottomSection(
         status: AppTravelStatus.completed,
-        companionCount: 3,
+        memberNames: ['현영', '윤지', '해림'],
       ),
     ),
   );

@@ -12,6 +12,7 @@ import '../../data/datasources/auth/auth_token_storage.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/travel/travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
+import '../../data/models/travel/travel_member_model.dart';
 import '../../data/models/travel/travel_tag_model.dart';
 import '../../data/models/travel/travel_update_request.dart';
 import '../../data/models/pozing_edit_job_model.dart';
@@ -19,6 +20,7 @@ import '../../data/repositories/pozing/pozing_repository.dart';
 import '../../data/repositories/tourist_spot/tourist_spot_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
 import '../course_edit/course_edit_screen.dart';
+import '../pozing_camera/pozing_camera_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_log/travel_log_complete_screen.dart';
 import '../travel_log/travel_log_saving_screen.dart';
@@ -61,6 +63,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   List<TravelTagModel> _travelTags = const [];
   String _inviteCode = '';
   bool _isLeader = false;
+  int? _myUserId;
   int _initialDay = 1;
   int _initialSpotIndex = 0;
 
@@ -108,6 +111,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
             detail.members.any(
               (member) => member.userId == myUserId && member.isLeader,
             );
+        _myUserId = myUserId;
         _initialDay = focus.dayNumber;
         _initialSpotIndex = focus.spotIndex;
         _status = _LoadStatus.loaded;
@@ -170,6 +174,33 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     } catch (_) {
       return null;
     }
+  }
+
+  /// 본인이 0번 인덱스에 오도록 정렬한 참여 멤버 목록입니다. 하단 포징
+  /// 타일 중 본인 타일(0번)에만 카메라를 연결하기 위해 필요합니다.
+  List<TravelMemberModel> get _orderedMembers {
+    final members = _detail!.members;
+    final myUserId = _myUserId;
+    if (myUserId == null) return members;
+
+    final selfIndex = members.indexWhere((m) => m.userId == myUserId);
+    if (selfIndex <= 0) return members;
+
+    final reordered = [...members];
+    final self = reordered.removeAt(selfIndex);
+    reordered.insert(0, self);
+    return reordered;
+  }
+
+  void _openPozingCameraScreen(BuildContext context, int courseSpotId) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PozingCameraScreen(
+          courseSpotId: courseSpotId,
+          repository: widget.pozingRepository,
+        ),
+      ),
+    );
   }
 
   void _openMemberScreen(BuildContext context) {
@@ -444,6 +475,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           isLeader: _isLeader,
           isPublic: detail.isPublic,
           courses: detail.courses,
+          members: _orderedMembers,
           initialDay: _initialDay,
           initialSpotIndex: _initialSpotIndex,
           backgroundImage: detail.backgroundImageUrl.isNotEmpty
@@ -455,6 +487,8 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           onCourseTap: (day) => _openCourseMapScreen(context, day),
           onCourseEditTap: () => _openCourseEditScreen(context),
           onSaveLogTap: () => _handleSaveLogTap(context),
+          onCameraTap: (courseSpotId) =>
+              _openPozingCameraScreen(context, courseSpotId),
         );
     }
   }

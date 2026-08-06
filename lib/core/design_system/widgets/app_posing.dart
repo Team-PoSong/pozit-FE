@@ -7,65 +7,77 @@ import '../app_icons.dart';
 import '../app_text_styles.dart';
 
 class AppPosing extends StatelessWidget {
-  const AppPosing({super.key, String? name, required bool isCameraOn})
-    : _name = name,
-      _isCameraOn = isCameraOn,
-      _isTravelPhoto = false;
+  const AppPosing({
+    super.key,
+    String? name,
+    required bool isCameraOn,
+    VoidCallback? onTap,
+  }) : _name = name,
+       _isCameraOn = isCameraOn,
+       _isTravelPhoto = false,
+       _onTap = onTap;
 
   const AppPosing.travelPhoto({super.key})
     : _name = null,
       _isCameraOn = false,
-      _isTravelPhoto = true;
+      _isTravelPhoto = true,
+      _onTap = null;
 
   final String? _name;
   final bool _isCameraOn;
   final bool _isTravelPhoto;
+  final VoidCallback? _onTap;
 
   @override
   Widget build(BuildContext context) {
     final cameraIcon = _isCameraOn ? AppIcons.cameraOn : AppIcons.cameraOff;
 
-    return Container(
-      width: double.infinity,
-      height: _isTravelPhoto ? 183 : 194,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: _isTravelPhoto ? AppColors.gray3 : AppColors.text,
-        borderRadius: BorderRadius.circular(_isTravelPhoto ? 8 : 12),
-      ),
-      child: Stack(
-        children: [
-          Center(
-            child: Semantics(
-              label: _isTravelPhoto
-                  ? '여행 사진 추가'
-                  : _isCameraOn
-                  ? '카메라 켜짐'
-                  : '카메라 꺼짐',
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 150),
-                child: SvgPicture.asset(
-                  cameraIcon,
-                  key: ValueKey(cameraIcon),
-                  width: 40,
-                  height: 40,
+    return GestureDetector(
+      onTap: _onTap,
+      child: Container(
+        width: double.infinity,
+        height: _isTravelPhoto ? 183 : 194,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: _isTravelPhoto ? AppColors.gray3 : AppColors.text,
+          borderRadius: BorderRadius.circular(_isTravelPhoto ? 8 : 12),
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: Semantics(
+                label: _isTravelPhoto
+                    ? '여행 사진 추가'
+                    : _isCameraOn
+                    ? '카메라 켜짐'
+                    : '카메라 꺼짐',
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 150),
+                  child: SvgPicture.asset(
+                    cameraIcon,
+                    key: ValueKey(cameraIcon),
+                    width: 40,
+                    height: 40,
+                  ),
                 ),
               ),
             ),
-          ),
-          if (_name != null)
-            Positioned(
-              left: 23,
-              right: 23,
-              bottom: 26,
-              child: Text(
-                _name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.subTitle.copyWith(color: AppColors.gray1),
+            if (_name != null)
+              Positioned(
+                left: 23,
+                right: 23,
+                bottom: 26,
+                child: Text(
+                  _name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.subTitle.copyWith(
+                    color: AppColors.gray1,
+                  ),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -14,6 +14,7 @@ import '../../core/location/course_visiting.dart';
 import '../../data/datasources/local/travel_detail_guide_storage.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
+import '../../data/models/travel/travel_member_model.dart';
 import 'widgets/travel_detail_bottom_section.dart';
 import 'widgets/travel_detail_guide_overlay.dart';
 import 'widgets/travel_detail_top_bar.dart';
@@ -39,6 +40,7 @@ class TravelDetailScreen extends StatefulWidget {
     required this.isLeader,
     this.isPublic = true,
     this.courses = const [],
+    this.members = const [],
     this.backgroundImage = const AssetImage(AppImages.travelMockup),
     this.initialDay = 1,
     this.initialSpotIndex = 0,
@@ -51,6 +53,7 @@ class TravelDetailScreen extends StatefulWidget {
     this.onCourseTap,
     this.onDayChanged,
     this.onSaveLogTap,
+    this.onCameraTap,
     this.guideStorage = const TravelDetailGuideStorage(),
   });
 
@@ -62,6 +65,10 @@ class TravelDetailScreen extends StatefulWidget {
   final bool isPublic;
 
   final List<TravelCourseModel> courses;
+
+  /// 본인이 0번 인덱스에 오도록 정렬된 참여 멤버 목록입니다. 하단 포징
+  /// 타일에 이름을 표시하는 데 사용합니다.
+  final List<TravelMemberModel> members;
   final ImageProvider<Object> backgroundImage;
   final int initialDay;
 
@@ -79,6 +86,10 @@ class TravelDetailScreen extends StatefulWidget {
   final ValueChanged<int>? onCourseTap;
   final ValueChanged<int>? onDayChanged;
   final VoidCallback? onSaveLogTap;
+
+  /// 본인의 포징 타일 카메라가 켜져 있을 때 탭하면, 촬영 대상 courseSpotId와
+  /// 함께 호출됩니다.
+  final ValueChanged<int>? onCameraTap;
 
   final TravelDetailGuideStorage guideStorage;
 
@@ -205,6 +216,22 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   bool get _isCameraReady =>
       widget.status == AppTravelStatus.inProgress && _nearbySpotIds.isNotEmpty;
+
+  /// 카메라가 활성화됐을 때 촬영 대상이 될 장소입니다. 현재 포커스된 장소가
+  /// 방문 반경 안에 있으면 그곳을, 아니면 반경 안의 다른 장소 중 하나를
+  /// 고릅니다.
+  CourseSpotModel? get _activeCameraSpot {
+    if (!_isCameraReady) return null;
+    final nearbySpotIds = _nearbySpotIds;
+    final focused = _focusedSpot;
+    if (focused != null && nearbySpotIds.contains(focused.touristSpotId)) {
+      return focused;
+    }
+    for (final spot in _mergedSpotsForSelectedDay) {
+      if (nearbySpotIds.contains(spot.touristSpotId)) return spot;
+    }
+    return null;
+  }
 
   List<MapMarker> _mergedMarkersForSelectedDay() {
     final merged = _mergedSpotsForSelectedDay;
@@ -395,11 +422,18 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                         ),
                         TravelDetailBottomSection(
                           status: widget.status,
-                          companionCount: widget.info.companionCount,
+                          memberNames: widget.members
+                              .map((member) => member.nickname)
+                              .toList(),
                           onSaveLogTap: widget.onSaveLogTap,
                           cameraKey: _cameraKey,
                           courseTransitionKey: '$_selectedDay-$spotPageIndex',
                           isCameraReady: _isCameraReady,
+                          onCameraTap: _activeCameraSpot != null
+                              ? () => widget.onCameraTap?.call(
+                                  _activeCameraSpot!.courseSpotId,
+                                )
+                              : null,
                         ),
                       ],
                     ),
