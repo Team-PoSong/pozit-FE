@@ -14,6 +14,8 @@ import 'explore_filter_actions.dart';
 const double _horizontalPadding = 24.0;
 const int _regionColumnCount = 4;
 const double _regionCellGap = 7.0;
+const int _categoryColumnCount = 4;
+const double _categoryCellGap = 8.0;
 
 const List<String> _regions = [
   '전국',
@@ -207,24 +209,62 @@ class _ExploreFilterSheetState extends State<ExploreFilterSheet> {
   }
 
   Widget _buildCategoryContent() {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: _categories.map((category) {
-        final isSelected = _selectedCategories.contains(category);
-        return IntrinsicWidth(
-          child: AppTagChip(
-            label: '#$category',
-            isSelected: isSelected,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-            onTap: () => setState(() {
-              isSelected
-                  ? _selectedCategories.remove(category)
-                  : _selectedCategories.add(category);
-            }),
-          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalGap = _categoryCellGap * (_categoryColumnCount - 1);
+        final cellWidth = (constraints.maxWidth - totalGap) /
+            _categoryColumnCount;
+        final rowCount = (_categories.length / _categoryColumnCount).ceil();
+
+        return Column(
+          children: [
+            for (var rowIndex = 0; rowIndex < rowCount; rowIndex++) ...[
+              if (rowIndex > 0) const SizedBox(height: _categoryCellGap),
+              Row(
+                children: [
+                  for (
+                    var columnIndex = 0;
+                    columnIndex < _categoryColumnCount;
+                    columnIndex++
+                  ) ...[
+                    if (columnIndex > 0)
+                      const SizedBox(width: _categoryCellGap),
+                    if (rowIndex * _categoryColumnCount + columnIndex <
+                        _categories.length)
+                      SizedBox(
+                        width: cellWidth,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: _buildCategoryChip(
+                            _categories[
+                                rowIndex * _categoryColumnCount + columnIndex],
+                          ),
+                        ),
+                      )
+                    else
+                      SizedBox(width: cellWidth),
+                  ],
+                ],
+              ),
+            ],
+          ],
         );
-      }).toList(),
+      },
+    );
+  }
+
+  Widget _buildCategoryChip(String category) {
+    final isSelected = _selectedCategories.contains(category);
+    return AppTagChip(
+      label: '#$category',
+      isSelected: isSelected,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+      onTap: () => setState(() {
+        isSelected
+            ? _selectedCategories.remove(category)
+            : _selectedCategories.add(category);
+      }),
     );
   }
 
