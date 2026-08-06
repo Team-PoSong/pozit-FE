@@ -8,6 +8,7 @@ import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/travel_course_model.dart';
 import '../../data/models/travel_info_card_model.dart';
 import '../course_edit/course_edit_screen.dart';
+import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_detail/travel_detail_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
@@ -66,11 +67,24 @@ class TravelRecommendationResultScreen extends StatelessWidget {
           isMyTravel: false,
           authorName: authorName,
           courses: courses,
+          onCourseTap: (_) => _openCourseMap(context, courses),
           onFollowCourseTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
               builder: (_) => CourseEditScreen(courses: courses),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _openCourseMap(BuildContext context, List<TravelCourseModel> courses) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelCourseMapScreen(
+          courses: courses,
+          status: AppTravelStatus.completed,
+          totalDays: courses.length,
         ),
       ),
     );
