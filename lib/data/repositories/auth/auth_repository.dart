@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
 import '../../datasources/auth/auth_token_storage.dart';
@@ -41,7 +39,6 @@ class AuthRepository {
       }
 
       final token = LoginTokenModel.fromJson(result);
-      debugPrint('[DEBUG] Swagger Authorize용 JWT: ${token.accessToken}');
       await _tokenStorage.save(
         accessToken: token.accessToken,
         tokenType: token.tokenType,

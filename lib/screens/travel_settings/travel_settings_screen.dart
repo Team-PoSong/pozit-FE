@@ -146,9 +146,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
       );
       if (picked == null || !mounted) return;
       setState(() => _backgroundImage = File(picked.path));
-    } catch (error) {
-      debugPrint('배경 사진 선택 실패: $error');
-    }
+    } catch (_) {}
   }
 
   Future<void> _handlePickDateRange() async {

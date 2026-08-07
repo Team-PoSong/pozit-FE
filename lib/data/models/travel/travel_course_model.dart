@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 const Set<String> _kVisitedStatusSynonyms = {
   'visited',
   'visit',
@@ -18,9 +16,6 @@ const Set<String> _kNotVisitedStatusSynonyms = {
 String _normalizeSpotStatus(String raw) {
   final normalized = raw.toLowerCase().replaceAll('_', '');
   if (_kVisitedStatusSynonyms.contains(normalized)) return 'visited';
-  if (!_kNotVisitedStatusSynonyms.contains(normalized)) {
-    debugPrint('알 수 없는 코스 스팟 status: $raw');
-  }
   return 'notVisited';
 }
 

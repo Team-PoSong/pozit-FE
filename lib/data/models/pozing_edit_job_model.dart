@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 enum PozingEditJobStatus {
   queued,
   processing,
@@ -31,7 +29,6 @@ PozingEditJobStatus _parsePozingEditJobStatus(String? raw) {
     case 'DELETE_FAILED':
       return PozingEditJobStatus.deleteFailed;
     default:
-      debugPrint('알 수 없는 포징 편집 작업 status: $raw');
       return PozingEditJobStatus.failed;
   }
 }

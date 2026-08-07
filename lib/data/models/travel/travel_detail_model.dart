@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 import '../../../core/design_system/app_travel_status.dart';
 import 'travel_course_model.dart';
 import 'travel_member_model.dart';
@@ -25,7 +23,6 @@ String _sanitizeBackgroundImageUrl(String? raw) {
   final isAbsoluteHttpUrl =
       uri != null && (uri.isScheme('http') || uri.isScheme('https'));
   if (!isAbsoluteHttpUrl) {
-    debugPrint('배경 사진 URL이 http(s) 절대 URL이 아니어서 무시합니다: $raw');
     return '';
   }
   return raw;
@@ -38,9 +35,6 @@ AppTravelStatus _parseTravelStatus(String raw) {
   }
   if (_kCompletedStatusSynonyms.contains(normalized)) {
     return AppTravelStatus.completed;
-  }
-  if (!_kUpcomingStatusSynonyms.contains(normalized)) {
-    debugPrint('알 수 없는 여행 status: $raw');
   }
   return AppTravelStatus.upcoming;
 }

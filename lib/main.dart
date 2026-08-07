@@ -19,9 +19,7 @@ Future<void> main() async {
   );
   try {
     await KakaoMapSdk.instance.initialize(AppConfig.kakaoMapKey);
-  } catch (error) {
-    debugPrint('KakaoMapSdk 초기화 실패: $error');
-  }
+  } catch (_) {}
 
   DioClient.instance.attachAccessTokenProvider(
     () => const AuthTokenStorage().readAccessToken(),
