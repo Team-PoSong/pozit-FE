@@ -409,10 +409,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     try {
       await widget.repository.leaveTravel(widget.travelId);
       if (!context.mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
-        (route) => false,
-      );
+      _navigateToHome(context);
     } on ApiException catch (error) {
       if (!context.mounted) return;
       _showSnackBar(context, error.message);
@@ -420,6 +417,27 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       if (!context.mounted) return;
       _showSnackBar(context, '여행에서 나가지 못했어요.');
     }
+  }
+
+  Future<void> _handleDeleteTap(BuildContext context) async {
+    try {
+      await widget.repository.deleteTravel(widget.travelId);
+      if (!context.mounted) return;
+      _navigateToHome(context);
+    } on ApiException catch (error) {
+      if (!context.mounted) return;
+      _showSnackBar(context, error.message);
+    } catch (_) {
+      if (!context.mounted) return;
+      _showSnackBar(context, '여행을 삭제하지 못했어요.');
+    }
+  }
+
+  void _navigateToHome(BuildContext context) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+      (route) => false,
+    );
   }
 
   void _showSnackBar(BuildContext context, String message) {
@@ -522,6 +540,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           onSettingsTap: () => _openSettingsScreen(context),
           onMemberTap: () => _openMemberScreen(context),
           onLeaveTap: () => _handleLeaveTap(context),
+          onDeleteTap: () => _handleDeleteTap(context),
           onCourseTap: (day) => _openCourseMapScreen(context, day),
           onCourseEditTap: () => _openCourseEditScreen(context),
           onSaveLogTap: () => _handleSaveLogTap(context),
