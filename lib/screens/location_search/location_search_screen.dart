@@ -380,7 +380,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   @override
   Widget build(BuildContext context) {
     final isEmptyResult =
-        _showLengthError || (_hasSearched && _searchResults.isEmpty);
+        _showLengthError ||
+        _hasSearchError ||
+        (_hasSearched && _searchResults.isEmpty);
     final selectedChips = [
       for (final spot in _selectedPopularSpots)
         (
@@ -460,8 +462,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   Positioned.fill(
                     child: _isSearching
                         ? const Center(child: CircularProgressIndicator())
-                        : _hasSearchError
-                        ? const _EmptyResult()
                         : isEmptyResult
                         ? const _EmptyResult()
                         : _hasSearched
