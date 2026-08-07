@@ -3,6 +3,8 @@ class TouristSpotRankModel {
   final int touristSpotId;
   final String title;
   final String address;
+  final double latitude;
+  final double longitude;
   final String imageUrl;
   final int courseSpotCount;
 
@@ -11,6 +13,8 @@ class TouristSpotRankModel {
     required this.touristSpotId,
     required this.title,
     required this.address,
+    this.latitude = 0,
+    this.longitude = 0,
     this.imageUrl = '',
     required this.courseSpotCount,
   });
@@ -21,6 +25,8 @@ class TouristSpotRankModel {
       touristSpotId: json['touristSpotId'] as int,
       title: json['title'] as String,
       address: json['address'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       imageUrl: json['imageUrl'] as String? ?? '',
       courseSpotCount: json['courseSpotCount'] as int,
     );

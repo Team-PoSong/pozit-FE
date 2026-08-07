@@ -6,7 +6,6 @@ import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_chip.dart';
-import '../../core/design_system/widgets/app_location.dart';
 import '../../core/design_system/widgets/app_location_select.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
@@ -88,9 +87,17 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   bool _isLoadingPopular = false;
   bool _isLoadingMorePopular = false;
   bool _hasPopularError = false;
+  final Map<int, TouristSpotRankModel> _popularSpotById = {};
+  final Set<int> _selectedPopularSpotIds = {};
 
   List<TouristSpotSearchResultModel> get _selectedSearchResults =>
       _selectedContentIds.map((id) => _searchResultByContentId[id]!).toList();
+
+  /// 인기 있는 장소는 이미 Pozit에 등록된 관광지라서, 검색 결과와 달리
+  /// 별도로 저장할 필요 없이 바로 코스에 추가할 수 있습니다.
+  List<TouristSpotRankModel> get _selectedPopularSpots => _selectedPopularSpotIds
+      .map((id) => _popularSpotById[id]!)
+      .toList();
 
   @override
   void initState() {
@@ -123,6 +130,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       if (!mounted) return;
       setState(() {
         _popularSpots = page.ranks;
+        for (final spot in page.ranks) {
+          _popularSpotById[spot.touristSpotId] = spot;
+        }
         _nextPopularCursor = page.nextCursor;
         _hasNextPopularPage = page.hasNext;
       });
@@ -149,6 +159,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       if (!mounted) return;
       setState(() {
         _popularSpots = [..._popularSpots, ...page.ranks];
+        for (final spot in page.ranks) {
+          _popularSpotById[spot.touristSpotId] = spot;
+        }
         _nextPopularCursor = page.nextCursor;
         _hasNextPopularPage = page.hasNext;
       });
@@ -196,13 +209,30 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           );
         }
         final spot = _popularSpots[index];
-        return AppLocation(
+        return AppLocationSelect(
           key: ValueKey(spot.touristSpotId),
-          name: spot.title,
+          title: spot.title,
           address: spot.address,
+          isSelected: _selectedPopularSpotIds.contains(spot.touristSpotId),
+          onChanged: (selected) =>
+              _handlePopularSpotSelectedChanged(spot, selected),
         );
       },
     );
+  }
+
+  void _handlePopularSpotSelectedChanged(
+    TouristSpotRankModel spot,
+    bool selected,
+  ) {
+    setState(() {
+      _popularSpotById[spot.touristSpotId] = spot;
+      if (selected) {
+        _selectedPopularSpotIds.add(spot.touristSpotId);
+      } else {
+        _selectedPopularSpotIds.remove(spot.touristSpotId);
+      }
+    });
   }
 
   Future<void> _handleSearch(String rawQuery) async {
@@ -309,17 +339,30 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   }
 
   Future<void> _handleAddTap() async {
-    final selected = _selectedSearchResults;
-    if (widget.onAddSelectedSpots == null) {
-      Navigator.of(context).pop(<TouristSpotModel>[]);
-      return;
-    }
+    final selectedPopular = _selectedPopularSpots;
+    final selectedSearch = _selectedSearchResults;
+    if (selectedPopular.isEmpty && selectedSearch.isEmpty) return;
 
     setState(() => _isAddingSpots = true);
     try {
-      final saved = await widget.onAddSelectedSpots!(selected);
+      // 인기 있는 장소는 이미 등록된 관광지라서 별도 저장 API 없이 그대로
+      // 코스에 추가합니다. 검색 결과만 saveSelectedSpots로 저장이 필요합니다.
+      final popularAsSpots = [
+        for (final spot in selectedPopular)
+          TouristSpotModel(
+            touristSpotId: spot.touristSpotId,
+            name: spot.title,
+            address: spot.address,
+            latitude: spot.latitude,
+            longitude: spot.longitude,
+          ),
+      ];
+      final savedSearchSpots = selectedSearch.isEmpty
+          ? const <TouristSpotModel>[]
+          : await widget.onAddSelectedSpots!(selectedSearch);
+
       if (!mounted) return;
-      Navigator.of(context).pop(saved);
+      Navigator.of(context).pop([...popularAsSpots, ...savedSearchSpots]);
     } catch (_) {
       if (!mounted) return;
       setState(() => _isAddingSpots = false);
@@ -338,7 +381,20 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   Widget build(BuildContext context) {
     final isEmptyResult =
         _showLengthError || (_hasSearched && _searchResults.isEmpty);
-    final selectedSpots = _selectedSearchResults;
+    final selectedChips = [
+      for (final spot in _selectedPopularSpots)
+        (
+          key: 'rank-${spot.touristSpotId}',
+          label: spot.title,
+          onRemove: () => _handlePopularSpotSelectedChanged(spot, false),
+        ),
+      for (final spot in _selectedSearchResults)
+        (
+          key: 'search-${spot.contentId}',
+          label: spot.title,
+          onRemove: () => _handleSpotSelectedChanged(spot, false),
+        ),
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -441,7 +497,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     )
                   : _buildPopularSpotsSection(),
             ),
-            if (selectedSpots.isNotEmpty) ...[
+            if (selectedChips.isNotEmpty) ...[
               SizedBox(
                 height: 29,
                 child: Padding(
@@ -452,15 +508,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        for (var i = 0; i < selectedSpots.length; i++) ...[
+                        for (var i = 0; i < selectedChips.length; i++) ...[
                           if (i > 0) const SizedBox(width: _kChipGap),
                           AppDeletableChip(
-                            key: ValueKey(selectedSpots[i].contentId),
-                            label: selectedSpots[i].title,
-                            onDeleted: () => _handleSpotSelectedChanged(
-                              selectedSpots[i],
-                              false,
-                            ),
+                            key: ValueKey(selectedChips[i].key),
+                            label: selectedChips[i].label,
+                            onDeleted: selectedChips[i].onRemove,
                           ),
                         ],
                       ],
@@ -479,7 +532,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               ),
               child: AppButton(
                 text: _isAddingSpots ? '추가하는 중...' : '장소 추가하기',
-                isEnabled: selectedSpots.isNotEmpty && !_isAddingSpots,
+                isEnabled: selectedChips.isNotEmpty && !_isAddingSpots,
                 onPressed: _handleAddTap,
               ),
             ),

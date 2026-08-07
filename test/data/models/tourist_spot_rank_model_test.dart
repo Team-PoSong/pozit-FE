@@ -9,6 +9,8 @@ void main() {
         'touristSpotId': 1,
         'title': '경복궁',
         'address': '서울특별시 종로구 사직로 161',
+        'latitude': 37.5796,
+        'longitude': 126.9770,
         'imageUrl': 'https://example.com/spot.jpg',
         'courseSpotCount': 12,
       });
@@ -17,6 +19,8 @@ void main() {
       expect(rank.touristSpotId, 1);
       expect(rank.title, '경복궁');
       expect(rank.address, '서울특별시 종로구 사직로 161');
+      expect(rank.latitude, 37.5796);
+      expect(rank.longitude, 126.9770);
       expect(rank.imageUrl, 'https://example.com/spot.jpg');
       expect(rank.courseSpotCount, 12);
     });
@@ -31,6 +35,19 @@ void main() {
       });
 
       expect(rank.imageUrl, '');
+    });
+
+    test('latitude/longitude가 없으면 0으로 채운다', () {
+      final rank = TouristSpotRankModel.fromJson({
+        'rank': 1,
+        'touristSpotId': 1,
+        'title': '경복궁',
+        'address': '서울특별시 종로구 사직로 161',
+        'courseSpotCount': 12,
+      });
+
+      expect(rank.latitude, 0);
+      expect(rank.longitude, 0);
     });
   });
 
