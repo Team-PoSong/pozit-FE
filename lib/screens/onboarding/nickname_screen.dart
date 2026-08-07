@@ -7,8 +7,7 @@ import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
-
-enum NicknameValidationState { idle, checking, available, duplicate, error }
+import '../../core/utils/nickname_validation.dart';
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({
@@ -18,7 +17,7 @@ class NicknameScreen extends StatefulWidget {
     this.validationDelay = const Duration(milliseconds: 400),
   });
 
-  final Future<bool> Function(String nickname)? validateNickname;
+  final NicknameAvailabilityValidator? validateNickname;
   final ValueChanged<String>? onNext;
   final Duration validationDelay;
 
@@ -31,6 +30,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
 
   final _nicknameController = TextEditingController();
   Timer? _validationTimer;
+  int _validationGeneration = 0;
   NicknameValidationState _validationState = NicknameValidationState.idle;
 
   bool get _isAvailable =>
@@ -45,6 +45,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
 
   void _handleNicknameChanged(String value) {
     _validationTimer?.cancel();
+    final generation = ++_validationGeneration;
     setState(() {
       _validationState = value.isEmpty
           ? NicknameValidationState.idle
@@ -53,21 +54,21 @@ class _NicknameScreenState extends State<NicknameScreen> {
 
     if (value.isEmpty) return;
     _validationTimer = Timer(widget.validationDelay, () {
-      _validateNickname(value);
+      _validateNickname(value, generation);
     });
   }
 
-  Future<void> _validateNickname(String nickname) async {
+  Future<void> _validateNickname(String nickname, int generation) async {
     try {
       final isAvailable = await widget.validateNickname?.call(nickname) ?? true;
-      if (!mounted || _nicknameController.text != nickname) return;
+      if (!mounted || generation != _validationGeneration) return;
       setState(() {
         _validationState = isAvailable
             ? NicknameValidationState.available
             : NicknameValidationState.duplicate;
       });
     } catch (_) {
-      if (!mounted || _nicknameController.text != nickname) return;
+      if (!mounted || generation != _validationGeneration) return;
       setState(() => _validationState = NicknameValidationState.error);
     }
   }
