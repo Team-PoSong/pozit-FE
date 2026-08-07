@@ -75,6 +75,16 @@ class TravelRepository {
     }
   }
 
+  Future<void> removeMember(int travelId, int userId) async {
+    try {
+      await DioClient.instance.delete('/api/travels/$travelId/members/$userId');
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('멤버를 내보내지 못했습니다.');
+    }
+  }
+
   Future<String> getInviteCode(int travelId) async {
     try {
       final result = await DioClient.instance.get(

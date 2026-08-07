@@ -213,9 +213,28 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           status: detail.status,
           members: detail.members,
           inviteCode: _inviteCode,
+          onDeleteMember: (member) => _handleDeleteMember(context, member),
         ),
       ),
     );
+  }
+
+  Future<void> _handleDeleteMember(
+    BuildContext context,
+    TravelMemberModel member,
+  ) async {
+    try {
+      await widget.repository.removeMember(widget.travelId, member.userId);
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      await _load();
+    } on ApiException catch (error) {
+      if (!context.mounted) return;
+      _showSnackBar(context, error.message);
+    } catch (_) {
+      if (!context.mounted) return;
+      _showSnackBar(context, '멤버를 내보내지 못했어요.');
+    }
   }
 
   Future<void> _openCourseMapScreen(BuildContext context, int day) async {

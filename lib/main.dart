@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       ),
       // TODO(temp-debug): getTravelDetail API 연동 테스트용 임시 진입점입니다.
       //home: const AuthGate(),
-      home: const TravelDetailPage(travelId: 4),
+      home: const TravelDetailPage(travelId: 1),
     );
   }
 }
