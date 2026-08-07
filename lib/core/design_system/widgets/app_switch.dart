@@ -44,14 +44,15 @@ class _AppSwitchState extends State<AppSwitch> {
   @override
   Widget build(BuildContext context) {
     final duration = _shouldAnimate ? _animationDuration : Duration.zero;
+    final isInteractive = widget.isEnabled && widget.onChanged != null;
     return Semantics(
       label: widget.semanticLabel,
       toggled: _isOn,
-      enabled: widget.isEnabled,
+      enabled: isInteractive,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: widget.isEnabled
-            ? () => widget.onChanged?.call(!widget.value)
+        onTap: isInteractive
+            ? () => widget.onChanged!.call(!widget.value)
             : null,
         child: SizedBox(
           width: _trackWidth,

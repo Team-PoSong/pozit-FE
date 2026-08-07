@@ -118,7 +118,6 @@ class _NicknameEditScreenState extends State<NicknameEditScreen> {
         _validationState == NicknameValidationState.error;
     return Scaffold(
       backgroundColor: AppColors.white,
-      resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
         child: Padding(
