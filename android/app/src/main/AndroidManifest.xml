@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application
         android:label="pozit"
         android:name="${applicationName}"
@@ -80,8 +81,11 @@
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
-    <!-- 여행 로그 영상을 갤러리에 저장하기 위한 권한입니다(API 29 이하에서만 필요). -->
+    <!-- 여행 로그 영상을 갤러리에 저장하기 위한 권한입니다(API 29 이하에서만 필요).
+         camera_android_camerax 플러그인이 maxSdkVersion=28로 같은 권한을
+         선언해서 병합 충돌이 나므로, 우리가 원하는 값(29)으로 덮어씁니다. -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29" />
+        android:maxSdkVersion="29"
+        tools:replace="android:maxSdkVersion" />
 </manifest>
