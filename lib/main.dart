@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.white,
         fontFamily: 'Pretendard',
       ),
-      home: const TravelDetailPage(travelId: 1),
+      home: const AuthGate(),
     );
   }
 }
