@@ -455,74 +455,78 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               const SizedBox(height: _kLabelToListGap),
             ],
             Expanded(
-              child: _isSearching
-                  ? const Center(child: CircularProgressIndicator())
-                  : _hasSearchError
-                  ? _SearchError(onRetry: () => _handleSearch(_controller.text))
-                  : isEmptyResult
-                  ? const _EmptyResult()
-                  : _hasSearched
-                  ? ListView.separated(
-                      controller: _searchScrollController,
-                      padding: const EdgeInsets.fromLTRB(
-                        _kHorizontalPadding,
-                        0,
-                        _kHorizontalPadding,
-                        _kLocationGap,
-                      ),
-                      itemCount:
-                          _searchResults.length +
-                          (_isLoadingMoreSearch ? 1 : 0),
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: _kLocationGap),
-                      itemBuilder: (context, index) {
-                        if (index >= _searchResults.length) {
-                          return const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-                        final spot = _searchResults[index];
-                        return AppLocationSelect(
-                          key: ValueKey(spot.contentId),
-                          title: spot.title,
-                          address: spot.address,
-                          isSelected: _selectedContentIds.contains(
-                            spot.contentId,
-                          ),
-                          onChanged: (selected) =>
-                              _handleSpotSelectedChanged(spot, selected),
-                        );
-                      },
-                    )
-                  : _buildPopularSpotsSection(),
-            ),
-            if (selectedChips.isNotEmpty) ...[
-              SizedBox(
-                height: 29,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: _kHorizontalPadding,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: _isSearching
+                        ? const Center(child: CircularProgressIndicator())
+                        : _hasSearchError
+                        ? _SearchError(
+                            onRetry: () => _handleSearch(_controller.text),
+                          )
+                        : isEmptyResult
+                        ? const _EmptyResult()
+                        : _hasSearched
+                        ? ListView.separated(
+                            controller: _searchScrollController,
+                            padding: const EdgeInsets.fromLTRB(
+                              _kHorizontalPadding,
+                              0,
+                              _kHorizontalPadding,
+                              _kLocationGap,
+                            ),
+                            itemCount:
+                                _searchResults.length +
+                                (_isLoadingMoreSearch ? 1 : 0),
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: _kLocationGap),
+                            itemBuilder: (context, index) {
+                              if (index >= _searchResults.length) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+                              final spot = _searchResults[index];
+                              return AppLocationSelect(
+                                key: ValueKey(spot.contentId),
+                                title: spot.title,
+                                address: spot.address,
+                                isSelected: _selectedContentIds.contains(
+                                  spot.contentId,
+                                ),
+                                onChanged: (selected) =>
+                                    _handleSpotSelectedChanged(spot, selected),
+                              );
+                            },
+                          )
+                        : _buildPopularSpotsSection(),
                   ),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        for (var i = 0; i < selectedChips.length; i++) ...[
-                          if (i > 0) const SizedBox(width: _kChipGap),
-                          AppDeletableChip(
-                            key: ValueKey(selectedChips[i].key),
-                            label: selectedChips[i].label,
-                            onDeleted: selectedChips[i].onRemove,
-                          ),
+                  // 선택된 장소 칩은 목록 흐름에 끼어들지 않고, 버튼 바로
+                  // 위에 떠 있는 형태로 목록 위에 겹쳐 표시합니다.
+                  if (selectedChips.isNotEmpty)
+                    Positioned(
+                      left: _kHorizontalPadding,
+                      right: _kHorizontalPadding,
+                      bottom: _kChipsToButtonGap,
+                      child: Wrap(
+                        spacing: _kChipGap,
+                        runSpacing: _kChipGap,
+                        children: [
+                          for (final chip in selectedChips)
+                            AppDeletableChip(
+                              key: ValueKey(chip.key),
+                              label: chip.label,
+                              onDeleted: chip.onRemove,
+                            ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                ],
               ),
-              const SizedBox(height: _kChipsToButtonGap),
-            ],
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 _kHorizontalPadding,
