@@ -3,6 +3,21 @@ import 'package:dio/dio.dart';
 import '../config/app_config.dart';
 import 'api_exception.dart';
 
+const Duration _kTransferConnectTimeout = Duration(seconds: 10);
+
+/// S3 presigned URL 등 DioClient의 baseUrl/인증 인터셉터를 타지 않는
+/// 파일 송수신 전용 Dio 인스턴스를 만든다. 기본 Dio()에는 타임아웃이 없어
+/// 네트워크가 끊기면 요청이 영원히 끝나지 않을 수 있다.
+Dio createTransferDio({Duration? sendTimeout, Duration? receiveTimeout}) {
+  return Dio(
+    BaseOptions(
+      connectTimeout: _kTransferConnectTimeout,
+      sendTimeout: sendTimeout,
+      receiveTimeout: receiveTimeout,
+    ),
+  );
+}
+
 class DioClient {
   DioClient._()
     : _dio = Dio(

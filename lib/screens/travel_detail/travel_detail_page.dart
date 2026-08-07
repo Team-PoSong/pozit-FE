@@ -310,25 +310,26 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   ) async {
     final errors = <String>[];
 
-    try {
-      await widget.repository.updateTravel(
-        widget.travelId,
-        TravelUpdateRequest(
-          title: result.travelName,
-          destination: detail.destination,
-          startDate: result.startDate,
-          endDate: result.endDate,
-          tagIds: result.tagIds,
-        ),
-      );
-    } on ApiException catch (error) {
-      errors.add(error.message);
-    } catch (_) {
-      errors.add('여행 정보를 수정하지 못했어요.');
+    if (result.hasCoreFieldChanges) {
+      try {
+        await widget.repository.updateTravel(
+          widget.travelId,
+          TravelUpdateRequest(
+            title: result.travelName,
+            destination: detail.destination,
+            startDate: result.startDate,
+            endDate: result.endDate,
+            tagIds: result.tagIds,
+          ),
+        );
+      } on ApiException catch (error) {
+        errors.add(error.message);
+      } catch (_) {
+        errors.add('여행 정보를 수정하지 못했어요.');
+      }
     }
 
-    if (detail.status == AppTravelStatus.completed &&
-        result.isPublic != detail.isPublic) {
+    if (result.isPublicChanged) {
       try {
         await widget.repository.updateVisibility(
           widget.travelId,
@@ -364,11 +365,15 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   Future<void> _handleSaveLogTap(BuildContext context) async {
     final detail = _detail!;
 
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => TravelLogSavingScreen(travelName: detail.title),
-      ),
+    final navigator = Navigator.of(context);
+    final savingRoute = MaterialPageRoute<void>(
+      builder: (_) => TravelLogSavingScreen(travelName: detail.title),
     );
+    navigator.push(savingRoute);
+
+    void closeSavingScreenIfActive() {
+      if (savingRoute.isActive) navigator.removeRoute(savingRoute);
+    }
 
     try {
       final job = await widget.pozingRepository.requestEditPozing(
@@ -379,27 +384,30 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       if (!context.mounted) return;
 
       if (status.status == PozingEditJobStatus.completed) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute<void>(
-            builder: (_) => TravelLogCompleteScreen(
-              travelName: detail.title,
-              downloadUrl: status.downloadUrl,
-              onCancelTap: () => Navigator.of(context).pop(),
-              repository: widget.pozingRepository,
-            ),
+        final completeRoute = MaterialPageRoute<void>(
+          builder: (_) => TravelLogCompleteScreen(
+            travelName: detail.title,
+            downloadUrl: status.downloadUrl,
+            onCancelTap: () => Navigator.of(context).pop(),
+            repository: widget.pozingRepository,
           ),
         );
+        if (savingRoute.isActive) {
+          navigator.replace(oldRoute: savingRoute, newRoute: completeRoute);
+        } else {
+          navigator.push(completeRoute);
+        }
       } else {
-        Navigator.of(context).pop();
+        closeSavingScreenIfActive();
         _showSnackBar(context, status.errorMessage ?? '여행 로그를 만들지 못했어요.');
       }
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      Navigator.of(context).pop();
+      closeSavingScreenIfActive();
       _showSnackBar(context, error.message);
     } catch (_) {
       if (!context.mounted) return;
-      Navigator.of(context).pop();
+      closeSavingScreenIfActive();
       _showSnackBar(context, '여행 로그를 만들지 못했어요.');
     }
   }

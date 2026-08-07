@@ -38,6 +38,8 @@ class TravelSettingsResult {
     required this.endDate,
     required this.tagIds,
     required this.isPublic,
+    required this.hasCoreFieldChanges,
+    required this.isPublicChanged,
     this.backgroundImage,
   });
 
@@ -46,6 +48,13 @@ class TravelSettingsResult {
   final DateTime endDate;
   final List<int> tagIds;
   final bool isPublic;
+
+  /// 여행명/기간/태그/배경사진 중 하나 이상이 바뀌었는지 여부.
+  /// false면 [travelName], [startDate], [endDate], [tagIds]는 저장 대상이 아니다.
+  final bool hasCoreFieldChanges;
+
+  /// 공개 설정이 바뀌었는지 여부.
+  final bool isPublicChanged;
   final File? backgroundImage;
 }
 
@@ -119,8 +128,10 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
       _endDate != null &&
       _selectedTagIds.isNotEmpty;
 
-  bool get _isFormValid =>
-      (_hasCoreFieldChanges && _isCoreFieldsValid) || _isPublicChanged;
+  bool get _isFormValid {
+    if (_hasCoreFieldChanges && !_isCoreFieldsValid) return false;
+    return _hasCoreFieldChanges || _isPublicChanged;
+  }
 
   @override
   void initState() {
@@ -185,6 +196,8 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
         endDate: _endDate!,
         tagIds: _selectedTagIds.toList(),
         isPublic: _isPublic,
+        hasCoreFieldChanges: _hasCoreFieldChanges,
+        isPublicChanged: _isPublicChanged,
         backgroundImage: _backgroundImage,
       ),
     );

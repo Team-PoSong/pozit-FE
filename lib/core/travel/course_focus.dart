@@ -22,16 +22,23 @@ int focusedIndexAfterLastCompleted<T>(
 
   bool isSpotVisited(CourseSpotModel spot) => spot.status == 'visited';
 
+  final daysWithSpots = [
+    for (final dayNumber in dayNumbers)
+      if (mergeSpotsForDay(allCourses, dayNumber).isNotEmpty) dayNumber,
+  ];
+  if (daysWithSpots.isEmpty) {
+    return (dayNumber: dayNumbers.first, spotIndex: 0);
+  }
+
   bool isDayCompleted(int dayNumber) {
-    final spots = mergeSpotsForDay(allCourses, dayNumber);
-    return spots.isNotEmpty && spots.every(isSpotVisited);
+    return mergeSpotsForDay(allCourses, dayNumber).every(isSpotVisited);
   }
 
   final focusedDayIndex = focusedIndexAfterLastCompleted(
-    dayNumbers,
+    daysWithSpots,
     isDayCompleted,
   );
-  final focusedDay = dayNumbers[focusedDayIndex];
+  final focusedDay = daysWithSpots[focusedDayIndex];
 
   final spotsForFocusedDay = mergeSpotsForDay(allCourses, focusedDay);
   final focusedSpotIndex = focusedIndexAfterLastCompleted(

@@ -27,7 +27,8 @@ class PozingCameraScreen extends StatefulWidget {
   State<PozingCameraScreen> createState() => _PozingCameraScreenState();
 }
 
-class _PozingCameraScreenState extends State<PozingCameraScreen> {
+class _PozingCameraScreenState extends State<PozingCameraScreen>
+    with WidgetsBindingObserver {
   CameraController? _controller;
   _CameraStatus _status = _CameraStatus.initializing;
   String _errorMessage = '';
@@ -36,7 +37,41 @@ class _PozingCameraScreenState extends State<PozingCameraScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeCamera();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      _releaseCameraForBackground();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_controller == null && _status != _CameraStatus.uploading) {
+        _initializeCamera();
+      }
+    }
+  }
+
+  Future<void> _releaseCameraForBackground() async {
+    final controller = _controller;
+    if (controller == null) return;
+
+    _autoStopTimer?.cancel();
+    _autoStopTimer = null;
+
+    if (_status == _CameraStatus.recording) {
+      try {
+        final file = await controller.stopVideoRecording();
+        await File(file.path).delete();
+      } catch (_) {}
+    }
+
+    _controller = null;
+    if (mounted && _status != _CameraStatus.uploading) {
+      setState(() => _status = _CameraStatus.initializing);
+    }
+    await controller.dispose();
   }
 
   Future<void> _initializeCamera() async {
@@ -124,6 +159,7 @@ class _PozingCameraScreenState extends State<PozingCameraScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _autoStopTimer?.cancel();
     _controller?.dispose();
     super.dispose();
@@ -140,6 +176,10 @@ class _PozingCameraScreenState extends State<PozingCameraScreen> {
               )
             : _status == _CameraStatus.error
             ? _buildError()
+            : _controller == null
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.white),
+              )
             : _buildPreview(),
       ),
     );

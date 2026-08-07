@@ -134,20 +134,24 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     });
   }
 
-  int _courseIdForDay(int dayNumber) {
-    return widget.courses
-        .firstWhere((course) => course.dayNumber == dayNumber)
-        .courseId;
+  int? _courseIdForDay(int dayNumber) {
+    for (final course in widget.courses) {
+      if (course.dayNumber == dayNumber) return course.courseId;
+    }
+    return null;
   }
 
   void _handleSave() {
-    widget.onSave?.call({
-      for (final entry in _spotsByDayIndex.entries)
-        _courseIdForDay(_dayNumberForIndex(entry.key)): List.unmodifiable([
-          for (var i = 0; i < entry.value.length; i++)
-            entry.value[i].copyWith(orderIndex: i),
-        ]),
-    });
+    final spotsByCourseId = <int, List<CourseSpotModel>>{};
+    for (final entry in _spotsByDayIndex.entries) {
+      final courseId = _courseIdForDay(_dayNumberForIndex(entry.key));
+      if (courseId == null) continue;
+      spotsByCourseId[courseId] = List.unmodifiable([
+        for (var i = 0; i < entry.value.length; i++)
+          entry.value[i].copyWith(orderIndex: i),
+      ]);
+    }
+    widget.onSave?.call(spotsByCourseId);
     Navigator.of(context).pop();
   }
 

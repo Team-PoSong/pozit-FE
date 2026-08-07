@@ -119,5 +119,21 @@ void main() {
       ];
       expect(defaultTravelFocus(courses), (dayNumber: 2, spotIndex: 1));
     });
+
+    test('첫 날짜에 장소가 없으면 장소가 있는 다음 날짜로 포커스한다', () {
+      final courses = [
+        _courseWithSpots(1, 1, []),
+        _courseWithSpots(2, 2, [false, false]),
+      ];
+      expect(defaultTravelFocus(courses), (dayNumber: 2, spotIndex: 0));
+    });
+
+    test('모든 날짜에 장소가 없으면 첫 날짜 0번으로 고정된다', () {
+      final courses = [
+        _courseWithSpots(1, 1, []),
+        _courseWithSpots(2, 2, []),
+      ];
+      expect(defaultTravelFocus(courses), (dayNumber: 1, spotIndex: 0));
+    });
   });
 }

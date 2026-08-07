@@ -8,6 +8,8 @@ import '../../../core/network/dio_client.dart';
 import '../../models/pozing_edit_job_model.dart';
 import '../../models/pozing_upload_model.dart';
 
+const Duration _kVideoTransferTimeout = Duration(minutes: 3);
+
 class PozingRepository {
   const PozingRepository();
 
@@ -69,7 +71,9 @@ class PozingRepository {
       final tempDir = await getTemporaryDirectory();
       final filePath =
           '${tempDir.path}/pozit_travel_log_${DateTime.now().millisecondsSinceEpoch}.mp4';
-      await Dio().download(downloadUrl, filePath);
+      await createTransferDio(
+        receiveTimeout: _kVideoTransferTimeout,
+      ).download(downloadUrl, filePath);
       return File(filePath);
     } catch (_) {
       throw const ApiException('여행 로그 영상을 내려받지 못했습니다.');
@@ -94,7 +98,7 @@ class PozingRepository {
     File videoFile,
   ) async {
     final bytes = await videoFile.readAsBytes();
-    await Dio().put(
+    await createTransferDio(sendTimeout: _kVideoTransferTimeout).put(
       presignedUrl,
       data: bytes,
       options: Options(headers: {'Content-Type': 'video/mp4'}),

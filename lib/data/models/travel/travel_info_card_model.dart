@@ -1,3 +1,4 @@
+import 'travel_course_model.dart';
 import 'travel_detail_model.dart';
 
 class TravelInfoCardModel {
@@ -44,10 +45,22 @@ class TravelInfoCardModel {
       endDate: detail.endDate,
       companionCount: detail.members.length,
       tags: tags ?? detail.tags,
-      visitedPlaceCount: detail.totalSpotCount,
+      visitedPlaceCount: _countVisitedSpots(detail.courses),
       recordCount: detail.totalPozingCount,
       completionRate: detail.completionRate / 100.0,
     );
+  }
+
+  static int _countVisitedSpots(List<TravelCourseModel> courses) {
+    final dayNumbers = courses.map((c) => c.dayNumber).toSet();
+    var count = 0;
+    for (final dayNumber in dayNumbers) {
+      count += mergeSpotsForDay(
+        courses,
+        dayNumber,
+      ).where((spot) => spot.status == 'visited').length;
+    }
+    return count;
   }
 
   factory TravelInfoCardModel.fromJson(Map<String, dynamic> json) {

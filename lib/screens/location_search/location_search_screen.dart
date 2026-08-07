@@ -76,6 +76,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   bool _hasSearchError = false;
   bool _isAddingSpots = false;
   int _searchRequestId = 0;
+  String _lastSearchedQuery = '';
 
   List<TouristSpotRankModel> _popularSpots = [];
   int? _nextPopularCursor = _kInitialPopularSpotsCursor;
@@ -239,6 +240,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     }
 
     final requestId = ++_searchRequestId;
+    _lastSearchedQuery = query;
 
     setState(() {
       _showLengthError = false;
@@ -280,7 +282,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     final requestId = _searchRequestId;
     setState(() => _isLoadingMoreSearch = true);
     try {
-      final page = await widget.onSearch!(_controller.text.trim(), cursor);
+      final page = await widget.onSearch!(_lastSearchedQuery, cursor);
       if (!mounted || requestId != _searchRequestId) return;
       setState(() {
         _searchResults = [..._searchResults, ...page.places];

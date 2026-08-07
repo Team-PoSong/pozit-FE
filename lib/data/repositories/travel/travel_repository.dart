@@ -10,6 +10,8 @@ import '../../models/travel/travel_detail_model.dart';
 import '../../models/travel/travel_tag_model.dart';
 import '../../models/travel/travel_update_request.dart';
 
+const Duration _kImageTransferTimeout = Duration(seconds: 30);
+
 class TravelRepository {
   const TravelRepository();
 
@@ -132,7 +134,7 @@ class TravelRepository {
 
   Future<void> _putFileToPresignedUrl(String presignedUrl, File file) async {
     final bytes = await file.readAsBytes();
-    await Dio().put(
+    await createTransferDio(sendTimeout: _kImageTransferTimeout).put(
       presignedUrl,
       data: bytes,
       options: Options(
