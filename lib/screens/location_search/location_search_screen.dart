@@ -461,9 +461,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     child: _isSearching
                         ? const Center(child: CircularProgressIndicator())
                         : _hasSearchError
-                        ? _SearchError(
-                            onRetry: () => _handleSearch(_controller.text),
-                          )
+                        ? const _EmptyResult()
                         : isEmptyResult
                         ? const _EmptyResult()
                         : _hasSearched
