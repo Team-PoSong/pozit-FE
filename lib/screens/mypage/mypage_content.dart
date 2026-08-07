@@ -15,9 +15,9 @@ const double _kBottomButtonGap = 11.0;
 const double _kProfileSectionMinHeight = 95.0;
 const EdgeInsets _kNotificationSectionPadding = EdgeInsets.fromLTRB(
   24,
-  25,
+  22,
   12,
-  0,
+  10,
 );
 
 class MyPageContent extends StatelessWidget {
@@ -208,7 +208,7 @@ class _Section extends StatelessWidget {
   const _Section({
     required this.title,
     required this.children,
-    this.padding = const EdgeInsets.fromLTRB(24, 27, 12, 24),
+    this.padding = const EdgeInsets.fromLTRB(24, 22, 12, 24),
   });
 
   final String title;
@@ -227,7 +227,7 @@ class _Section extends StatelessWidget {
             title,
             style: AppTextStyles.body.copyWith(color: AppColors.gray5),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 1),
           ...children,
         ],
       ),
