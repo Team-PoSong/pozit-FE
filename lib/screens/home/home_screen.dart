@@ -39,6 +39,7 @@ class HomeScreen extends StatefulWidget {
     this.onDateFilterTap,
     this.onCategoryFilterTap,
     this.onFilterResetTap,
+    this.exploreTravels = const [],
     this.initialTab = AppNavigationTab.travel,
     this.isCameraReady = false,
     this.assetPackage,
@@ -61,6 +62,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onDateFilterTap;
   final VoidCallback? onCategoryFilterTap;
   final VoidCallback? onFilterResetTap;
+  final List<ExploreTravelItem> exploreTravels;
   final AppNavigationTab initialTab;
   final bool isCameraReady;
   final String? assetPackage;
@@ -431,6 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   ExploreContent(
+                    travels: widget.exploreTravels,
                     onSearchChanged: widget.onSearchChanged,
                     onSearchSubmitted: widget.onSearchSubmitted,
                     onSearchTap: widget.onSearchTap,
