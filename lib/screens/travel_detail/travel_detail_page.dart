@@ -20,6 +20,7 @@ import '../../data/repositories/pozing/pozing_repository.dart';
 import '../../data/repositories/tourist_spot/tourist_spot_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
 import '../course_edit/course_edit_screen.dart';
+import '../home/home_screen.dart';
 import '../pozing_camera/pozing_camera_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_log/travel_log_complete_screen.dart';
@@ -404,6 +405,23 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     throw const ApiException('여행 로그 생성이 너무 오래 걸리고 있어요.');
   }
 
+  Future<void> _handleLeaveTap(BuildContext context) async {
+    try {
+      await widget.repository.leaveTravel(widget.travelId);
+      if (!context.mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+        (route) => false,
+      );
+    } on ApiException catch (error) {
+      if (!context.mounted) return;
+      _showSnackBar(context, error.message);
+    } catch (_) {
+      if (!context.mounted) return;
+      _showSnackBar(context, '여행에서 나가지 못했어요.');
+    }
+  }
+
   void _showSnackBar(BuildContext context, String message) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -503,6 +521,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           onBackTap: () => Navigator.of(context).maybePop(),
           onSettingsTap: () => _openSettingsScreen(context),
           onMemberTap: () => _openMemberScreen(context),
+          onLeaveTap: () => _handleLeaveTap(context),
           onCourseTap: (day) => _openCourseMapScreen(context, day),
           onCourseEditTap: () => _openCourseEditScreen(context),
           onSaveLogTap: () => _handleSaveLogTap(context),
