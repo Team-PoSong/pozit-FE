@@ -219,7 +219,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
 
   Future<void> _openCourseMapScreen(BuildContext context, int day) async {
     final detail = _detail!;
-    final enrichedCourses = await _fetchEnrichedCourses(detail.courses);
+    final enrichedCourses = await _fetchEnrichedCourses(context, detail.courses);
     if (!context.mounted) return;
 
     Navigator.of(context).push(
@@ -236,21 +236,38 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
 
   /// getTravelDetail의 courses에는 address/imageUrl/initialFocusSpotId가
   /// 빠져 있어서, getCourseDetail로 코스별 상세 데이터를 보강합니다.
-  /// 코스 하나가 실패해도 나머지는 그대로 쓰고, 실패한 코스만 기존 데이터로
-  /// 대체합니다.
+  /// 여러 코스를 동시에 요청하다 보니 일시적인 네트워크 문제로 일부만
+  /// 실패하는 경우가 있어 한 번 재시도하고, 그래도 실패한 코스는 기존
+  /// 데이터로 대체하되 사용자에게 알립니다.
   Future<List<TravelCourseModel>> _fetchEnrichedCourses(
+    BuildContext context,
     List<TravelCourseModel> courses,
   ) async {
-    final enriched = await Future.wait(
-      courses.map((course) async {
-        try {
-          return await widget.repository.getCourseDetail(course.courseId);
-        } catch (_) {
-          return course;
-        }
-      }),
+    final results = await Future.wait(
+      courses.map(_fetchCourseDetailWithRetry),
     );
-    return enriched;
+
+    if (context.mounted && results.any((result) => !result.ok)) {
+      _showSnackBar(context, '일부 장소의 주소를 불러오지 못했어요. 다시 열어 주세요.');
+    }
+
+    return [for (final result in results) result.course];
+  }
+
+  Future<({TravelCourseModel course, bool ok})> _fetchCourseDetailWithRetry(
+    TravelCourseModel course,
+  ) async {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        final detail = await widget.repository.getCourseDetail(
+          course.courseId,
+        );
+        return (course: detail, ok: true);
+      } catch (_) {
+        // 첫 시도가 실패하면 한 번만 재시도합니다.
+      }
+    }
+    return (course: course, ok: false);
   }
 
   void _openSettingsScreen(BuildContext context) {
@@ -396,7 +413,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
 
   Future<void> _openCourseEditScreen(BuildContext context) async {
     final detail = _detail!;
-    final enrichedCourses = await _fetchEnrichedCourses(detail.courses);
+    final enrichedCourses = await _fetchEnrichedCourses(context, detail.courses);
     if (!context.mounted) return;
 
     Navigator.of(context).push(
