@@ -41,6 +41,8 @@
 	<string>포징(타임랩스) 영상을 촬영하기 위해 카메라 접근 권한이 필요합니다.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>포징(타임랩스) 영상에 소리를 담기 위해 마이크 접근 권한이 필요합니다.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>여행 로그 영상을 사진 앱에 저장하기 위해 접근 권한이 필요합니다.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>kakaokompassauth</string>

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:gal/gal.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
+import '../../core/network/api_exception.dart';
+import '../../data/repositories/pozing/pozing_repository.dart';
 
 const double _kHorizontalPadding = 78.0;
 const double _kTopToHeaderGap = 58.0;
@@ -22,19 +26,83 @@ const double _kButtonBorderWidth = 1.0;
 const double _kButtonIconSize = 30.0;
 const double _kButtonIconToLabelGap = 13.0;
 
-class TravelLogCompleteScreen extends StatelessWidget {
+const String _kSavedAlbumName = 'Pozit';
+
+enum _BusyAction { none, saving, sharing }
+
+class TravelLogCompleteScreen extends StatefulWidget {
   const TravelLogCompleteScreen({
     super.key,
     required this.travelName,
+    this.downloadUrl,
     this.onCancelTap,
-    this.onSaveTap,
-    this.onShareTap,
+    this.repository = const PozingRepository(),
   });
 
   final String travelName;
+
+  /// 편집이 완료된 여행 로그 영상의 다운로드 URL입니다. null이면 저장/공유
+  /// 버튼이 동작하지 않습니다.
+  final String? downloadUrl;
   final VoidCallback? onCancelTap;
-  final VoidCallback? onSaveTap;
-  final VoidCallback? onShareTap;
+  final PozingRepository repository;
+
+  @override
+  State<TravelLogCompleteScreen> createState() =>
+      _TravelLogCompleteScreenState();
+}
+
+class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
+  _BusyAction _busy = _BusyAction.none;
+
+  Future<void> _handleSaveTap() async {
+    final downloadUrl = widget.downloadUrl;
+    if (downloadUrl == null || _busy != _BusyAction.none) return;
+
+    setState(() => _busy = _BusyAction.saving);
+    try {
+      final file = await widget.repository.downloadEditedVideo(downloadUrl);
+      await Gal.putVideo(file.path, album: _kSavedAlbumName);
+      if (!mounted) return;
+      _showSnackBar('기기에 저장했어요.');
+    } on GalException {
+      if (!mounted) return;
+      _showSnackBar('저장 권한이 없어서 저장하지 못했어요.');
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      _showSnackBar(error.message);
+    } catch (_) {
+      if (!mounted) return;
+      _showSnackBar('저장하지 못했어요.');
+    } finally {
+      if (mounted) setState(() => _busy = _BusyAction.none);
+    }
+  }
+
+  Future<void> _handleShareTap() async {
+    final downloadUrl = widget.downloadUrl;
+    if (downloadUrl == null || _busy != _BusyAction.none) return;
+
+    setState(() => _busy = _BusyAction.sharing);
+    try {
+      final file = await widget.repository.downloadEditedVideo(downloadUrl);
+      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      _showSnackBar(error.message);
+    } catch (_) {
+      if (!mounted) return;
+      _showSnackBar('공유하지 못했어요.');
+    } finally {
+      if (mounted) setState(() => _busy = _BusyAction.none);
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +138,7 @@ class TravelLogCompleteScreen extends StatelessWidget {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.bottomLeft,
                           child: Text(
-                            '$travelName의 추억이 담긴\n여행 로그가 저장되었어요!',
+                            '${widget.travelName}의 추억이 담긴\n여행 로그가 저장되었어요!',
                             style: AppTextStyles.subTitle.copyWith(
                               color: AppColors.text,
                             ),
@@ -108,24 +176,31 @@ class TravelLogCompleteScreen extends StatelessWidget {
                     _LogActionButton(
                       icon: AppIcons.x,
                       label: '취소',
-                      onTap: onCancelTap,
+                      onTap: widget.onCancelTap,
                     ),
                     const SizedBox(width: _kButtonGap),
                     _LogActionButton(
                       icon: AppIcons.save,
                       label: '저장',
-                      onTap: onSaveTap,
+                      isLoading: _busy == _BusyAction.saving,
+                      onTap: _busy == _BusyAction.none
+                          ? _handleSaveTap
+                          : null,
                     ),
                     const SizedBox(width: _kButtonGap),
                     _LogActionButton(
                       icon: AppIcons.share,
                       label: '공유',
-                      onTap: onShareTap,
+                      isLoading: _busy == _BusyAction.sharing,
+                      onTap: _busy == _BusyAction.none
+                          ? _handleShareTap
+                          : null,
                     ),
                   ],
                 ),
                 SizedBox(
-                  height: _kButtonsBottomGap + MediaQuery.of(context).padding.bottom,
+                  height:
+                      _kButtonsBottomGap + MediaQuery.of(context).padding.bottom,
                 ),
               ],
             ),
@@ -141,11 +216,13 @@ class _LogActionButton extends StatelessWidget {
     required this.icon,
     required this.label,
     this.onTap,
+    this.isLoading = false,
   });
 
   final String icon;
   final String label;
   final VoidCallback? onTap;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -172,12 +249,18 @@ class _LogActionButton extends StatelessWidget {
                 width: _kButtonCircleSize,
                 height: _kButtonCircleSize,
                 child: Center(
-                  child: SvgPicture.asset(
-                    icon,
-                    width: _kButtonIconSize,
-                    height: _kButtonIconSize,
-                    excludeFromSemantics: true,
-                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: _kButtonIconSize,
+                          height: _kButtonIconSize,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : SvgPicture.asset(
+                          icon,
+                          width: _kButtonIconSize,
+                          height: _kButtonIconSize,
+                          excludeFromSemantics: true,
+                        ),
                 ),
               ),
             ),

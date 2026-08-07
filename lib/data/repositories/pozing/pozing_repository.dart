@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
@@ -64,6 +65,21 @@ class PozingRepository {
       rethrow;
     } catch (_) {
       throw const ApiException('포징 영상을 업로드하지 못했습니다.');
+    }
+  }
+
+  /// 편집 완료된 여행 로그 영상을 다운로드해서 로컬 임시 파일로 저장합니다.
+  /// (저장/공유 버튼이 공통으로 사용) S3 다운로드 URL은 백엔드 인증 토큰과
+  /// 무관하므로 별도의 순수 Dio 인스턴스로 내려받습니다.
+  Future<File> downloadEditedVideo(String downloadUrl) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final filePath =
+          '${tempDir.path}/pozit_travel_log_${DateTime.now().millisecondsSinceEpoch}.mp4';
+      await Dio().download(downloadUrl, filePath);
+      return File(filePath);
+    } catch (_) {
+      throw const ApiException('여행 로그 영상을 내려받지 못했습니다.');
     }
   }
 

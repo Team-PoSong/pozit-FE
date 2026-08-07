@@ -355,7 +355,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           MaterialPageRoute<void>(
             builder: (_) => TravelLogCompleteScreen(
               travelName: detail.title,
+              downloadUrl: status.downloadUrl,
               onCancelTap: () => Navigator.of(context).pop(),
+              repository: widget.pozingRepository,
             ),
           ),
         );
