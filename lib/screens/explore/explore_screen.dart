@@ -3,6 +3,7 @@ import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../home/home_screen.dart';
+import 'explore_content.dart';
 
 /// 여행지를 검색하고 탐색하는 화면입니다.
 class ExploreScreen extends StatelessWidget {
@@ -25,6 +26,7 @@ class ExploreScreen extends StatelessWidget {
     this.onDateFilterTap,
     this.onCategoryFilterTap,
     this.onFilterResetTap,
+    this.travels = const [],
     this.isCameraReady = false,
     this.assetPackage,
   });
@@ -46,6 +48,7 @@ class ExploreScreen extends StatelessWidget {
   final VoidCallback? onDateFilterTap;
   final VoidCallback? onCategoryFilterTap;
   final VoidCallback? onFilterResetTap;
+  final List<ExploreTravelItem> travels;
   final bool isCameraReady;
   final String? assetPackage;
 
@@ -70,6 +73,7 @@ class ExploreScreen extends StatelessWidget {
       onDateFilterTap: onDateFilterTap,
       onCategoryFilterTap: onCategoryFilterTap,
       onFilterResetTap: onFilterResetTap,
+      exploreTravels: travels,
       isCameraReady: isCameraReady,
       assetPackage: assetPackage,
     );
@@ -78,8 +82,11 @@ class ExploreScreen extends StatelessWidget {
 
 @Preview(group: 'hycho', name: 'Explore Screen', size: Size(393, 852))
 Widget exploreScreenPreview() {
-  return const MaterialApp(
+  return MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: ExploreScreen(assetPackage: 'pozit'),
+    home: ExploreScreen(
+      travels: explorePreviewTravels,
+      assetPackage: 'pozit',
+    ),
   );
 }
