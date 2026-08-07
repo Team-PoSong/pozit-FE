@@ -24,7 +24,6 @@ CourseSpotModel _spot({
 void main() {
   test('코스 반경 100m 이내면 방문 중으로 판단한다', () {
     final spot = _spot();
-    // ~30m north of the spot.
     final nearby = LatLng(spot.latitude + 0.00027, spot.longitude);
 
     expect(isWithinCourseVisitingRadius(nearby, spot), isTrue);
@@ -32,7 +31,6 @@ void main() {
 
   test('코스 반경 100m를 벗어나면 방문 중이 아니다', () {
     final spot = _spot();
-    // ~300m north of the spot.
     final far = LatLng(spot.latitude + 0.0027, spot.longitude);
 
     expect(isWithinCourseVisitingRadius(far, spot), isFalse);

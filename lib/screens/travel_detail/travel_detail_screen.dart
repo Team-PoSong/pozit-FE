@@ -66,15 +66,10 @@ class TravelDetailScreen extends StatefulWidget {
 
   final List<TravelCourseModel> courses;
 
-  /// 본인이 0번 인덱스에 오도록 정렬된 참여 멤버 목록입니다. 하단 포징
-  /// 타일에 이름을 표시하는 데 사용합니다.
   final List<TravelMemberModel> members;
   final ImageProvider<Object> backgroundImage;
   final int initialDay;
 
-  /// 지도 카드가 페이지를 넘기는 단위는 코스가 아니라 "그 날의 장소"입니다
-  /// (하루에 코스가 1개뿐이라도 장소는 여러 개일 수 있어서). 이 값은
-  /// [mergeSpotsForDay]로 만든 목록에서의 인덱스입니다.
   final int initialSpotIndex;
   final VoidCallback? onBackTap;
   final VoidCallback? onSettingsTap;
@@ -87,8 +82,6 @@ class TravelDetailScreen extends StatefulWidget {
   final ValueChanged<int>? onDayChanged;
   final VoidCallback? onSaveLogTap;
 
-  /// 본인의 포징 타일 카메라가 켜져 있을 때 탭하면, 촬영 대상 courseSpotId와
-  /// 함께 호출됩니다.
   final ValueChanged<int>? onCameraTap;
 
   final TravelDetailGuideStorage guideStorage;
@@ -217,9 +210,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   bool get _isCameraReady =>
       widget.status == AppTravelStatus.inProgress && _nearbySpotIds.isNotEmpty;
 
-  /// 카메라가 활성화됐을 때 촬영 대상이 될 장소입니다. 현재 포커스된 장소가
-  /// 방문 반경 안에 있으면 그곳을, 아니면 반경 안의 다른 장소 중 하나를
-  /// 고릅니다.
   CourseSpotModel? get _activeCameraSpot {
     if (!_isCameraReady) return null;
     final nearbySpotIds = _nearbySpotIds;

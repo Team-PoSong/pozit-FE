@@ -1,5 +1,3 @@
-/// 관광공사 API 검색 결과 한 건입니다. 아직 Pozit DB에 저장되지 않았으므로
-/// touristSpotId가 없고, 대신 관광공사의 contentId로 식별합니다.
 class TouristSpotSearchResultModel {
   final String contentId;
   final String contentTypeId;

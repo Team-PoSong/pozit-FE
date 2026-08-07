@@ -21,10 +21,6 @@ const double _kBottomSafeGap = 7.0;
 const double _kInProgressBottomGap = 10.0;
 
 const Duration _kCourseSwipeCueDuration = Duration(milliseconds: 260);
-// Matches the map card's title label swipe: that text slides by 0.3 of its
-// own (narrow) width, which works out to roughly this many logical pixels.
-// The camera column is full-width, so it uses this fixed pixel distance
-// instead of the same 0.3 fraction of its own (much wider) width.
 const double _kCourseSwipeCueTranslateX = 24.0;
 const double _kCourseSwipeCueBeginOpacity = 0.6;
 
@@ -42,18 +38,14 @@ class TravelDetailBottomSection extends StatelessWidget {
 
   final AppTravelStatus status;
 
-  /// 본인의 타일이 항상 맨 앞에 오도록 정렬된 참여 멤버 이름 목록입니다.
   final List<String> memberNames;
   final VoidCallback? onSaveLogTap;
   final Key? cameraKey;
 
   final Object? courseTransitionKey;
 
-  /// Whether the current user is within the visiting radius of a course
-  /// spot, so their own posing tile's camera should be shown as on.
   final bool isCameraReady;
 
-  /// 본인 타일의 카메라가 켜져 있을 때 탭하면 촬영 화면으로 이동합니다.
   final VoidCallback? onCameraTap;
 
   @override
@@ -143,8 +135,6 @@ class _PosingColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // memberNames는 본인을 포함한 전체 참여 멤버 이름 목록입니다(본인이 0번).
-    // 멤버 정보가 아직 없을 때도 방어적으로 본인 카메라 타일은 항상 보장합니다.
     final names = memberNames.isNotEmpty ? memberNames : const [''];
     return Column(
       children: [

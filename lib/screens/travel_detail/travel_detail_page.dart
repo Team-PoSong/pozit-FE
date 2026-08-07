@@ -177,8 +177,6 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     }
   }
 
-  /// 본인이 0번 인덱스에 오도록 정렬한 참여 멤버 목록입니다. 하단 포징
-  /// 타일 중 본인 타일(0번)에만 카메라를 연결하기 위해 필요합니다.
   List<TravelMemberModel> get _orderedMembers {
     final members = _detail!.members;
     final myUserId = _myUserId;
@@ -254,11 +252,6 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     );
   }
 
-  /// getTravelDetail의 courses에는 address/imageUrl/initialFocusSpotId가
-  /// 빠져 있어서, getCourseDetail로 코스별 상세 데이터를 보강합니다.
-  /// 여러 코스를 동시에 요청하다 보니 일시적인 네트워크 문제로 일부만
-  /// 실패하는 경우가 있어 한 번 재시도하고, 그래도 실패한 코스는 기존
-  /// 데이터로 대체하되 사용자에게 알립니다.
   Future<List<TravelCourseModel>> _fetchEnrichedCourses(
     BuildContext context,
     List<TravelCourseModel> courses,
@@ -284,7 +277,6 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         );
         return (course: detail, ok: true);
       } catch (_) {
-        // 첫 시도가 실패하면 한 번만 재시도합니다.
       }
     }
     return (course: course, ok: false);
@@ -335,7 +327,6 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       errors.add('여행 정보를 수정하지 못했어요.');
     }
 
-    // 완료된 여행만 공개 설정을 변경할 수 있고, 값이 실제로 바뀌었을 때만 호출합니다.
     if (detail.status == AppTravelStatus.completed &&
         result.isPublic != detail.isPublic) {
       try {

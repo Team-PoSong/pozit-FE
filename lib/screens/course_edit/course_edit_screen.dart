@@ -49,7 +49,6 @@ class CourseEditScreen extends StatefulWidget {
 
   final VoidCallback? onBackTap;
 
-  /// courseId를 key로, 저장할 최종 장소 순서를 value로 전달합니다.
   final ValueChanged<Map<int, List<CourseSpotModel>>>? onSave;
 
   @override

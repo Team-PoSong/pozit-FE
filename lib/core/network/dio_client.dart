@@ -1,5 +1,3 @@
-// DIO 싱글톤 클라이언트를 관리합니다.
-
 import 'package:dio/dio.dart';
 
 import '../config/app_config.dart';
@@ -69,8 +67,6 @@ class DioClient {
     }
   }
 
-  // 서버 응답의 기본 형태를 정제합니다.
-  // { isSuccess, code, message, result } 포맷을 공통 규격으로 가정합니다.
   dynamic _unwrap(Response<dynamic> response) {
     final body = response.data;
     if (body is! Map<String, dynamic>) {

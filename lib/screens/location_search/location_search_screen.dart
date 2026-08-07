@@ -43,15 +43,11 @@ class LocationSearchScreen extends StatefulWidget {
     this.onBackTap,
   });
 
-  /// 인기 있는 장소 목록을 커서 기반으로 불러옵니다. 첫 호출은 커서 1로 합니다.
   final Future<TouristSpotRankPage> Function(int cursor)? onLoadPopularSpots;
 
-  /// 키워드로 관광지를 커서 기반으로 검색합니다. 첫 호출은 커서 1로 합니다.
   final Future<TouristSpotSearchPage> Function(String keyword, int cursor)?
   onSearch;
 
-  /// 검색 결과에서 선택한 장소를 실제 Pozit 장소로 저장하고, 코스에 쓸 수
-  /// 있는 형태(TouristSpotModel)로 돌려줍니다.
   final Future<List<TouristSpotModel>> Function(
     List<TouristSpotSearchResultModel> selected,
   )?
@@ -93,8 +89,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   List<TouristSpotSearchResultModel> get _selectedSearchResults =>
       _selectedContentIds.map((id) => _searchResultByContentId[id]!).toList();
 
-  /// 인기 있는 장소는 이미 Pozit에 등록된 관광지라서, 검색 결과와 달리
-  /// 별도로 저장할 필요 없이 바로 코스에 추가할 수 있습니다.
   List<TouristSpotRankModel> get _selectedPopularSpots => _selectedPopularSpotIds
       .map((id) => _popularSpotById[id]!)
       .toList();
@@ -166,7 +160,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         _hasNextPopularPage = page.hasNext;
       });
     } catch (_) {
-      // 다음 페이지 로드 실패는 조용히 무시합니다. 스크롤하면 다시 시도됩니다.
     } finally {
       if (mounted) setState(() => _isLoadingMorePopular = false);
     }
@@ -298,7 +291,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         }
       });
     } catch (_) {
-      // 다음 페이지 로드 실패는 조용히 무시합니다. 스크롤하면 다시 시도됩니다.
     } finally {
       if (mounted && requestId == _searchRequestId) {
         setState(() => _isLoadingMoreSearch = false);
@@ -345,8 +337,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
     setState(() => _isAddingSpots = true);
     try {
-      // 인기 있는 장소는 이미 등록된 관광지라서 별도 저장 API 없이 그대로
-      // 코스에 추가합니다. 검색 결과만 saveSelectedSpots로 저장이 필요합니다.
       final popularAsSpots = [
         for (final spot in selectedPopular)
           TouristSpotModel(
@@ -502,8 +492,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           )
                         : _buildPopularSpotsSection(),
                   ),
-                  // 선택된 장소 칩은 목록 흐름에 끼어들지 않고, 버튼 바로
-                  // 위에 떠 있는 형태로 목록 위에 겹쳐 표시합니다.
                   if (selectedChips.isNotEmpty)
                     Positioned(
                       left: _kHorizontalPadding,

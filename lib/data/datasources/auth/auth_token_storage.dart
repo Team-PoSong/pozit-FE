@@ -36,10 +36,6 @@ class AuthTokenStorage {
     return int.tryParse(raw);
   }
 
-  /// The app-generated device UUID the backend expects on login/reissue/
-  /// logout requests. Persisted for the lifetime of the app install — unlike
-  /// [clear], this is never deleted on logout, since the backend uses it to
-  /// tell devices apart across sessions.
   Future<String> readOrCreateDeviceId() async {
     final existing = await _storage.read(key: _deviceIdKey);
     if (existing != null && existing.isNotEmpty) return existing;

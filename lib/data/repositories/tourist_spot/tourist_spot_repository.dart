@@ -55,9 +55,6 @@ class TouristSpotRepository {
     }
   }
 
-  /// 검색 결과에서 선택한 장소를 Pozit TouristSpot으로 저장합니다.
-  /// 저장 응답에는 좌표가 없으므로, 직전 검색 결과([selected])에 담겨 있던
-  /// 좌표를 contentId로 매칭해 그대로 합쳐 돌려줍니다.
   Future<List<TouristSpotModel>> saveSelectedSpots(
     List<TouristSpotSearchResultModel> selected,
   ) async {

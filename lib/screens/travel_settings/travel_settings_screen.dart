@@ -103,8 +103,6 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
 
   bool get _isCompleted => widget.status == AppTravelStatus.completed;
 
-  // 공개 설정(updateVisibility)은 태그/제목/날짜와 무관한 별도 API라서,
-  // 태그 유효성 검증과 묶이지 않도록 별도로 취급합니다.
   bool get _isPublicChanged => _isPublic != widget.initialIsPublic;
 
   bool get _hasCoreFieldChanges =>

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// 앱 전역에서 사용하는 컬러 상수 정의
 class AppColors {
   const AppColors._();
 

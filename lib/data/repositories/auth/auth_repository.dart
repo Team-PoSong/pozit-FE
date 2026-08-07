@@ -41,7 +41,6 @@ class AuthRepository {
       }
 
       final token = LoginTokenModel.fromJson(result);
-      // TODO(temp-debug): Swagger 수동 테스트용 JWT 확인. 확인 후 제거하세요.
       debugPrint('[DEBUG] Swagger Authorize용 JWT: ${token.accessToken}');
       await _tokenStorage.save(
         accessToken: token.accessToken,

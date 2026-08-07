@@ -1,5 +1,3 @@
-// 서버 및 네트워크 에러를 공통으로 처리합니다.
-
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 

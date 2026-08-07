@@ -41,8 +41,6 @@ class TravelLogCompleteScreen extends StatefulWidget {
 
   final String travelName;
 
-  /// 편집이 완료된 여행 로그 영상의 다운로드 URL입니다. null이면 저장/공유
-  /// 버튼이 동작하지 않습니다.
   final String? downloadUrl;
   final VoidCallback? onCancelTap;
   final PozingRepository repository;

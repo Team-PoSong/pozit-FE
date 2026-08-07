@@ -18,8 +18,6 @@ CourseSpotModel _spot({
   );
 }
 
-/// 하루에 코스가 1개뿐이고 그 코스에 [visitedFlags]개의 장소가 있는,
-/// 실제 서비스에서 관찰되는 형태의 코스를 만듭니다.
 TravelCourseModel _courseWithSpots(
   int courseId,
   int dayNumber,
