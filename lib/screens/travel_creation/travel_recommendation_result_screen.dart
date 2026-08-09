@@ -5,8 +5,10 @@ import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
+import '../../data/models/saved_travel_model.dart';
 import '../../data/models/travel_course_model.dart';
 import '../../data/models/travel_info_card_model.dart';
+import '../../data/repositories/local/travel_store.dart';
 import '../course_edit/course_edit_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_detail/travel_detail_screen.dart';
@@ -68,12 +70,65 @@ class TravelRecommendationResultScreen extends StatelessWidget {
           onCourseTap: (_) => _openCourseMap(context, courses),
           onFollowCourseTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (_) => CourseEditScreen(courses: courses),
+              builder: (_) => CourseEditScreen(
+                courses: courses,
+                onSave: (spotsByDay) => _saveFollowedCourse(
+                  context,
+                  destination: destination,
+                  tags: tags,
+                  courses: courses,
+                  spotsByDay: spotsByDay,
+                ),
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  void _saveFollowedCourse(
+    BuildContext context, {
+    required String destination,
+    required List<String> tags,
+    required List<TravelCourseModel> courses,
+    required Map<int, List<CourseSpotModel>> spotsByDay,
+  }) {
+    final info = TravelInfoCardModel(
+      destination: destination,
+      startDate: DateTime(2026, 7, 2),
+      endDate: DateTime(2026, 7, 3),
+      companionCount: 1,
+      tags: tags,
+      visitedPlaceCount: 0,
+      recordCount: 0,
+      completionRate: 0,
+    );
+    final savedCourses = [
+      for (final course in courses)
+        TravelCourseModel(
+          courseId: course.courseId,
+          dayNumber: course.dayNumber,
+          date: course.date,
+          spots: spotsByDay[course.dayNumber] ?? course.spots,
+        ),
+    ];
+
+    TravelStore.instance.save(
+      SavedTravelModel(
+        id: 'followed-${destination.hashCode}',
+        title: '$destination 여행',
+        location: destination,
+        dateText: info.dateRangeText,
+        author: '나',
+        info: info,
+        courses: savedCourses,
+        status: AppTravelStatus.upcoming,
+        tags: tags,
+        participantCount: 1,
+      ),
+    );
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   void _openCourseMap(BuildContext context, List<TravelCourseModel> courses) {
