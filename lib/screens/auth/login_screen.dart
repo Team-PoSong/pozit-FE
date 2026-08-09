@@ -254,30 +254,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         _LoginGuideBadge(assetPackage: widget.assetPackage),
                         const SizedBox(height: 30),
                         const Spacer(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _SocialLoginButton(
-                              semanticLabel: 'Apple로 로그인',
-                              asset: AppImages.apple,
-                              assetPackage: widget.assetPackage,
-                              isLoading: _activeLogin == _LoginMethod.apple,
-                              onTap: _isLoggingIn
-                                  ? null
-                                  : () => _handleAppleLogin(context),
-                            ),
-                            const SizedBox(width: 50),
-                            _SocialLoginButton(
-                              semanticLabel: '카카오로 로그인',
-                              asset: AppImages.kakao,
-                              assetPackage: widget.assetPackage,
-                              isLoading: _activeLogin == _LoginMethod.kakao,
-                              onTap: _isLoggingIn
-                                  ? null
-                                  : () => _handleKakaoLogin(context),
-                            ),
-                          ],
+                        Transform.translate(
+                          offset: const Offset(0, -20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _SocialLoginButton(
+                                semanticLabel: 'Apple로 로그인',
+                                asset: AppImages.apple,
+                                assetPackage: widget.assetPackage,
+                                isLoading: _activeLogin == _LoginMethod.apple,
+                                onTap: _isLoggingIn
+                                    ? null
+                                    : () => _handleAppleLogin(context),
+                              ),
+                              const SizedBox(width: 50),
+                              _SocialLoginButton(
+                                semanticLabel: '카카오로 로그인',
+                                asset: AppImages.kakao,
+                                assetPackage: widget.assetPackage,
+                                isLoading: _activeLogin == _LoginMethod.kakao,
+                                onTap: _isLoggingIn
+                                    ? null
+                                    : () => _handleKakaoLogin(context),
+                              ),
+                            ],
+                          ),
                         ),
                         SizedBox(
                           height:
