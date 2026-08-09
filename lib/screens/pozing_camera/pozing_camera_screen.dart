@@ -9,7 +9,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/repositories/pozing/pozing_repository.dart';
 
-const Duration _kMaxRecordingDuration = Duration(seconds: 8);
+const Duration _kMaxRecordingDuration = Duration(seconds: 3);
 
 enum _CameraStatus { initializing, error, ready, recording, uploading }
 
