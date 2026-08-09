@@ -72,6 +72,7 @@ class TravelRecommendationResultScreen extends StatelessWidget {
             MaterialPageRoute<void>(
               builder: (_) => CourseEditScreen(
                 courses: courses,
+                isCreationFlow: true,
                 onSave: (spotsByDay) => _saveFollowedCourse(
                   context,
                   destination: destination,
