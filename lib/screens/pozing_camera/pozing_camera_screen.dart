@@ -273,8 +273,7 @@ class _RecordButton extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
             color: Colors.red,
-            shape: isRecording ? BoxShape.rectangle : BoxShape.circle,
-            borderRadius: isRecording ? BorderRadius.circular(6) : null,
+            borderRadius: BorderRadius.circular(isRecording ? 6 : 30),
           ),
         ),
       ),
