@@ -42,6 +42,7 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
   List<String> _results = const [];
   String? _selectedDestination;
   bool _showLengthError = false;
+  bool _hasSearchError = false;
   bool _isSearching = false;
   int _requestId = 0;
 
@@ -77,13 +78,24 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
 
     setState(() {
       _showLengthError = false;
+      _hasSearchError = false;
       _selectedDestination = null;
       _isSearching = true;
     });
 
-    final results = widget.onSearch == null
-        ? _sampleDestinations.where((item) => item.contains(query)).toList()
-        : await widget.onSearch!(query);
+    final List<String> results;
+    try {
+      results = widget.onSearch == null
+          ? _sampleDestinations.where((item) => item.contains(query)).toList()
+          : await widget.onSearch!(query);
+    } catch (_) {
+      if (!mounted || requestId != _requestId) return;
+      setState(() {
+        _hasSearchError = true;
+        _isSearching = false;
+      });
+      return;
+    }
     if (!mounted || requestId != _requestId) return;
 
     setState(() {
@@ -107,7 +119,11 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
   }
 
   void _handleBack() {
-    widget.onBackTap?.call();
+    final onBackTap = widget.onBackTap;
+    if (onBackTap != null) {
+      onBackTap();
+      return;
+    }
     Navigator.of(context).maybePop();
   }
 
@@ -178,6 +194,14 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
                 ),
               ),
             ],
+            if (_hasSearchError)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  '검색에 실패했어요. 잠시 후 다시 시도해주세요.',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.error),
+                ),
+              ),
             const SizedBox(height: 24),
             Expanded(
               child: _isSearching

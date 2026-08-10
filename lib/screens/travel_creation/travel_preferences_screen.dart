@@ -43,7 +43,11 @@ class _TravelPreferencesScreenState extends State<TravelPreferencesScreen> {
   bool get _canContinue => _transportation != null && _densityLevel != null;
 
   void _handleBack() {
-    widget.onBackTap?.call();
+    final onBackTap = widget.onBackTap;
+    if (onBackTap != null) {
+      onBackTap();
+      return;
+    }
     Navigator.of(context).maybePop();
   }
 

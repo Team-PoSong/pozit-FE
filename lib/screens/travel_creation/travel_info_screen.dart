@@ -58,7 +58,11 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
   }
 
   void _handleBack() {
-    widget.onBackTap?.call();
+    final onBackTap = widget.onBackTap;
+    if (onBackTap != null) {
+      onBackTap();
+      return;
+    }
     Navigator.of(context).maybePop();
   }
 
