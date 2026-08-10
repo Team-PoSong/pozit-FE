@@ -12,9 +12,9 @@ const List<TouristSpotModel> mockPopularTouristSpots = [
   TouristSpotModel(
     touristSpotId: 2,
     name: '미륵사지',
-    address: '경북 익산시 금마면 미륵사지로 362',
-    latitude: 35.8347,
-    longitude: 129.2247,
+    address: '전북 익산시 금마면 미륵사지로 362',
+    latitude: 35.9882,
+    longitude: 126.9917,
   ),
   TouristSpotModel(
     touristSpotId: 3,

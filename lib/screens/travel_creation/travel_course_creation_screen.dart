@@ -152,7 +152,14 @@ class _TravelCourseCreationScreenState
       );
     });
     final dateRange = widget.travelInfo.dateRange;
-    final durationDays = dateRange.duration.inDays + 1;
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final startDate = DateTime(
+      dateRange.start.year,
+      dateRange.start.month,
+      dateRange.start.day,
+    );
+    final daysUntilStart = startDate.difference(todayDate).inDays;
     TravelStore.instance.save(
       SavedTravelModel(
         id: 'created-' + dateRange.start.millisecondsSinceEpoch.toString(),
@@ -178,7 +185,11 @@ class _TravelCourseCreationScreenState
           completionRate: 0,
         ),
         courses: courses,
-        dDay: durationDays > 0 ? 'D-Day' : null,
+        dDay: daysUntilStart < 0
+            ? null
+            : daysUntilStart == 0
+            ? 'D-Day'
+            : 'D-$daysUntilStart',
         tags: widget.travelInfo.tags.toList(),
         participantCount: 1,
       ),

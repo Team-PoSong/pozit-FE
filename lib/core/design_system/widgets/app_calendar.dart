@@ -417,8 +417,16 @@ class _AppCalendarState extends State<AppCalendar> {
         if (widget.selectionTarget != null) {
           final editsStart =
               widget.selectionTarget == AppCalendarSelectionTarget.start;
-          if (editsStart && date.isBefore(_rangeStart!)) {
-            _rangeStart = date;
+          if (editsStart) {
+            if (date.isBefore(_rangeStart!)) {
+              _rangeStart = date;
+            } else {
+              _rangeStart = null;
+              _rangeEnd = null;
+              selectionCleared = true;
+            }
+          } else if (date.isAfter(_rangeStart!)) {
+            _rangeEnd = date;
           } else {
             _rangeStart = null;
             _rangeEnd = null;

@@ -253,6 +253,8 @@ List<TravelCourseModel> _mockCourses(String destination) {
   final names = destination == '경주'
       ? const ['불국사', '동궁과 월지', '첨성대', '대릉원']
       : const ['경포생태습지공원', '초당순두부', '강문 해변', '정동진 해변'];
+  final baseLatitude = destination == '경주' ? 35.80 : 37.75;
+  final baseLongitude = destination == '경주' ? 129.20 : 128.90;
 
   return List.generate(
     2,
@@ -267,8 +269,8 @@ List<TravelCourseModel> _mockCourses(String destination) {
           touristSpotId: dayIndex * 2 + spotIndex + 1,
           name: names[dayIndex * 2 + spotIndex],
           address: destination == '경주' ? '경북 경주시' : '강원특별자치도 강릉시',
-          latitude: 35.8 + dayIndex * 0.01 + spotIndex * 0.005,
-          longitude: 129.2 + dayIndex * 0.01 + spotIndex * 0.005,
+          latitude: baseLatitude + dayIndex * 0.01 + spotIndex * 0.005,
+          longitude: baseLongitude + dayIndex * 0.01 + spotIndex * 0.005,
           orderIndex: spotIndex,
           status: spotIndex == 0 ? 'visited' : 'notVisited',
         ),

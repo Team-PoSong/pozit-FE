@@ -144,7 +144,7 @@ void main() {
     expect(dateDisplay.activeSelection, AppTravelDateSelection.start);
   });
 
-  testWidgets('종료일 활성 상태에서 뒤 날짜를 누르면 전체 선택이 해제된다', (tester) async {
+  testWidgets('종료일 활성 상태에서 뒤 날짜를 누르면 종료일이 변경된다', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -169,9 +169,9 @@ void main() {
     final dateDisplay = tester.widget<AppTravelDate>(
       find.byType(AppTravelDate),
     );
-    expect(dateDisplay.startDate, isNull);
-    expect(dateDisplay.endDate, isNull);
-    expect(dateDisplay.activeSelection, AppTravelDateSelection.start);
+    expect(dateDisplay.startDate, DateTime(2026, 7, 10));
+    expect(dateDisplay.endDate, DateTime(2026, 7, 15));
+    expect(dateDisplay.activeSelection, AppTravelDateSelection.end);
   });
 
   testWidgets('종료일 활성 상태에서 같은 날이나 이전을 누르면 전체 선택이 해제된다', (tester) async {
