@@ -224,20 +224,21 @@ class TravelRecommendationResultScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: onBrowseOtherCourses,
-                        child: Text(
-                          '다른 사람 코스 둘러보기',
-                          style: AppTextStyles.body.copyWith(
-                            color: AppColors.gray5,
-                            decoration: TextDecoration.underline,
-                            decorationColor: AppColors.gray5,
+                    if (onBrowseOtherCourses != null)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: onBrowseOtherCourses,
+                          child: Text(
+                            '다른 사람 코스 둘러보기',
+                            style: AppTextStyles.body.copyWith(
+                              color: AppColors.gray5,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.gray5,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

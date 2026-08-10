@@ -45,6 +45,6 @@ void main() {
 
     expect(find.byType(TravelRecommendationResultScreen), findsOneWidget);
     expect(find.byType(AppTravelCard), findsNWidgets(3));
-    expect(find.text('다른 사람 코스 둘러보기'), findsOneWidget);
+    expect(find.text('다른 사람 코스 둘러보기'), findsNothing);
   });
 }

@@ -4,6 +4,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
+import '../../core/design_system/widgets/button/app_button.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
 import 'travel_recommendation_result_screen.dart';
@@ -30,6 +31,7 @@ class _TravelRecommendationLoadingScreenState
     with SingleTickerProviderStateMixin {
   late final AnimationController _floatingController;
   late final Animation<double> _floatingOffset;
+  bool _hasLoadError = false;
 
   @override
   void initState() {
@@ -45,15 +47,20 @@ class _TravelRecommendationLoadingScreenState
   }
 
   Future<void> _loadRecommendations() async {
-    await (widget.loadRecommendations?.call() ??
-        Future<void>.delayed(const Duration(seconds: 2)));
-    if (!mounted) return;
-    await Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            TravelRecommendationResultScreen(travelInfo: widget.travelInfo),
-      ),
-    );
+    setState(() => _hasLoadError = false);
+    try {
+      await (widget.loadRecommendations?.call() ??
+          Future<void>.delayed(const Duration(seconds: 2)));
+      if (!mounted) return;
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              TravelRecommendationResultScreen(travelInfo: widget.travelInfo),
+        ),
+      );
+    } catch (_) {
+      if (mounted) setState(() => _hasLoadError = true);
+    }
   }
 
   @override
@@ -94,21 +101,43 @@ class _TravelRecommendationLoadingScreenState
               ),
             ),
             Expanded(
-              child: Center(
-                child: AnimatedBuilder(
-                  animation: _floatingOffset,
-                  child: Image.asset(
-                    AppImages.carrierTicket,
-                    width: 126,
-                    height: 193,
-                    fit: BoxFit.contain,
-                  ),
-                  builder: (context, child) => Transform.translate(
-                    offset: Offset(0, _floatingOffset.value),
-                    child: child,
-                  ),
-                ),
-              ),
+              child: _hasLoadError
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '추천 코스를 불러오지 못했어요.',
+                              style: AppTextStyles.body.copyWith(
+                                color: AppColors.gray5,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            AppButton(
+                              text: '다시 시도하기',
+                              onPressed: _loadRecommendations,
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: AnimatedBuilder(
+                        animation: _floatingOffset,
+                        child: Image.asset(
+                          AppImages.carrierTicket,
+                          width: 126,
+                          height: 193,
+                          fit: BoxFit.contain,
+                        ),
+                        builder: (context, child) => Transform.translate(
+                          offset: Offset(0, _floatingOffset.value),
+                          child: child,
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),

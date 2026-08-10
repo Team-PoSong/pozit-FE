@@ -146,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (_) => TravelCourseMapScreen(
                   courses: travel.courses,
                   status: travel.status,
-                  totalDays: travel.courses.length,
+                  totalDays: travel.info.totalDays,
                   initialDay: day,
                 ),
               ),
