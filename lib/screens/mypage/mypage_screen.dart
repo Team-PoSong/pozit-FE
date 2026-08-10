@@ -4,7 +4,7 @@ import 'package:flutter/widget_previews.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/widgets/app_confirm_dialog.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
-import '../../core/utils/nickname_validation.dart';
+import '../../data/models/user/nickname_validation_model.dart';
 import '../../data/models/support/support_info_model.dart';
 import '../../data/models/user/notification_settings_model.dart';
 import '../../data/models/user/user_profile_model.dart';

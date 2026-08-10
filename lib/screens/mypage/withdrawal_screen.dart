@@ -36,54 +36,56 @@ class WithdrawalScreen extends StatelessWidget {
             children: [
               const AppDetailHeader(title: '회원 탈퇴'),
               Expanded(
-                child: CustomScrollView(
-                  slivers: [
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          24,
-                          100,
-                          24,
-                          MediaQuery.viewPaddingOf(context).bottom +
-                              AppDimensions.bottomNavigationSpacing,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Image.asset(
-                                AppImages.posongCrying,
-                                width: 88,
-                                height: 88,
-                                fit: BoxFit.contain,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            bottom:
+                                MediaQuery.viewPaddingOf(context).bottom +
+                                AppDimensions.bottomNavigationSpacing,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Spacer(),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Image.asset(
+                                  AppImages.posongCrying,
+                                  width: 88,
+                                  height: 88,
+                                  fit: BoxFit.contain,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 26),
-                            Text(
-                              '정말로 회원 탈퇴를 진행할까요?',
-                              style: AppTextStyles.headline.copyWith(
-                                color: AppColors.text,
+                              const SizedBox(height: 26),
+                              Text(
+                                '정말로 회원 탈퇴를 진행할까요?',
+                                style: AppTextStyles.headline.copyWith(
+                                  color: AppColors.text,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 56),
-                            Text(
-                              '탈퇴 후에는 서비스를 이용할 수 없으며, 계정을 다시 복구하기 어려울 수 있습니다. 회원 정보는 개인정보 처리방침과 관련 법령에 따라 일정 기간 보관된 후 파기됩니다.',
-                              style: AppTextStyles.body.copyWith(
-                                color: AppColors.text,
+                              const SizedBox(height: 56),
+                              Text(
+                                '탈퇴 후에는 서비스를 이용할 수 없으며, 계정을 다시 복구하기 어려울 수 있습니다. 회원 정보는 개인정보 처리방침과 관련 법령에 따라 일정 기간 보관된 후 파기됩니다.',
+                                style: AppTextStyles.body.copyWith(
+                                  color: AppColors.text,
+                                ),
                               ),
-                            ),
-                            const Spacer(),
-                            AppButton(
-                              text: '탈퇴하기',
-                              onPressed: () => _confirm(context),
-                            ),
-                          ],
+                              const Spacer(),
+                              AppButton(
+                                text: '탈퇴하기',
+                                onPressed: () => _confirm(context),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],

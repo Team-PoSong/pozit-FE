@@ -66,7 +66,7 @@ class _AppSwitchState extends State<AppSwitch> {
               padding: const EdgeInsets.all(_trackPadding),
               decoration: BoxDecoration(
                 color: _isOn ? AppColors.primary : AppColors.gray4,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(_trackHeight / 2),
               ),
               child: AnimatedAlign(
                 duration: duration,

@@ -20,8 +20,9 @@ class AppDetailHeader extends StatelessWidget {
   final String? assetPackage;
 
   static const double _headerHeight = 53.0;
-  static const double _titleHorizontalInset = 72.0;
   static const double _backTapAreaLeft = 12.0;
+  static const double _titleHorizontalInset =
+      _backTapAreaLeft + AppDimensions.minimumTapTargetSize;
   static const double _iconSize = 24.0;
 
   @override

@@ -7,7 +7,7 @@ import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
-import '../../core/utils/nickname_validation.dart';
+import '../../data/models/user/nickname_validation_model.dart';
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({

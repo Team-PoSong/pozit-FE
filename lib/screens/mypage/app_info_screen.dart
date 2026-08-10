@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../data/models/support/support_info_model.dart';
 import 'term_detail_screen.dart';
+import 'widgets/mypage_menu_row.dart';
 
 const double _kContentHorizontalPadding = 24.0;
 const double _kLogoTopSpacing = 31.0;
@@ -103,11 +102,11 @@ class AppInfoScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          _InfoRow(
+                          MyPageMenuRow(
                             label: '서비스 이용 약관',
                             onTap: () => _openTerm(context, info.serviceTerm),
                           ),
-                          _InfoRow(
+                          MyPageMenuRow(
                             label: '개인정보 처리 방침',
                             onTap: () => _openTerm(context, info.privacyPolicy),
                           ),
@@ -138,44 +137,6 @@ class AppInfoScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: SizedBox(
-          height: 48,
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: AppTextStyles.body.copyWith(color: AppColors.text),
-                ),
-              ),
-              SvgPicture.asset(
-                AppIcons.arrowRightSmall,
-                width: 20,
-                height: 20,
-                excludeFromSemantics: true,
               ),
             ],
           ),

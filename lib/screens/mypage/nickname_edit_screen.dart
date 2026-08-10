@@ -10,7 +10,10 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
-import '../../core/utils/nickname_validation.dart';
+import '../../data/models/user/nickname_validation_model.dart';
+
+const double _kHorizontalPadding = 24.0;
+const double _kContentTopPadding = 27.0;
 
 class NicknameEditScreen extends StatefulWidget {
   const NicknameEditScreen({
@@ -128,9 +131,9 @@ class _NicknameEditScreenState extends State<NicknameEditScreen> {
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    24,
-                    27,
-                    24,
+                    _kHorizontalPadding,
+                    _kContentTopPadding,
+                    _kHorizontalPadding,
                     MediaQuery.viewPaddingOf(context).bottom +
                         AppDimensions.bottomNavigationSpacing,
                   ),

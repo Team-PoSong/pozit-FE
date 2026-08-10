@@ -8,13 +8,14 @@ import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../data/models/user/user_profile_model.dart';
+import 'widgets/mypage_menu_row.dart';
 
 const double _kSectionGap = 6.0;
 const double _kHorizontalPadding = 24.0;
 const double _kBottomButtonGap = 11.0;
 const double _kProfileSectionMinHeight = 95.0;
 const EdgeInsets _kNotificationSectionPadding = EdgeInsets.fromLTRB(
-  24,
+  _kHorizontalPadding,
   22,
   12,
   10,
@@ -74,7 +75,7 @@ class MyPageContent extends StatelessWidget {
                       title: '알림',
                       padding: _kNotificationSectionPadding,
                       children: [
-                        _MenuRow(
+                        MyPageMenuRow(
                           label: '알림 설정',
                           onTap: onNotificationSettingsTap,
                           assetPackage: assetPackage,
@@ -90,12 +91,12 @@ class MyPageContent extends StatelessWidget {
                 child: _Section(
                   title: '정보',
                   children: [
-                    _MenuRow(
+                    MyPageMenuRow(
                       label: '앱 버전 정보',
                       onTap: onAppInfoTap,
                       assetPackage: assetPackage,
                     ),
-                    _MenuRow(
+                    MyPageMenuRow(
                       label: '피드백 보내기',
                       onTap: onFeedbackTap,
                       assetPackage: assetPackage,
@@ -208,7 +209,12 @@ class _Section extends StatelessWidget {
   const _Section({
     required this.title,
     required this.children,
-    this.padding = const EdgeInsets.fromLTRB(24, 22, 12, 24),
+    this.padding = const EdgeInsets.fromLTRB(
+      _kHorizontalPadding,
+      22,
+      12,
+      24,
+    ),
   });
 
   final String title;
@@ -230,55 +236,6 @@ class _Section extends StatelessWidget {
           const SizedBox(height: 1),
           ...children,
         ],
-      ),
-    );
-  }
-}
-
-class _MenuRow extends StatelessWidget {
-  const _MenuRow({
-    required this.label,
-    required this.onTap,
-    required this.assetPackage,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-  final String? assetPackage;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: SizedBox(
-          height: AppDimensions.minimumTapTargetSize,
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: AppTextStyles.body.copyWith(color: AppColors.text),
-                ),
-              ),
-              SizedBox.square(
-                dimension: AppDimensions.minimumTapTargetSize,
-                child: Center(
-                  child: SvgPicture.asset(
-                    AppIcons.arrowRightSmall,
-                    package: assetPackage,
-                    width: 20,
-                    height: 20,
-                    excludeFromSemantics: true,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
