@@ -33,4 +33,5 @@ class AppColors {
   static const Color textSub = Color(0xFF6B7280);
   static const Color shadow = Color(0x19000000);
   static const Color popoverShadow = Color(0x21000000);
+  static const Color transparent = Color(0x00000000);
 }
