@@ -34,6 +34,8 @@ class TravelDetailBottomSection extends StatelessWidget {
     this.courseTransitionKey,
     this.isCameraReady = false,
     this.onCameraTap,
+    this.cameraThumbnailUrl,
+    this.isCameraThumbnailPending = false,
   });
 
   final AppTravelStatus status;
@@ -47,6 +49,10 @@ class TravelDetailBottomSection extends StatelessWidget {
   final bool isCameraReady;
 
   final VoidCallback? onCameraTap;
+
+  final String? cameraThumbnailUrl;
+
+  final bool isCameraThumbnailPending;
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +99,8 @@ class TravelDetailBottomSection extends StatelessWidget {
               cameraKey: cameraKey,
               isCameraReady: isCameraReady,
               onCameraTap: onCameraTap,
+              cameraThumbnailUrl: cameraThumbnailUrl,
+              isCameraThumbnailPending: isCameraThumbnailPending,
             ),
           ),
         );
@@ -126,12 +134,16 @@ class _PosingColumn extends StatelessWidget {
     this.cameraKey,
     this.isCameraReady = false,
     this.onCameraTap,
+    this.cameraThumbnailUrl,
+    this.isCameraThumbnailPending = false,
   });
 
   final List<String> memberNames;
   final Key? cameraKey;
   final bool isCameraReady;
   final VoidCallback? onCameraTap;
+  final String? cameraThumbnailUrl;
+  final bool isCameraThumbnailPending;
 
   @override
   Widget build(BuildContext context) {
@@ -144,6 +156,8 @@ class _PosingColumn extends StatelessWidget {
             key: i == 0 ? cameraKey : null,
             name: names[i].isEmpty ? null : names[i],
             isCameraOn: i == 0 && isCameraReady,
+            thumbnailUrl: i == 0 ? cameraThumbnailUrl : null,
+            isThumbnailPending: i == 0 && isCameraThumbnailPending,
             onTap: i == 0 && isCameraReady ? onCameraTap : null,
           ),
         ],

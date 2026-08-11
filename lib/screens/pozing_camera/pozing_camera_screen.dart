@@ -133,13 +133,13 @@ class _PozingCameraScreenState extends State<PozingCameraScreen>
       if (!mounted) return;
       setState(() => _status = _CameraStatus.uploading);
 
-      await widget.repository.uploadPozingVideo(
+      final result = await widget.repository.uploadPozingVideo(
         courseSpotId: widget.courseSpotId,
         videoFile: File(file.path),
       );
 
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(result);
     } on ApiException catch (error) {
       if (!mounted) return;
       setState(() => _status = _CameraStatus.ready);

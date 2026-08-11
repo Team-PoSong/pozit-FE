@@ -11,22 +11,33 @@ class AppPosing extends StatelessWidget {
     super.key,
     String? name,
     required bool isCameraOn,
+    String? thumbnailUrl,
+    bool isThumbnailPending = false,
     VoidCallback? onTap,
   }) : _name = name,
        _isCameraOn = isCameraOn,
        _isTravelPhoto = false,
+       _thumbnailUrl = thumbnailUrl,
+       _isThumbnailPending = isThumbnailPending,
        _onTap = onTap;
 
   const AppPosing.travelPhoto({super.key})
     : _name = null,
       _isCameraOn = false,
       _isTravelPhoto = true,
+      _thumbnailUrl = null,
+      _isThumbnailPending = false,
       _onTap = null;
 
   final String? _name;
   final bool _isCameraOn;
   final bool _isTravelPhoto;
+  final String? _thumbnailUrl;
+  final bool _isThumbnailPending;
   final VoidCallback? _onTap;
+
+  bool get _hasThumbnail =>
+      _thumbnailUrl != null && _thumbnailUrl.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -44,24 +55,45 @@ class AppPosing extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            Center(
-              child: Semantics(
-                label: _isTravelPhoto
-                    ? '여행 사진 추가'
-                    : _isCameraOn
-                    ? '카메라 켜짐'
-                    : '카메라 꺼짐',
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 150),
-                  child: SvgPicture.asset(
-                    cameraIcon,
-                    key: ValueKey(cameraIcon),
-                    width: 40,
-                    height: 40,
+            if (_hasThumbnail)
+              Positioned.fill(
+                child: Image.network(
+                  _thumbnailUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const SizedBox.shrink(),
+                ),
+              )
+            else if (_isThumbnailPending)
+              const Center(
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: AppColors.gray5,
+                  ),
+                ),
+              )
+            else
+              Center(
+                child: Semantics(
+                  label: _isTravelPhoto
+                      ? '여행 사진 추가'
+                      : _isCameraOn
+                      ? '카메라 켜짐'
+                      : '카메라 꺼짐',
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 150),
+                    child: SvgPicture.asset(
+                      cameraIcon,
+                      key: ValueKey(cameraIcon),
+                      width: 40,
+                      height: 40,
+                    ),
                   ),
                 ),
               ),
-            ),
             if (_name != null)
               Positioned(
                 left: 23,
