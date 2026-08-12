@@ -173,11 +173,11 @@ class _PosingColumn extends StatelessWidget {
   Widget _buildMemberPosing(TravelMemberModel member, {required bool isSelf}) {
     final thumbnailUrl = memberThumbnails[member.userId];
     final isPending = isSelf && isCameraThumbnailPending;
-    final canTap = isSelf && isCameraReady && thumbnailUrl == null && !isPending;
+    final canTap = isSelf && isCameraReady && !isPending;
     return AppPosing(
       key: isSelf ? cameraKey : null,
       name: member.nickname.isEmpty ? null : member.nickname,
-      isCameraOn: canTap,
+      isCameraOn: canTap && thumbnailUrl == null,
       thumbnailUrl: thumbnailUrl,
       isThumbnailPending: isPending,
       onTap: canTap ? onCameraTap : null,
