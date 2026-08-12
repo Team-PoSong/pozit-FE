@@ -3,7 +3,7 @@ import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
 import '../../data/models/travel/travel_course_model.dart';
 
-const double kCourseVisitingRadiusMeters = 3000.0;
+const double kCourseVisitingRadiusMeters = 100.0;
 
 bool isWithinCourseVisitingRadius(LatLng location, CourseSpotModel spot) {
   final distanceMeters = Geolocator.distanceBetween(
