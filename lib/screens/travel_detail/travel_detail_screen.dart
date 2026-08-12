@@ -56,6 +56,7 @@ class TravelDetailScreen extends StatefulWidget {
     this.onCameraTap,
     this.localThumbnails = const {},
     this.pendingThumbnailSpotIds = const {},
+    this.myUserId,
     this.guideStorage = const TravelDetailGuideStorage(),
   });
 
@@ -89,6 +90,8 @@ class TravelDetailScreen extends StatefulWidget {
   final Map<int, String> localThumbnails;
 
   final Set<int> pendingThumbnailSpotIds;
+
+  final int? myUserId;
 
   final TravelDetailGuideStorage guideStorage;
 
@@ -223,16 +226,38 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   CourseSpotModel? get _activeCameraSpot =>
       _isCameraReady ? _focusedSpot : null;
 
-  String? get _activeCameraThumbnailUrl {
-    final spot = _activeCameraSpot;
-    if (spot == null) return null;
-    return widget.localThumbnails[spot.courseSpotId];
-  }
-
-  bool get _isActiveCameraThumbnailPending {
-    final spot = _activeCameraSpot;
+  bool get _isFocusedSpotThumbnailPending {
+    final spot = _focusedSpot;
     if (spot == null) return false;
     return widget.pendingThumbnailSpotIds.contains(spot.courseSpotId);
+  }
+
+  String? _latestThumbnailForUser(CourseSpotModel spot, int userId) {
+    String? found;
+    for (final pozing in spot.pozings) {
+      if (pozing.userId == userId && pozing.thumbnailUrl.isNotEmpty) {
+        found = pozing.thumbnailUrl;
+      }
+    }
+    return found;
+  }
+
+  Map<int, String> get _focusedSpotMemberThumbnails {
+    final spot = _focusedSpot;
+    if (spot == null) return const {};
+
+    final thumbnails = <int, String>{};
+    for (final member in widget.members) {
+      final url = _latestThumbnailForUser(spot, member.userId);
+      if (url != null) thumbnails[member.userId] = url;
+    }
+
+    final myUserId = widget.myUserId;
+    final localUrl = widget.localThumbnails[spot.courseSpotId];
+    if (myUserId != null && localUrl != null && localUrl.isNotEmpty) {
+      thumbnails[myUserId] = localUrl;
+    }
+    return thumbnails;
   }
 
   List<MapMarker> _mergedMarkersForSelectedDay() {
@@ -424,15 +449,13 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                         ),
                         TravelDetailBottomSection(
                           status: widget.status,
-                          memberNames: widget.members
-                              .map((member) => member.nickname)
-                              .toList(),
+                          members: widget.members,
                           onSaveLogTap: widget.onSaveLogTap,
                           cameraKey: _cameraKey,
                           courseTransitionKey: '$_selectedDay-$spotPageIndex',
                           isCameraReady: _isCameraReady,
-                          cameraThumbnailUrl: _activeCameraThumbnailUrl,
-                          isCameraThumbnailPending: _isActiveCameraThumbnailPending,
+                          memberThumbnails: _focusedSpotMemberThumbnails,
+                          isCameraThumbnailPending: _isFocusedSpotThumbnailPending,
                           onCameraTap: _activeCameraSpot != null
                               ? () => widget.onCameraTap?.call(
                                   _activeCameraSpot!.courseSpotId,

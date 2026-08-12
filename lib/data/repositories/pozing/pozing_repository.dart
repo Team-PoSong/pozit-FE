@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/network/api_exception.dart';
@@ -77,13 +76,10 @@ class PozingRepository {
         throw const ApiException('썸네일 상태 응답 형식이 올바르지 않습니다.');
       }
 
-      debugPrint('[ThumbnailStatus] raw response: $result');
-
       return PozingThumbnailStatusResponse.fromJson(result);
     } on ApiException {
       rethrow;
-    } catch (error) {
-      debugPrint('[ThumbnailStatus] 파싱/요청 실패: $error');
+    } catch (_) {
       throw const ApiException('썸네일 상태를 확인하지 못했습니다.');
     }
   }

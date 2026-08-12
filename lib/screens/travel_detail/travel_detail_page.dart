@@ -231,10 +231,6 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         final status = await widget.pozingRepository.getThumbnailStatus(
           pozingId,
         );
-        debugPrint(
-          '[Thumbnail] attempt=$attempt pozingId=$pozingId '
-          'status=${status.thumbnailStatus} url=${status.thumbnailUrl}',
-        );
         if (status.thumbnailStatus == PozingThumbnailStatus.pending) {
           continue;
         }
@@ -247,8 +243,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           }
         });
         return;
-      } catch (error) {
-        debugPrint('[Thumbnail] attempt=$attempt pozingId=$pozingId 실패: $error');
+      } catch (_) {
         break;
       }
     }
@@ -606,6 +601,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           members: _orderedMembers,
           initialDay: _initialDay,
           initialSpotIndex: _initialSpotIndex,
+          myUserId: _myUserId,
           localThumbnails: _localThumbnails,
           pendingThumbnailSpotIds: _pendingThumbnailSpotIds,
           backgroundImage: detail.backgroundImageUrl.isNotEmpty
