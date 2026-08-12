@@ -3,9 +3,8 @@ import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
 import '../../data/models/travel_course_model.dart';
 
-/// A course spot is considered "visiting" once the user's current location
-/// is within this many meters of it.
-const double kCourseVisitingRadiusMeters = 100.0;
+// TODO: API/위치 연동 검증 후 실제 서비스 반경으로 되돌립니다.
+const double kCourseVisitingRadiusMeters = 1000000.0;
 
 bool isWithinCourseVisitingRadius(LatLng location, CourseSpotModel spot) {
   final distanceMeters = Geolocator.distanceBetween(

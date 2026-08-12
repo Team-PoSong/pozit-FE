@@ -6,7 +6,10 @@ import 'package:pozit/core/config/app_config.dart';
 import 'package:pozit/core/design_system/app_colors.dart';
 import 'package:pozit/core/network/dio_client.dart';
 import 'package:pozit/data/datasources/auth/auth_token_storage.dart';
-import 'package:pozit/screens/auth/auth_gate.dart';
+import 'package:pozit/data/datasources/auth/kakao_login_service.dart';
+import 'package:pozit/data/repositories/auth/auth_repository.dart';
+import 'package:pozit/screens/auth/login_screen.dart';
+import 'package:pozit/screens/travel_detail/travel_detail_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +44,27 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.white,
         fontFamily: 'Pretendard',
       ),
-      home: const AuthGate(),
+      home: const _TravelDetailLoginEntry(),
     );
+  }
+}
+
+class _TravelDetailLoginEntry extends StatelessWidget {
+  const _TravelDetailLoginEntry();
+
+  Future<void> _loginAndOpenDetail(BuildContext context) async {
+    final accessToken = await const KakaoLoginService().login();
+    await AuthRepository().loginWithKakaoAccessToken(accessToken);
+    if (!context.mounted) return;
+    await Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => const TravelDetailPage(travelId: 1),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LoginScreen(onKakaoLogin: () => _loginAndOpenDetail(context));
   }
 }
