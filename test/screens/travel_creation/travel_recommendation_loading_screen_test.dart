@@ -47,4 +47,44 @@ void main() {
     expect(find.byType(AppTravelCard), findsNWidgets(3));
     expect(find.text('다른 사람 코스 둘러보기'), findsNothing);
   });
+
+  testWidgets('재시도 중에는 추천 요청을 중복 실행하지 않는다', (tester) async {
+    var requestCount = 0;
+    final retryCompleter = Completer<void>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelRecommendationLoadingScreen(
+          travelInfo: TravelInfoResult(
+            destination: '경주',
+            dateRange: DateTimeRange(
+              start: DateTime(2026, 7, 3),
+              end: DateTime(2026, 7, 6),
+            ),
+            name: '포송한 여행',
+            tags: const {'미식'},
+            creationMethod: TravelCreationMethod.recommendation,
+            transportation: '자동차',
+            densityLevel: 2,
+          ),
+          loadRecommendations: () {
+            requestCount++;
+            if (requestCount == 1) return Future<void>.error('load failed');
+            return retryCompleter.future;
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final retryButton = find.text('다시 시도하기');
+    expect(retryButton, findsOneWidget);
+
+    await tester.tap(retryButton);
+    await tester.tap(retryButton);
+    expect(requestCount, 2);
+
+    retryCompleter.complete();
+    await tester.pumpAndSettle();
+  });
 }

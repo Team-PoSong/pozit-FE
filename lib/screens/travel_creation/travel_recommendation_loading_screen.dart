@@ -32,6 +32,7 @@ class _TravelRecommendationLoadingScreenState
   late final AnimationController _floatingController;
   late final Animation<double> _floatingOffset;
   bool _hasLoadError = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -47,6 +48,8 @@ class _TravelRecommendationLoadingScreenState
   }
 
   Future<void> _loadRecommendations() async {
+    if (_isLoading) return;
+    _isLoading = true;
     setState(() => _hasLoadError = false);
     try {
       await (widget.loadRecommendations?.call() ??
@@ -60,6 +63,8 @@ class _TravelRecommendationLoadingScreenState
       );
     } catch (_) {
       if (mounted) setState(() => _hasLoadError = true);
+    } finally {
+      _isLoading = false;
     }
   }
 
