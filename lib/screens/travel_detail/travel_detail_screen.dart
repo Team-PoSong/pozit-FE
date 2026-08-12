@@ -487,7 +487,11 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
             },
           ),
           const SizedBox(height: 8),
-          AppButton(text: '이 코스 따라하기', onPressed: widget.onFollowCourseTap),
+          AppButton(
+            text: '이 코스 따라하기',
+            isEnabled: widget.onFollowCourseTap != null,
+            onPressed: widget.onFollowCourseTap,
+          ),
         ],
       ),
     );
