@@ -1,6 +1,7 @@
 // DIO 싱글톤 클라이언트를 관리합니다.
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../config/app_config.dart';
 import 'api_exception.dart';
@@ -27,6 +28,33 @@ class DioClient {
         },
       ),
     );
+    if (kDebugMode) {
+      _dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            debugPrint('→ ${options.method} ${options.uri.path}');
+            handler.next(options);
+          },
+          onResponse: (response, handler) {
+            debugPrint(
+              '← ${response.statusCode} ${response.requestOptions.method} '
+              '${response.requestOptions.uri.path}',
+            );
+            handler.next(response);
+          },
+          onError: (error, handler) {
+            final data = error.response?.data;
+            final code = data is Map<String, dynamic> ? data['code'] : null;
+            debugPrint(
+              '← ${error.response?.statusCode ?? '-'} '
+              '${error.requestOptions.method} ${error.requestOptions.uri.path}'
+              '${code == null ? '' : ' [$code]'}',
+            );
+            handler.next(error);
+          },
+        ),
+      );
+    }
   }
 
   static final DioClient instance = DioClient._();
