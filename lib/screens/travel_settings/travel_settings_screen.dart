@@ -49,11 +49,8 @@ class TravelSettingsResult {
   final List<int> tagIds;
   final bool isPublic;
 
-  /// 여행명/기간/태그/배경사진 중 하나 이상이 바뀌었는지 여부.
-  /// false면 [travelName], [startDate], [endDate], [tagIds]는 저장 대상이 아니다.
   final bool hasCoreFieldChanges;
 
-  /// 공개 설정이 바뀌었는지 여부.
   final bool isPublicChanged;
   final File? backgroundImage;
 }
