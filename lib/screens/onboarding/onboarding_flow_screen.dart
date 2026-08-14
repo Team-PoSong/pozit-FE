@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
-import '../home/home_screen.dart';
+import '../../data/repositories/user/user_repository.dart';
+import '../auth/auth_gate.dart';
 import 'nickname_screen.dart';
 import 'terms_agreement_screen.dart';
 
 enum _OnboardingStep { nickname, terms }
 
 class OnboardingFlowScreen extends StatefulWidget {
-  const OnboardingFlowScreen({super.key});
+  const OnboardingFlowScreen({super.key, UserRepository? userRepository})
+    : userRepository = userRepository ?? const UserRepository();
+
+  final UserRepository userRepository;
 
   @override
   State<OnboardingFlowScreen> createState() => _OnboardingFlowScreenState();
@@ -17,13 +21,16 @@ class OnboardingFlowScreen extends StatefulWidget {
 class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
   _OnboardingStep _step = _OnboardingStep.nickname;
 
-  void _showTermsAgreement(String _) {
+  Future<void> _showTermsAgreement(String nickname) async {
+    await widget.userRepository.setInitialNickname(nickname);
+    if (!mounted) return;
     setState(() => _step = _OnboardingStep.terms);
   }
 
   void _completeOnboarding() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const AuthGate()),
+      (_) => false,
     );
   }
 

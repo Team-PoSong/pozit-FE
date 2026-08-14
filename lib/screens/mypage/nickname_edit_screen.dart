@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
@@ -10,6 +8,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/models/user/nickname_validation_model.dart';
 
 const double _kHorizontalPadding = 24.0;
@@ -19,15 +18,13 @@ class NicknameEditScreen extends StatefulWidget {
   const NicknameEditScreen({
     super.key,
     required this.initialNickname,
+    required this.onSubmit,
     this.initialErrorMessage,
-    this.validateNickname,
-    this.validationDelay = const Duration(milliseconds: 400),
   });
 
   final String initialNickname;
   final String? initialErrorMessage;
-  final NicknameAvailabilityValidator? validateNickname;
-  final Duration validationDelay;
+  final Future<void> Function(String nickname) onSubmit;
 
   @override
   State<NicknameEditScreen> createState() => _NicknameEditScreenState();
@@ -38,14 +35,18 @@ class _NicknameEditScreenState extends State<NicknameEditScreen> {
 
   late final TextEditingController _controller;
   late String? _errorMessage = widget.initialErrorMessage;
-  Timer? _validationTimer;
-  int _validationGeneration = 0;
   NicknameValidationState _validationState = NicknameValidationState.idle;
+  bool _isSubmitting = false;
+
+  bool get _hasValidInput {
+    final nickname = _controller.text.trim();
+    return nickname.isNotEmpty &&
+        nickname.characters.length <= _maxLength &&
+        nickname != widget.initialNickname;
+  }
 
   bool get _canSubmit {
-    final nickname = _controller.text.trim();
-    return nickname != widget.initialNickname &&
-        _validationState == NicknameValidationState.available;
+    return !_isSubmitting && _hasValidInput;
   }
 
   @override
@@ -56,60 +57,53 @@ class _NicknameEditScreenState extends State<NicknameEditScreen> {
 
   @override
   void dispose() {
-    _validationTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   void _handleChanged(String value) {
-    _validationTimer?.cancel();
-    final generation = ++_validationGeneration;
-    final nickname = value.trim();
-    final isValidLength =
-        nickname.isNotEmpty && nickname.characters.length <= _maxLength;
-    final shouldValidate = isValidLength && nickname != widget.initialNickname;
-
     setState(() {
       _errorMessage = null;
-      _validationState = shouldValidate
-          ? NicknameValidationState.checking
-          : NicknameValidationState.idle;
+      _validationState = NicknameValidationState.idle;
     });
-
-    if (!shouldValidate) return;
-    _validationTimer = Timer(
-      widget.validationDelay,
-      () => _validateNickname(nickname, generation),
-    );
   }
 
-  Future<void> _validateNickname(String nickname, int generation) async {
-    try {
-      final isAvailable = await widget.validateNickname?.call(nickname) ?? true;
-      if (!mounted || generation != _validationGeneration) return;
-      setState(() {
-        _validationState = isAvailable
-            ? NicknameValidationState.available
-            : NicknameValidationState.duplicate;
-      });
-    } catch (_) {
-      if (!mounted || generation != _validationGeneration) return;
-      setState(() => _validationState = NicknameValidationState.error);
-    }
-  }
-
-  void _submit() {
+  Future<void> _submit() async {
     if (!_canSubmit) return;
     FocusScope.of(context).unfocus();
     final nickname = _controller.text.trim();
-    Navigator.pop(context, nickname);
+    setState(() {
+      _isSubmitting = true;
+      _errorMessage = null;
+    });
+    try {
+      await widget.onSubmit(nickname);
+      if (!mounted) return;
+      Navigator.pop(context, nickname);
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      final isDuplicate = error.code == nicknameDuplicateErrorCode;
+      setState(() {
+        _isSubmitting = false;
+        _validationState = isDuplicate
+            ? NicknameValidationState.duplicate
+            : NicknameValidationState.error;
+        _errorMessage = isDuplicate ? null : error.message;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isSubmitting = false;
+        _validationState = NicknameValidationState.error;
+        _errorMessage = '닉네임을 변경하지 못했습니다.';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final currentLength = _controller.text.characters.length;
     final validationMessage = switch (_validationState) {
-      NicknameValidationState.available => '사용 가능한 닉네임입니다.',
       NicknameValidationState.duplicate => '이미 사용중인 닉네임입니다.',
       NicknameValidationState.error => '닉네임을 확인하지 못했습니다.',
       _ => null,
@@ -150,6 +144,7 @@ class _NicknameEditScreenState extends State<NicknameEditScreen> {
                       AppInputField(
                         controller: _controller,
                         autofocus: true,
+                        readOnly: _isSubmitting,
                         maxLength: _maxLength,
                         isError: isError,
                         inputFormatters: [
@@ -201,13 +196,15 @@ class _NicknameEditScreenState extends State<NicknameEditScreen> {
 }
 
 @Preview(group: 'haerim', name: '닉네임 수정', size: Size(393, 852))
-Widget nicknameEditScreenPreview() =>
-    const MaterialApp(home: NicknameEditScreen(initialNickname: '조현영'));
+Widget nicknameEditScreenPreview() => MaterialApp(
+  home: NicknameEditScreen(initialNickname: '조현영', onSubmit: (_) async {}),
+);
 
 @Preview(group: 'haerim', name: '닉네임 수정 - 중복', size: Size(393, 852))
-Widget nicknameEditErrorScreenPreview() => const MaterialApp(
+Widget nicknameEditErrorScreenPreview() => MaterialApp(
   home: NicknameEditScreen(
     initialNickname: '조현영',
     initialErrorMessage: '이미 사용중인 닉네임입니다.',
+    onSubmit: (_) async {},
   ),
 );
