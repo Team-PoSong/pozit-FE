@@ -265,14 +265,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         const SizedBox(height: 15),
                         _LoginGuideBadge(assetPackage: widget.assetPackage),
-                        const SizedBox(height: 30),
-                        const Spacer(),
+                        const SizedBox(height: 25),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             _SocialLoginButton(
                               semanticLabel: 'Apple로 로그인',
+                              label: '애플로 시작',
                               asset: AppImages.apple,
                               assetPackage: widget.assetPackage,
                               isLoading: _activeLogin == _LoginMethod.apple,
@@ -280,9 +280,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ? null
                                   : () => _handleAppleLogin(context),
                             ),
-                            const SizedBox(width: 50),
+                            const SizedBox(width: 33),
                             _SocialLoginButton(
                               semanticLabel: '카카오로 로그인',
+                              label: '카카오로 시작',
                               asset: AppImages.kakao,
                               assetPackage: widget.assetPackage,
                               isLoading: _activeLogin == _LoginMethod.kakao,
@@ -292,9 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-                        SizedBox(
-                          height: MediaQuery.viewPaddingOf(context).bottom + 10,
-                        ),
+                        const Spacer(),
                       ],
                     ),
                   ),
@@ -342,6 +341,7 @@ class _LoginGuideBadge extends StatelessWidget {
 class _SocialLoginButton extends StatelessWidget {
   const _SocialLoginButton({
     required this.semanticLabel,
+    required this.label,
     required this.asset,
     required this.assetPackage,
     required this.onTap,
@@ -349,6 +349,7 @@ class _SocialLoginButton extends StatelessWidget {
   });
 
   final String semanticLabel;
+  final String label;
   final String asset;
   final String? assetPackage;
   final VoidCallback? onTap;
@@ -363,31 +364,31 @@ class _SocialLoginButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: SizedBox.square(
-          dimension: 60,
-          child: Stack(
-            alignment: Alignment.center,
+        child: SizedBox(
+          width: 90,
+          height: 79,
+          child: Column(
             children: [
-              Image.asset(asset, package: assetPackage, width: 60, height: 60),
-              if (isLoading)
-                Positioned.fill(
-                  child: Transform.translate(
-                    offset: const Offset(0, -4),
-                    child: Center(
-                      child: SizedBox.square(
-                        dimension: 52,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            const Positioned.fill(
-                              child: DecoratedBox(
-                                decoration: ShapeDecoration(
-                                  color: AppColors.white20,
-                                  shape: CircleBorder(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox.square(
+              SizedBox.square(
+                dimension: 44,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      asset,
+                      package: assetPackage,
+                      width: 44,
+                      height: 44,
+                    ),
+                    if (isLoading)
+                      const Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: ShapeDecoration(
+                            color: AppColors.white20,
+                            shape: CircleBorder(),
+                          ),
+                          child: Center(
+                            child: SizedBox.square(
                               dimension: 24,
                               child: CircularProgressIndicator(
                                 key: Key('social-login-progress'),
@@ -395,12 +396,23 @@ class _SocialLoginButton extends StatelessWidget {
                                 color: AppColors.purple3,
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                  ],
                 ),
+              ),
+              const SizedBox(height: 15),
+              Text(
+                label,
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textSub,
+                  fontSize: 12,
+                  height: 18 / 12,
+                  letterSpacing: -0.5,
+                  package: assetPackage,
+                ),
+              ),
             ],
           ),
         ),
