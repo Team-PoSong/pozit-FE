@@ -36,6 +36,7 @@ class TravelDetailBottomSection extends StatelessWidget {
     super.key,
     required this.status,
     required this.members,
+    this.myUserId,
     this.onSaveLogTap,
     this.cameraKey,
     this.courseTransitionKey,
@@ -48,6 +49,7 @@ class TravelDetailBottomSection extends StatelessWidget {
   final AppTravelStatus status;
 
   final List<TravelMemberModel> members;
+  final int? myUserId;
   final VoidCallback? onSaveLogTap;
   final Key? cameraKey;
 
@@ -103,6 +105,7 @@ class TravelDetailBottomSection extends StatelessWidget {
             courseKey: courseTransitionKey,
             child: _PosingColumn(
               members: members,
+              myUserId: myUserId,
               cameraKey: cameraKey,
               isCameraReady: isCameraReady,
               onCameraTap: onCameraTap,
@@ -126,6 +129,7 @@ class TravelDetailBottomSection extends StatelessWidget {
                 courseKey: courseTransitionKey,
                 child: _PosingColumn(
                   members: members,
+                  myUserId: myUserId,
                   memberThumbnails: memberThumbnails,
                 ),
               ),
@@ -141,6 +145,7 @@ class TravelDetailBottomSection extends StatelessWidget {
 class _PosingColumn extends StatelessWidget {
   const _PosingColumn({
     required this.members,
+    this.myUserId,
     this.memberThumbnails = const {},
     this.cameraKey,
     this.isCameraReady = false,
@@ -149,6 +154,7 @@ class _PosingColumn extends StatelessWidget {
   });
 
   final List<TravelMemberModel> members;
+  final int? myUserId;
   final Map<int, String> memberThumbnails;
   final Key? cameraKey;
   final bool isCameraReady;
@@ -164,7 +170,10 @@ class _PosingColumn extends StatelessWidget {
       children: [
         for (int i = 0; i < rows.length; i++) ...[
           if (i > 0) const SizedBox(height: _kPosingGap),
-          _buildMemberPosing(rows[i], isSelf: i == 0),
+          _buildMemberPosing(
+            rows[i],
+            isSelf: myUserId != null && rows[i].userId == myUserId,
+          ),
         ],
       ],
     );

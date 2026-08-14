@@ -19,7 +19,15 @@ Future<void> main() async {
   );
   try {
     await KakaoMapSdk.instance.initialize(AppConfig.kakaoMapKey);
-  } catch (_) {}
+  } catch (error, stackTrace) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'KakaoMapSdk initialization',
+      ),
+    );
+  }
 
   DioClient.instance.attachAccessTokenProvider(
     () => const AuthTokenStorage().readAccessToken(),

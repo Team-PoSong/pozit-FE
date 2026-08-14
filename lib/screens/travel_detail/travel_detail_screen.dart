@@ -450,6 +450,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                         TravelDetailBottomSection(
                           status: widget.status,
                           members: widget.members,
+                          myUserId: widget.myUserId,
                           onSaveLogTap: widget.onSaveLogTap,
                           cameraKey: _cameraKey,
                           courseTransitionKey: '$_selectedDay-$spotPageIndex',

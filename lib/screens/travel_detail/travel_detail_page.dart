@@ -244,7 +244,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         });
         return;
       } catch (_) {
-        break;
+        continue;
       }
     }
     if (mounted) {
