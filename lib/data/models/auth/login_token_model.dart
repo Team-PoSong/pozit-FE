@@ -5,6 +5,7 @@ class LoginTokenModel {
     required this.expiresIn,
     required this.userId,
     required this.nickname,
+    required this.isNewUser,
   });
 
   factory LoginTokenModel.fromJson(Map<String, dynamic> json) {
@@ -14,6 +15,7 @@ class LoginTokenModel {
       expiresIn: json['expiresIn'] as int,
       userId: json['userId'] as int,
       nickname: json['nickname'] as String,
+      isNewUser: json['isNewUser'] as bool,
     );
   }
 
@@ -22,4 +24,5 @@ class LoginTokenModel {
   final int expiresIn;
   final int userId;
   final String nickname;
+  final bool isNewUser;
 }

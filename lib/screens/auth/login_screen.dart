@@ -11,6 +11,7 @@ import '../../data/datasources/auth/apple_login_service.dart';
 import '../../data/datasources/auth/kakao_login_service.dart';
 import '../../data/models/auth/apple_login_request.dart';
 import '../../data/repositories/auth/auth_repository.dart';
+import '../home/home_screen.dart';
 import '../onboarding/onboarding_flow_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -54,12 +55,14 @@ class _LoginScreenState extends State<LoginScreen> {
       final request = await const AppleLoginService().login();
       if (widget.onAppleLoginRequest case final callback?) {
         await callback(request);
+        if (!context.mounted) return;
+        await _openAfterLogin(context, isNewUser: true);
       } else {
-        await AuthRepository().loginWithApple(request);
+        final token = await AuthRepository().loginWithApple(request);
+        if (!context.mounted) return;
+        await _openAfterLogin(context, isNewUser: token.isNewUser);
+        return;
       }
-
-      if (!context.mounted) return;
-      await _openOnboarding(context);
     } on AppleLoginCanceledException {
       return;
     } on ApiException catch (error, stackTrace) {
@@ -102,12 +105,16 @@ class _LoginScreenState extends State<LoginScreen> {
       final accessToken = await const KakaoLoginService().login();
       if (widget.onKakaoAccessToken case final callback?) {
         await callback(accessToken);
+        if (!context.mounted) return;
+        await _openAfterLogin(context, isNewUser: true);
       } else {
-        await AuthRepository().loginWithKakaoAccessToken(accessToken);
+        final token = await AuthRepository().loginWithKakaoAccessToken(
+          accessToken,
+        );
+        if (!context.mounted) return;
+        await _openAfterLogin(context, isNewUser: token.isNewUser);
+        return;
       }
-
-      if (!context.mounted) return;
-      await _openOnboarding(context);
     } on KakaoLoginCanceledException {
       return;
     } on ApiException catch (error, stackTrace) {
@@ -137,9 +144,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _openOnboarding(BuildContext context) {
+  Future<void> _openAfterLogin(
+    BuildContext context, {
+    required bool isNewUser,
+  }) {
     return Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const OnboardingFlowScreen()),
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            isNewUser ? const OnboardingFlowScreen() : const HomeScreen(),
+      ),
     );
   }
 
@@ -280,8 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         SizedBox(
-                          height:
-                              MediaQuery.viewPaddingOf(context).bottom + 10,
+                          height: MediaQuery.viewPaddingOf(context).bottom + 10,
                         ),
                       ],
                     ),

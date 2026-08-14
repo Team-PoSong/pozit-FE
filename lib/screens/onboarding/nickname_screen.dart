@@ -7,6 +7,7 @@ import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
+import '../../core/network/api_exception.dart';
 
 enum NicknameValidationState { idle, checking, available, duplicate, error }
 
@@ -19,7 +20,7 @@ class NicknameScreen extends StatefulWidget {
   });
 
   final Future<bool> Function(String nickname)? validateNickname;
-  final ValueChanged<String>? onNext;
+  final FutureOr<void> Function(String nickname)? onNext;
   final Duration validationDelay;
 
   @override
@@ -35,6 +36,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
 
   bool get _isAvailable =>
       _validationState == NicknameValidationState.available;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -69,6 +71,23 @@ class _NicknameScreenState extends State<NicknameScreen> {
     } catch (_) {
       if (!mounted || _nicknameController.text != nickname) return;
       setState(() => _validationState = NicknameValidationState.error);
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_isAvailable || _isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onNext?.call(_nicknameController.text);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _validationState = error is ApiException && error.code == 'USER400_1'
+            ? NicknameValidationState.duplicate
+            : NicknameValidationState.error;
+      });
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -121,8 +140,8 @@ class _NicknameScreenState extends State<NicknameScreen> {
               const Spacer(),
               AppButton(
                 text: '다음',
-                isEnabled: _isAvailable,
-                onPressed: () => widget.onNext?.call(_nicknameController.text),
+                isEnabled: _isAvailable && !_isSubmitting,
+                onPressed: _submit,
               ),
             ],
           ),
