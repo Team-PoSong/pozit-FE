@@ -5,10 +5,15 @@ import '../../models/auth/apple_login_request.dart';
 import '../../models/auth/login_token_model.dart';
 
 class AuthRepository {
-  AuthRepository({AuthTokenStorage? tokenStorage})
+  const AuthRepository({AuthTokenStorage? tokenStorage})
     : _tokenStorage = tokenStorage ?? const AuthTokenStorage();
 
   final AuthTokenStorage _tokenStorage;
+
+  Future<void> logout() async {
+    await DioClient.instance.post('/api/auth/logout');
+    await _tokenStorage.clear();
+  }
 
   Future<LoginTokenModel> loginWithApple(AppleLoginRequest request) async {
     return _login(path: '/api/auth/apple', data: request.toJson());
