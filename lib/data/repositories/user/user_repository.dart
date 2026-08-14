@@ -9,10 +9,6 @@ class UserRepository {
 
   final UserDatasource _datasource;
 
-  Future<String> setInitialNickname(String nickname) {
-    return _datasource.setInitialNickname(nickname);
-  }
-
   Future<UserProfileModel> getMe() async {
     try {
       return await _datasource.getMe();

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/design_system/app_colors.dart';
@@ -5,13 +7,19 @@ import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
-import '../../core/network/api_exception.dart';
 import '../../data/models/user/nickname_validation_model.dart';
 
 class NicknameScreen extends StatefulWidget {
-  const NicknameScreen({super.key, required this.onNext});
+  const NicknameScreen({
+    super.key,
+    this.validateNickname,
+    this.onNext,
+    this.validationDelay = const Duration(milliseconds: 400),
+  });
 
-  final Future<void> Function(String nickname) onNext;
+  final NicknameAvailabilityValidator? validateNickname;
+  final ValueChanged<String>? onNext;
+  final Duration validationDelay;
 
   @override
   State<NicknameScreen> createState() => _NicknameScreenState();
@@ -21,53 +29,48 @@ class _NicknameScreenState extends State<NicknameScreen> {
   static const int _nicknameMaxLength = 5;
 
   final _nicknameController = TextEditingController();
+  Timer? _validationTimer;
+  int _validationGeneration = 0;
   NicknameValidationState _validationState = NicknameValidationState.idle;
-  bool _isSubmitting = false;
 
-  bool get _canSubmit {
-    final nickname = _nicknameController.text.trim();
-    return !_isSubmitting &&
-        nickname.isNotEmpty &&
-        nickname.characters.length <= _nicknameMaxLength;
-  }
-
-  Future<void> _submit() async {
-    if (!_canSubmit) return;
-    final nickname = _nicknameController.text.trim();
-    setState(() => _isSubmitting = true);
-    try {
-      await widget.onNext(nickname);
-    } on ApiException catch (error) {
-      if (!mounted) return;
-      final isDuplicate = error.code == nicknameDuplicateErrorCode;
-      setState(() {
-        _isSubmitting = false;
-        _validationState = isDuplicate
-            ? NicknameValidationState.duplicate
-            : NicknameValidationState.error;
-      });
-      if (!isDuplicate) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
-      }
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isSubmitting = false;
-        _validationState = NicknameValidationState.error;
-      });
-    }
-  }
+  bool get _isAvailable =>
+      _validationState == NicknameValidationState.available;
 
   @override
   void dispose() {
+    _validationTimer?.cancel();
     _nicknameController.dispose();
     super.dispose();
   }
 
   void _handleNicknameChanged(String value) {
-    setState(() => _validationState = NicknameValidationState.idle);
+    _validationTimer?.cancel();
+    final generation = ++_validationGeneration;
+    setState(() {
+      _validationState = value.isEmpty
+          ? NicknameValidationState.idle
+          : NicknameValidationState.checking;
+    });
+
+    if (value.isEmpty) return;
+    _validationTimer = Timer(widget.validationDelay, () {
+      _validateNickname(value, generation);
+    });
+  }
+
+  Future<void> _validateNickname(String nickname, int generation) async {
+    try {
+      final isAvailable = await widget.validateNickname?.call(nickname) ?? true;
+      if (!mounted || generation != _validationGeneration) return;
+      setState(() {
+        _validationState = isAvailable
+            ? NicknameValidationState.available
+            : NicknameValidationState.duplicate;
+      });
+    } catch (_) {
+      if (!mounted || generation != _validationGeneration) return;
+      setState(() => _validationState = NicknameValidationState.error);
+    }
   }
 
   @override
@@ -107,7 +110,6 @@ class _NicknameScreenState extends State<NicknameScreen> {
               const SizedBox(height: 10),
               AppInputField(
                 controller: _nicknameController,
-                readOnly: _isSubmitting,
                 maxLength: _nicknameMaxLength,
                 isError: isError,
                 onChanged: _handleNicknameChanged,
@@ -118,7 +120,11 @@ class _NicknameScreenState extends State<NicknameScreen> {
                 currentLength: _nicknameController.text.length,
               ),
               const Spacer(),
-              AppButton(text: '다음', isEnabled: _canSubmit, onPressed: _submit),
+              AppButton(
+                text: '다음',
+                isEnabled: _isAvailable,
+                onPressed: () => widget.onNext?.call(_nicknameController.text),
+              ),
             ],
           ),
         ),
@@ -136,7 +142,8 @@ class _NicknameStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = switch (state) {
-      NicknameValidationState.duplicate => '이미 사용중인 닉네임입니다.',
+      NicknameValidationState.available => '사용 가능한 닉네임입니다.',
+      NicknameValidationState.duplicate => '이미 사용중인 아이디입니다.',
       NicknameValidationState.error => '닉네임을 확인하지 못했습니다.',
       _ => null,
     };

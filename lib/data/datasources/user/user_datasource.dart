@@ -6,17 +6,6 @@ import '../../models/user/user_profile_model.dart';
 class UserDatasource {
   const UserDatasource();
 
-  Future<String> setInitialNickname(String nickname) async {
-    final result = await DioClient.instance.patch(
-      '/api/users/nickname',
-      data: {'nickname': nickname},
-    );
-    if (result is! String) {
-      throw const ApiException('닉네임 설정 응답 형식이 올바르지 않습니다.');
-    }
-    return result;
-  }
-
   Future<UserProfileModel> getMe() async {
     final result = await DioClient.instance.get('/api/users/me');
     if (result is! Map<String, dynamic>) {
