@@ -1,5 +1,3 @@
-// 서버 및 네트워크 에러를 공통으로 처리합니다.
-
 import 'package:dio/dio.dart';
 
 class ApiException implements Exception {
@@ -37,6 +35,10 @@ class ApiException implements Exception {
       ),
       DioExceptionType.connectionError => const ApiException(
         '네트워크 연결을 확인해 주세요.',
+      ),
+      _ when error.response?.statusCode == 401 => const ApiException(
+        '로그인이 만료됐어요. 다시 로그인해 주세요.',
+        statusCode: 401,
       ),
       _ => ApiException(
         '요청을 처리하지 못했어요.',

@@ -121,7 +121,6 @@ class _AppMapViewState extends State<AppMapView> {
 
   KakaoMapController? _controller;
   LabelController? _poiLayer;
-  /// widget.markers와 동일한 인덱스로 정렬됩니다. 등록에 실패한 자리는 null로 남습니다.
   List<Poi?> _pois = const [];
   List<BaseRoute> _routes = const [];
   bool _hasError = false;
@@ -172,17 +171,12 @@ class _AppMapViewState extends State<AppMapView> {
     super.dispose();
   }
 
-  /// 진행 중인 렌더링 작업이 다음 체크포인트에서 스스로 중단하도록
-  /// generation을 무효화하고, 더 이상 유효하지 않은 컨트롤러 참조를 해제합니다.
-  /// 단, 이미 네이티브로 전달된 호출 자체를 취소하지는 못합니다.
   void _invalidateMapState() {
     _renderGeneration++;
     _controller = null;
     _poiLayer = null;
   }
 
-  /// POI 추가·삭제·스타일 변경 작업이 동시에 네이티브로 전달되지 않도록
-  /// 하나의 큐를 통해 순차적으로 실행합니다.
   Future<void> _enqueuePoiOperation(Future<void> Function() operation) {
     final result = _poiOperationQueue.then((_) => operation()).catchError((
       error,
@@ -282,10 +276,6 @@ class _AppMapViewState extends State<AppMapView> {
       }
     }
     try {
-      // iOS는 기본 라벨 레이어가 네이티브에 생성되어 있지 않아 강제 언래핑 크래시(SIGTRAP)로
-      // 이어지므로 명시적으로 레이어를 만들어야 합니다. 반대로 Android 플러그인은
-      // createLabelLayer 처리 시 대상 레이어를 먼저 조회하려다 존재하지 않으면 그 자리에서
-      // NPE를 던지는 버그가 있어, 이미 네이티브에 존재하는 기본 레이어를 그대로 사용합니다.
       final poiLayer = Platform.isIOS
           ? await controller.addLabelLayer(_kPoiLabelLayerId)
           : controller.labelLayer;
@@ -453,8 +443,6 @@ class _AppMapViewState extends State<AppMapView> {
           return null;
         }
       } on PlatformException {
-        // 레이어 생성 직후에는 네이티브 쪽에서 아직 레이어가 조회되지 않아
-        // 일시적으로 실패할 수 있어 재시도합니다.
         if (attempt == maxAttempts) {
           debugPrint('$label 추가 실패: 재시도 초과');
           return null;

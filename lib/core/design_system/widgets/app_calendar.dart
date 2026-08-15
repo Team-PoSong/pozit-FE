@@ -741,9 +741,7 @@ Widget appCalendarInteractivePreview() => Align(
     padding: const EdgeInsets.symmetric(horizontal: 32),
     child: AppCalendar(
       initialMonth: DateTime(2026, 7),
-      onRangeSelected: (start, end) {
-        debugPrint('선택됨: $start ~ $end');
-      },
+      onRangeSelected: (start, end) {},
     ),
   ),
 );
@@ -760,9 +758,7 @@ Widget appCalendarTodayJuly9Preview() => Align(
     child: AppCalendar(
       initialMonth: DateTime(2026, 7),
       minSelectableDate: DateTime(2026, 7, 9),
-      onRangeSelected: (start, end) {
-        debugPrint('선택됨: $start ~ $end');
-      },
+      onRangeSelected: (start, end) {},
     ),
   ),
 );

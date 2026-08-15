@@ -18,8 +18,14 @@ Future<void> main() async {
   );
   try {
     await KakaoMapSdk.instance.initialize(AppConfig.kakaoMapKey);
-  } catch (error) {
-    debugPrint('KakaoMapSdk 초기화 실패: $error');
+  } catch (error, stackTrace) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'KakaoMapSdk initialization',
+      ),
+    );
   }
 
   DioClient.instance.attachAccessTokenProvider(
