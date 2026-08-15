@@ -20,15 +20,15 @@ String _normalizeSpotStatus(String raw) {
 }
 
 class PozingModel {
-  final int pozingId;
-  final int userId;
+  final int? pozingId;
+  final int? userId;
   final String nickname;
   final String pozingUrl;
   final String thumbnailUrl;
 
   const PozingModel({
-    required this.pozingId,
-    required this.userId,
+    this.pozingId,
+    this.userId,
     required this.nickname,
     required this.pozingUrl,
     required this.thumbnailUrl,
@@ -36,11 +36,11 @@ class PozingModel {
 
   factory PozingModel.fromJson(Map<String, dynamic> json) {
     return PozingModel(
-      pozingId: json['pozingId'] as int,
-      userId: json['userId'] as int,
-      nickname: json['nickname'] as String,
-      pozingUrl: json['pozingUrl'] as String,
-      thumbnailUrl: json['thumbnailUrl'] as String,
+      pozingId: json['pozingId'] as int?,
+      userId: json['userId'] as int?,
+      nickname: json['nickname'] as String? ?? '',
+      pozingUrl: json['pozingUrl'] as String? ?? '',
+      thumbnailUrl: json['thumbnailUrl'] as String? ?? '',
     );
   }
 }

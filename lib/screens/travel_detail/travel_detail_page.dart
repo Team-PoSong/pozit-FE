@@ -16,6 +16,7 @@ import '../../data/models/travel/travel_member_model.dart';
 import '../../data/models/travel/travel_tag_model.dart';
 import '../../data/models/travel/travel_update_request.dart';
 import '../../data/models/pozing_edit_job_model.dart';
+import '../../data/models/pozing_upload_model.dart';
 import '../../data/repositories/pozing/pozing_repository.dart';
 import '../../data/repositories/tourist_spot/tourist_spot_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
@@ -32,6 +33,8 @@ import 'travel_detail_screen.dart';
 const Duration _kLocationFixTimeout = Duration(seconds: 3);
 const Duration _kEditPozingJobPollInterval = Duration(seconds: 2);
 const int _kEditPozingJobMaxPollAttempts = 30;
+const Duration _kThumbnailPollInterval = Duration(seconds: 2);
+const int _kThumbnailMaxPollAttempts = 30;
 
 enum _LoadStatus { loading, error, loaded }
 
@@ -67,6 +70,8 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   int? _myUserId;
   int _initialDay = 1;
   int _initialSpotIndex = 0;
+  final Map<int, String> _localThumbnails = {};
+  final Set<int> _pendingThumbnailSpotIds = {};
 
   @override
   void initState() {
@@ -191,15 +196,60 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     return reordered;
   }
 
-  void _openPozingCameraScreen(BuildContext context, int courseSpotId) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
+  Future<void> _openPozingCameraScreen(
+    BuildContext context,
+    int courseSpotId,
+  ) async {
+    final result = await Navigator.of(context).push<PozingSaveResponse>(
+      MaterialPageRoute<PozingSaveResponse>(
         builder: (_) => PozingCameraScreen(
           courseSpotId: courseSpotId,
           repository: widget.pozingRepository,
         ),
       ),
     );
+    if (result == null || !mounted) return;
+
+    switch (result.thumbnailStatus) {
+      case PozingThumbnailStatus.completed:
+        if (result.thumbnailUrl.isEmpty) return;
+        setState(() => _localThumbnails[courseSpotId] = result.thumbnailUrl);
+      case PozingThumbnailStatus.pending:
+        setState(() => _pendingThumbnailSpotIds.add(courseSpotId));
+        await _pollThumbnailStatus(courseSpotId, result.pozingId);
+      case PozingThumbnailStatus.failed:
+        break;
+    }
+  }
+
+  Future<void> _pollThumbnailStatus(int courseSpotId, int pozingId) async {
+    for (var attempt = 0; attempt < _kThumbnailMaxPollAttempts; attempt++) {
+      await Future.delayed(_kThumbnailPollInterval);
+      if (!mounted) return;
+
+      try {
+        final status = await widget.pozingRepository.getThumbnailStatus(
+          pozingId,
+        );
+        if (status.thumbnailStatus == PozingThumbnailStatus.pending) {
+          continue;
+        }
+        if (!mounted) return;
+        setState(() {
+          _pendingThumbnailSpotIds.remove(courseSpotId);
+          if (status.thumbnailStatus == PozingThumbnailStatus.completed &&
+              status.thumbnailUrl.isNotEmpty) {
+            _localThumbnails[courseSpotId] = status.thumbnailUrl;
+          }
+        });
+        return;
+      } catch (_) {
+        continue;
+      }
+    }
+    if (mounted) {
+      setState(() => _pendingThumbnailSpotIds.remove(courseSpotId));
+    }
   }
 
   void _openMemberScreen(BuildContext context) {
@@ -551,6 +601,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           members: _orderedMembers,
           initialDay: _initialDay,
           initialSpotIndex: _initialSpotIndex,
+          myUserId: _myUserId,
+          localThumbnails: _localThumbnails,
+          pendingThumbnailSpotIds: _pendingThumbnailSpotIds,
           backgroundImage: detail.backgroundImageUrl.isNotEmpty
               ? NetworkImage(detail.backgroundImageUrl)
               : const AssetImage(AppImages.travelMockup),

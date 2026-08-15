@@ -3,6 +3,7 @@ import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gal/gal.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
@@ -52,6 +53,42 @@ class TravelLogCompleteScreen extends StatefulWidget {
 
 class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
   _BusyAction _busy = _BusyAction.none;
+  VideoPlayerController? _previewController;
+  bool _previewFailed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePreview();
+  }
+
+  void _initializePreview() {
+    final downloadUrl = widget.downloadUrl;
+    if (downloadUrl == null) return;
+
+    final controller = VideoPlayerController.networkUrl(
+      Uri.parse(downloadUrl),
+    );
+    _previewController = controller;
+    controller.setLooping(true);
+    controller
+        .initialize()
+        .then((_) {
+          if (!mounted) return;
+          setState(() {});
+          controller.play();
+        })
+        .catchError((_) {
+          if (!mounted) return;
+          setState(() => _previewFailed = true);
+        });
+  }
+
+  @override
+  void dispose() {
+    _previewController?.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleSaveTap() async {
     final downloadUrl = widget.downloadUrl;
@@ -100,6 +137,28 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Widget _buildLogPreview() {
+    if (widget.downloadUrl == null || _previewFailed) {
+      return const SizedBox.shrink();
+    }
+
+    final controller = _previewController;
+    if (controller == null || !controller.value.isInitialized) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.white),
+      );
+    }
+
+    return FittedBox(
+      fit: BoxFit.cover,
+      child: SizedBox(
+        width: controller.value.size.width,
+        height: controller.value.size.height,
+        child: VideoPlayer(controller),
+      ),
+    );
   }
 
   @override
@@ -159,10 +218,13 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
                   ),
                   child: AspectRatio(
                     aspectRatio: _kLogBlockAspectRatio,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: AppColors.text,
-                        borderRadius: BorderRadius.circular(_kLogBlockRadius),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(_kLogBlockRadius),
+                      child: DecoratedBox(
+                        decoration: const BoxDecoration(
+                          color: AppColors.text,
+                        ),
+                        child: _buildLogPreview(),
                       ),
                     ),
                   ),

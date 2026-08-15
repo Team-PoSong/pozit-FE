@@ -66,6 +66,24 @@ class PozingRepository {
     }
   }
 
+  Future<PozingThumbnailStatusResponse> getThumbnailStatus(int pozingId) async {
+    try {
+      final result = await DioClient.instance.get(
+        '/api/pozing/$pozingId/thumbnail',
+      );
+
+      if (result is! Map<String, dynamic>) {
+        throw const ApiException('썸네일 상태 응답 형식이 올바르지 않습니다.');
+      }
+
+      return PozingThumbnailStatusResponse.fromJson(result);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('썸네일 상태를 확인하지 못했습니다.');
+    }
+  }
+
   Future<File> downloadEditedVideo(String downloadUrl) async {
     try {
       final tempDir = await getTemporaryDirectory();

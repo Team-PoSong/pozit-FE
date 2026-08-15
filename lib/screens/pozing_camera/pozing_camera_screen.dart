@@ -9,7 +9,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/repositories/pozing/pozing_repository.dart';
 
-const Duration _kMaxRecordingDuration = Duration(seconds: 8);
+const Duration _kMaxRecordingDuration = Duration(seconds: 3);
 
 enum _CameraStatus { initializing, error, ready, recording, uploading }
 
@@ -133,13 +133,13 @@ class _PozingCameraScreenState extends State<PozingCameraScreen>
       if (!mounted) return;
       setState(() => _status = _CameraStatus.uploading);
 
-      await widget.repository.uploadPozingVideo(
+      final result = await widget.repository.uploadPozingVideo(
         courseSpotId: widget.courseSpotId,
         videoFile: File(file.path),
       );
 
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(result);
     } on ApiException catch (error) {
       if (!mounted) return;
       setState(() => _status = _CameraStatus.ready);
@@ -273,8 +273,7 @@ class _RecordButton extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
             color: Colors.red,
-            shape: isRecording ? BoxShape.rectangle : BoxShape.circle,
-            borderRadius: isRecording ? BorderRadius.circular(6) : null,
+            borderRadius: BorderRadius.circular(isRecording ? 6 : 30),
           ),
         ),
       ),

@@ -15,7 +15,6 @@ const double _kTopBarToTravelDateGap = 32.0;
 const double _kTravelDateToCalendarGap = 21.0;
 const double _kCalendarToWarningGap = 8.0;
 
-// 포짓이 현재 지원하는 최대 여행 기간(3박 4일 = 3박).
 const int _kMaxTripNights = 3;
 const String _kMaxTripLengthMessage = '아직 포짓에서는 3박 4일까지만 지원해요';
 

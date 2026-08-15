@@ -19,7 +19,15 @@ Future<void> main() async {
   );
   try {
     await KakaoMapSdk.instance.initialize(AppConfig.kakaoMapKey);
-  } catch (_) {}
+  } catch (error, stackTrace) {
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: error,
+        stack: stackTrace,
+        library: 'KakaoMapSdk initialization',
+      ),
+    );
+  }
 
   DioClient.instance.attachAccessTokenProvider(
     () => const AuthTokenStorage().readAccessToken(),
@@ -40,7 +48,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.white,
         fontFamily: 'Pretendard',
       ),
-      home: const AuthGate(),
+      home: const TravelDetailPage(travelId: 1),
     );
   }
 }

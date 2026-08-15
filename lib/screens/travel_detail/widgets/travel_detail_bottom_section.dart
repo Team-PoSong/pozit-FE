@@ -7,6 +7,7 @@ import '../../../core/design_system/app_text_styles.dart';
 import '../../../core/design_system/app_travel_status.dart';
 import '../../../core/design_system/widgets/app_posing.dart';
 import '../../../core/design_system/widgets/button/app_button.dart';
+import '../../../data/models/travel/travel_member_model.dart';
 
 const double _kHorizontalPadding = 24.0;
 const double _kStatusToContentGap = 15.0;
@@ -24,21 +25,31 @@ const Duration _kCourseSwipeCueDuration = Duration(milliseconds: 260);
 const double _kCourseSwipeCueTranslateX = 24.0;
 const double _kCourseSwipeCueBeginOpacity = 0.6;
 
+const List<TravelMemberModel> _kPreviewMembers = [
+  TravelMemberModel(userId: 1, nickname: '현영', isLeader: true),
+  TravelMemberModel(userId: 2, nickname: '윤지', isLeader: false),
+  TravelMemberModel(userId: 3, nickname: '해림', isLeader: false),
+];
+
 class TravelDetailBottomSection extends StatelessWidget {
   const TravelDetailBottomSection({
     super.key,
     required this.status,
-    required this.memberNames,
+    required this.members,
+    this.myUserId,
     this.onSaveLogTap,
     this.cameraKey,
     this.courseTransitionKey,
     this.isCameraReady = false,
     this.onCameraTap,
+    this.memberThumbnails = const {},
+    this.isCameraThumbnailPending = false,
   });
 
   final AppTravelStatus status;
 
-  final List<String> memberNames;
+  final List<TravelMemberModel> members;
+  final int? myUserId;
   final VoidCallback? onSaveLogTap;
   final Key? cameraKey;
 
@@ -47,6 +58,10 @@ class TravelDetailBottomSection extends StatelessWidget {
   final bool isCameraReady;
 
   final VoidCallback? onCameraTap;
+
+  final Map<int, String> memberThumbnails;
+
+  final bool isCameraThumbnailPending;
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +104,13 @@ class TravelDetailBottomSection extends StatelessWidget {
           child: _CourseSwipeCue(
             courseKey: courseTransitionKey,
             child: _PosingColumn(
-              memberNames: memberNames,
+              members: members,
+              myUserId: myUserId,
               cameraKey: cameraKey,
               isCameraReady: isCameraReady,
               onCameraTap: onCameraTap,
+              memberThumbnails: memberThumbnails,
+              isCameraThumbnailPending: isCameraThumbnailPending,
             ),
           ),
         );
@@ -109,7 +127,11 @@ class TravelDetailBottomSection extends StatelessWidget {
             children: [
               _CourseSwipeCue(
                 courseKey: courseTransitionKey,
-                child: _PosingColumn(memberNames: memberNames),
+                child: _PosingColumn(
+                  members: members,
+                  myUserId: myUserId,
+                  memberThumbnails: memberThumbnails,
+                ),
               ),
               const SizedBox(height: _kPosingToButtonGap),
               AppButton(text: '여행 로그 저장하기', onPressed: onSaveLogTap),
@@ -122,32 +144,52 @@ class TravelDetailBottomSection extends StatelessWidget {
 
 class _PosingColumn extends StatelessWidget {
   const _PosingColumn({
-    required this.memberNames,
+    required this.members,
+    this.myUserId,
+    this.memberThumbnails = const {},
     this.cameraKey,
     this.isCameraReady = false,
     this.onCameraTap,
+    this.isCameraThumbnailPending = false,
   });
 
-  final List<String> memberNames;
+  final List<TravelMemberModel> members;
+  final int? myUserId;
+  final Map<int, String> memberThumbnails;
   final Key? cameraKey;
   final bool isCameraReady;
   final VoidCallback? onCameraTap;
+  final bool isCameraThumbnailPending;
 
   @override
   Widget build(BuildContext context) {
-    final names = memberNames.isNotEmpty ? memberNames : const [''];
+    final rows = members.isNotEmpty
+        ? members
+        : const [TravelMemberModel(userId: 0, nickname: '', isLeader: false)];
     return Column(
       children: [
-        for (int i = 0; i < names.length; i++) ...[
+        for (int i = 0; i < rows.length; i++) ...[
           if (i > 0) const SizedBox(height: _kPosingGap),
-          AppPosing(
-            key: i == 0 ? cameraKey : null,
-            name: names[i].isEmpty ? null : names[i],
-            isCameraOn: i == 0 && isCameraReady,
-            onTap: i == 0 && isCameraReady ? onCameraTap : null,
+          _buildMemberPosing(
+            rows[i],
+            isSelf: myUserId != null && rows[i].userId == myUserId,
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildMemberPosing(TravelMemberModel member, {required bool isSelf}) {
+    final thumbnailUrl = memberThumbnails[member.userId];
+    final isPending = isSelf && isCameraThumbnailPending;
+    final canTap = isSelf && isCameraReady && !isPending;
+    return AppPosing(
+      key: isSelf ? cameraKey : null,
+      name: member.nickname.isEmpty ? null : member.nickname,
+      isCameraOn: canTap && thumbnailUrl == null,
+      thumbnailUrl: thumbnailUrl,
+      isThumbnailPending: isPending,
+      onTap: canTap ? onCameraTap : null,
     );
   }
 }
@@ -220,7 +262,7 @@ Widget travelDetailBottomSectionUpcomingPreview() {
         height: 300,
         child: TravelDetailBottomSection(
           status: AppTravelStatus.upcoming,
-          memberNames: ['현영', '윤지', '해림'],
+          members: _kPreviewMembers,
         ),
       ),
     ),
@@ -233,7 +275,7 @@ Widget travelDetailBottomSectionInProgressPreview() {
     home: Scaffold(
       body: TravelDetailBottomSection(
         status: AppTravelStatus.inProgress,
-        memberNames: ['현영', '윤지', '해림'],
+        members: _kPreviewMembers,
       ),
     ),
   );
@@ -245,7 +287,7 @@ Widget travelDetailBottomSectionCompletedPreview() {
     home: Scaffold(
       body: TravelDetailBottomSection(
         status: AppTravelStatus.completed,
-        memberNames: ['현영', '윤지', '해림'],
+        members: _kPreviewMembers,
       ),
     ),
   );

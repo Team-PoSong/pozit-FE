@@ -13,7 +13,6 @@ class AppCircleButton extends StatelessWidget {
   final Color iconColor;
   final Color? borderColor;
 
-  /// 진보라 배경 스타일
   const AppCircleButton({
     super.key,
     this.iconAsset = AppIcons.plus,
@@ -25,7 +24,6 @@ class AppCircleButton extends StatelessWidget {
     this.borderColor,
   });
 
-  /// 흰 배경+회색 테두리 스타일
   const AppCircleButton.outline({
     super.key,
     required this.iconAsset,
