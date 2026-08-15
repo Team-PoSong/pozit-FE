@@ -28,7 +28,11 @@ class AuthRepository {
     required Map<String, dynamic> data,
   }) async {
     try {
-      final result = await DioClient.instance.post(path, data: data);
+      final deviceId = await _tokenStorage.readOrCreateDeviceId();
+      final result = await DioClient.instance.post(
+        path,
+        data: {...data, 'deviceId': deviceId},
+      );
 
       if (result is! Map<String, dynamic>) {
         throw const ApiException('로그인 응답 형식이 올바르지 않습니다.');
@@ -38,6 +42,7 @@ class AuthRepository {
       await _tokenStorage.save(
         accessToken: token.accessToken,
         tokenType: token.tokenType,
+        userId: token.userId,
       );
       return token;
     } on ApiException {

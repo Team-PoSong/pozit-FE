@@ -5,7 +5,6 @@ import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../home/home_screen.dart';
 import 'explore_content.dart';
 
-/// 여행지를 검색하고 탐색하는 화면입니다.
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({
     super.key,

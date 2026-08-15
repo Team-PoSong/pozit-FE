@@ -1,9 +1,19 @@
-// DIO 싱글톤 클라이언트를 관리합니다.
-
 import 'package:dio/dio.dart';
 
 import '../config/app_config.dart';
 import 'api_exception.dart';
+
+const Duration _kTransferConnectTimeout = Duration(seconds: 10);
+
+Dio createTransferDio({Duration? sendTimeout, Duration? receiveTimeout}) {
+  return Dio(
+    BaseOptions(
+      connectTimeout: _kTransferConnectTimeout,
+      sendTimeout: sendTimeout,
+      receiveTimeout: receiveTimeout,
+    ),
+  );
+}
 
 class DioClient {
   DioClient._()
@@ -42,8 +52,22 @@ class DioClient {
     return _send(() => _dio.get(path, queryParameters: queryParameters));
   }
 
-  Future<dynamic> post(String path, {Object? data}) {
-    return _send(() => _dio.post(path, data: data));
+  Future<dynamic> post(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+  }) {
+    return _send(
+      () => _dio.post(path, data: data, queryParameters: queryParameters),
+    );
+  }
+
+  Future<dynamic> patch(String path, {Object? data}) {
+    return _send(() => _dio.patch(path, data: data));
+  }
+
+  Future<dynamic> delete(String path, {Object? data}) {
+    return _send(() => _dio.delete(path, data: data));
   }
 
   Future<dynamic> _send(Future<Response<dynamic>> Function() request) async {
@@ -55,8 +79,6 @@ class DioClient {
     }
   }
 
-  // 서버 응답의 기본 형태를 정제합니다.
-  // { isSuccess, code, message, result } 포맷을 공통 규격으로 가정합니다.
   dynamic _unwrap(Response<dynamic> response) {
     final body = response.data;
     if (body is! Map<String, dynamic>) {

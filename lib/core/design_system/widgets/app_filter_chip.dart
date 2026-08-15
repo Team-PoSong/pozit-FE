@@ -6,7 +6,6 @@ import '../app_colors.dart';
 import '../app_icons.dart';
 import '../app_text_styles.dart';
 
-/// 여행 탐색 조건을 선택하거나 초기화하는 필터 칩입니다.
 class AppFilterChip extends StatelessWidget {
   const AppFilterChip({
     super.key,

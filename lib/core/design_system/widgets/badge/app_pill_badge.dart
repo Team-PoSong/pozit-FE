@@ -3,7 +3,6 @@ import 'package:flutter/widget_previews.dart';
 import '../../app_colors.dart';
 import '../../app_text_styles.dart';
 
-/// isFilled: true - primary 배경+흰 글씨, false - 흰 배경+primary 글씨
 class AppPillBadge extends StatelessWidget {
   final String label;
   final bool isFilled;
