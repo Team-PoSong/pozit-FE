@@ -9,19 +9,12 @@ import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/network/api_exception.dart';
 
-enum NicknameValidationState { idle, checking, available, duplicate, error }
+enum NicknameValidationState { idle, available, duplicate, error }
 
 class NicknameScreen extends StatefulWidget {
-  const NicknameScreen({
-    super.key,
-    this.validateNickname,
-    this.onNext,
-    this.validationDelay = const Duration(milliseconds: 400),
-  });
+  const NicknameScreen({super.key, this.onNext});
 
-  final Future<bool> Function(String nickname)? validateNickname;
   final FutureOr<void> Function(String nickname)? onNext;
-  final Duration validationDelay;
 
   @override
   State<NicknameScreen> createState() => _NicknameScreenState();
@@ -31,7 +24,6 @@ class _NicknameScreenState extends State<NicknameScreen> {
   static const int _nicknameMaxLength = 5;
 
   final _nicknameController = TextEditingController();
-  Timer? _validationTimer;
   NicknameValidationState _validationState = NicknameValidationState.idle;
 
   bool get _isAvailable =>
@@ -40,45 +32,23 @@ class _NicknameScreenState extends State<NicknameScreen> {
 
   @override
   void dispose() {
-    _validationTimer?.cancel();
     _nicknameController.dispose();
     super.dispose();
   }
 
   void _handleNicknameChanged(String value) {
-    _validationTimer?.cancel();
     setState(() {
-      _validationState = value.isEmpty
+      _validationState = value.trim().isEmpty
           ? NicknameValidationState.idle
-          : NicknameValidationState.checking;
+          : NicknameValidationState.available;
     });
-
-    if (value.isEmpty) return;
-    _validationTimer = Timer(widget.validationDelay, () {
-      _validateNickname(value);
-    });
-  }
-
-  Future<void> _validateNickname(String nickname) async {
-    try {
-      final isAvailable = await widget.validateNickname?.call(nickname) ?? true;
-      if (!mounted || _nicknameController.text != nickname) return;
-      setState(() {
-        _validationState = isAvailable
-            ? NicknameValidationState.available
-            : NicknameValidationState.duplicate;
-      });
-    } catch (_) {
-      if (!mounted || _nicknameController.text != nickname) return;
-      setState(() => _validationState = NicknameValidationState.error);
-    }
   }
 
   Future<void> _submit() async {
     if (!_isAvailable || _isSubmitting) return;
     setState(() => _isSubmitting = true);
     try {
-      await widget.onNext?.call(_nicknameController.text);
+      await widget.onNext?.call(_nicknameController.text.trim());
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -120,7 +90,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
                   letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 56),
+              const SizedBox(height: 34),
               Text(
                 '닉네임',
                 style: AppTextStyles.subTitle.copyWith(color: AppColors.text),
@@ -160,7 +130,7 @@ class _NicknameStatus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = switch (state) {
-      NicknameValidationState.available => '사용 가능한 닉네임입니다.',
+      NicknameValidationState.available => null,
       NicknameValidationState.duplicate => '이미 사용중인 아이디입니다.',
       NicknameValidationState.error => '닉네임을 확인하지 못했습니다.',
       _ => null,
