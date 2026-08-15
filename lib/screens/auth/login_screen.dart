@@ -25,9 +25,9 @@ class LoginScreen extends StatefulWidget {
   });
 
   final FutureOr<void> Function()? onAppleLogin;
-  final Future<void> Function(AppleLoginRequest request)? onAppleLoginRequest;
+  final Future<bool> Function(AppleLoginRequest request)? onAppleLoginRequest;
   final FutureOr<void> Function()? onKakaoLogin;
-  final Future<void> Function(String accessToken)? onKakaoAccessToken;
+  final Future<bool> Function(String accessToken)? onKakaoAccessToken;
   final String? assetPackage;
 
   @override
@@ -54,9 +54,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final request = await const AppleLoginService().login();
       if (widget.onAppleLoginRequest case final callback?) {
-        await callback(request);
+        final isNewUser = await callback(request);
         if (!context.mounted) return;
-        await _openAfterLogin(context, isNewUser: true);
+        await _openAfterLogin(context, isNewUser: isNewUser);
       } else {
         final token = await AuthRepository().loginWithApple(request);
         if (!context.mounted) return;
@@ -104,9 +104,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final accessToken = await const KakaoLoginService().login();
       if (widget.onKakaoAccessToken case final callback?) {
-        await callback(accessToken);
+        final isNewUser = await callback(accessToken);
         if (!context.mounted) return;
-        await _openAfterLogin(context, isNewUser: true);
+        await _openAfterLogin(context, isNewUser: isNewUser);
       } else {
         final token = await AuthRepository().loginWithKakaoAccessToken(
           accessToken,
