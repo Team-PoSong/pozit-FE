@@ -3,6 +3,7 @@ import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_dimensions.dart';
+import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/travel_invite/travel_invite_search_model.dart';
@@ -13,6 +14,7 @@ import 'invite_code_content.dart';
 
 const double _horizontalPadding = 24.0;
 const double _topBarToContentGap = 20.0;
+const double _joinErrorToButtonGap = 12.0;
 
 class InviteCodeScreen extends StatefulWidget {
   const InviteCodeScreen({
@@ -36,7 +38,9 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
 
   TravelInviteSearchModel? _travel;
   String? _errorMessage;
+  String? _joinErrorMessage;
   bool _showErrorBorder = false;
+  bool _isJoinBlocked = false;
   bool _isLookingUp = false;
   bool _isJoining = false;
   int _lookupGeneration = 0;
@@ -47,7 +51,8 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
 
   bool get _canSubmit {
     if (_isLoading) return false;
-    return _travel?.status == TravelInviteSearchStatus.joinable;
+    return !_isJoinBlocked &&
+        _travel?.status == TravelInviteSearchStatus.joinable;
   }
 
   @override
@@ -71,6 +76,8 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
     final inviteCode = _controller.text;
     setState(() {
       _travel = null;
+      _joinErrorMessage = null;
+      _isJoinBlocked = false;
       _errorMessage = inviteCode.isNotEmpty && !_hasCompleteCode
           ? '${TravelInviteSearchModel.inviteCodeLength}자리 모두 입력해주세요.'
           : null;
@@ -97,6 +104,8 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
       _focusNode.unfocus();
       setState(() {
         _travel = travel;
+        _joinErrorMessage = null;
+        _isJoinBlocked = false;
         _errorMessage = switch (travel.status) {
           TravelInviteSearchStatus.joinable => null,
           TravelInviteSearchStatus.alreadyJoined => '이미 참여중인 여행입니다.',
@@ -137,8 +146,8 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
     } on ApiException catch (error) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = error.message;
-        _showErrorBorder = true;
+        _joinErrorMessage = error.message;
+        _isJoinBlocked = _isClientError(error);
       });
     } finally {
       _setJoining(false);
@@ -189,10 +198,28 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
                   _horizontalPadding,
                   AppDimensions.screenBottomPadding,
                 ),
-                child: AppButton(
-                  text: '다음',
-                  isEnabled: _canSubmit,
-                  onPressed: _handleSubmit,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_joinErrorMessage case final message?) ...[
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          message,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.error,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: _joinErrorToButtonGap),
+                    ],
+                    AppButton(
+                      text: '다음',
+                      isEnabled: _canSubmit,
+                      onPressed: _handleSubmit,
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -201,6 +228,11 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
       ),
     );
   }
+}
+
+bool _isClientError(ApiException error) {
+  final statusCode = error.statusCode;
+  return statusCode != null && statusCode >= 400 && statusCode < 500;
 }
 
 @Preview(group: 'haerim', name: 'Invite Code Screen', size: Size(393, 852))
