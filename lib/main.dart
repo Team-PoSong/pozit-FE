@@ -7,7 +7,6 @@ import 'package:pozit/core/design_system/app_colors.dart';
 import 'package:pozit/core/network/dio_client.dart';
 import 'package:pozit/data/datasources/auth/auth_token_storage.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
-import 'package:pozit/screens/travel_detail/travel_detail_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +47,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.white,
         fontFamily: 'Pretendard',
       ),
-      home: const TravelDetailPage(travelId: 1),
+      home: const AuthGate(),
     );
   }
 }
