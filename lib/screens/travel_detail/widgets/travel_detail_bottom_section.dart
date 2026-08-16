@@ -44,6 +44,7 @@ class TravelDetailBottomSection extends StatelessWidget {
     this.onCameraTap,
     this.memberThumbnails = const {},
     this.isCameraThumbnailPending = false,
+    this.showSaveLogButton = true,
   });
 
   final AppTravelStatus status;
@@ -62,6 +63,7 @@ class TravelDetailBottomSection extends StatelessWidget {
   final Map<int, String> memberThumbnails;
 
   final bool isCameraThumbnailPending;
+  final bool showSaveLogButton;
 
   @override
   Widget build(BuildContext context) {
@@ -133,8 +135,10 @@ class TravelDetailBottomSection extends StatelessWidget {
                   memberThumbnails: memberThumbnails,
                 ),
               ),
-              const SizedBox(height: _kPosingToButtonGap),
-              AppButton(text: '여행 로그 저장하기', onPressed: onSaveLogTap),
+              if (showSaveLogButton) ...[
+                const SizedBox(height: _kPosingToButtonGap),
+                AppButton(text: '여행 로그 저장하기', onPressed: onSaveLogTap),
+              ],
             ],
           ),
         );

@@ -11,12 +11,14 @@ import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/location/course_visiting.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/datasources/local/travel_detail_guide_storage.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/models/travel/travel_member_model.dart';
 import 'widgets/travel_detail_bottom_section.dart';
 import 'widgets/travel_detail_guide_overlay.dart';
+import 'widgets/travel_detail_public_actions.dart';
 import 'widgets/travel_detail_top_bar.dart';
 import 'widgets/travel_info_card.dart';
 import 'widgets/travel_status.dart';
@@ -28,7 +30,6 @@ const double _kTopBarToInfoCardGap = 30.0;
 const double _kPhotoToDateSelectGap = 17.0;
 const double _kDateSelectToMapCardGap = 10.0;
 const double _kMapCardToStatusGap = 8.0;
-
 const double _kSwipeVelocityThreshold = 200.0;
 
 class TravelDetailScreen extends StatefulWidget {
@@ -39,6 +40,9 @@ class TravelDetailScreen extends StatefulWidget {
     required this.status,
     required this.isLeader,
     this.isPublic = true,
+    this.isMyTravel = true,
+    this.authorName = '',
+    this.isFavorite = false,
     this.courses = const [],
     this.members = const [],
     this.backgroundImage = const AssetImage(AppImages.travelMockup),
@@ -54,6 +58,9 @@ class TravelDetailScreen extends StatefulWidget {
     this.onDayChanged,
     this.onSaveLogTap,
     this.onCameraTap,
+    this.onFavoriteChanged,
+    this.onFavoriteToggle,
+    this.onFollowCourseTap,
     this.localThumbnails = const {},
     this.pendingThumbnailSpotIds = const {},
     this.myUserId,
@@ -66,6 +73,9 @@ class TravelDetailScreen extends StatefulWidget {
 
   final bool isLeader;
   final bool isPublic;
+  final bool isMyTravel;
+  final String authorName;
+  final bool isFavorite;
 
   final List<TravelCourseModel> courses;
 
@@ -86,6 +96,9 @@ class TravelDetailScreen extends StatefulWidget {
   final VoidCallback? onSaveLogTap;
 
   final ValueChanged<int>? onCameraTap;
+  final ValueChanged<bool>? onFavoriteChanged;
+  final Future<void> Function(bool isFavorite)? onFavoriteToggle;
+  final VoidCallback? onFollowCourseTap;
 
   final Map<int, String> localThumbnails;
 
@@ -109,6 +122,8 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   final GlobalKey _cameraKey = GlobalKey();
 
   bool _showGuide = false;
+  late bool _isFavorite = widget.isFavorite;
+  bool _isFavoriteUpdating = false;
 
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionSubscription;
@@ -125,6 +140,18 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   @override
   void didUpdateWidget(covariant TravelDetailScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isFavorite != widget.isFavorite) {
+      _isFavorite = widget.isFavorite;
+    }
+    if (oldWidget.isMyTravel != widget.isMyTravel) {
+      if (widget.isMyTravel && widget.status == AppTravelStatus.inProgress) {
+        _startLocationTracking();
+      } else {
+        _positionSubscription?.cancel();
+        _positionSubscription = null;
+        _currentLocation = null;
+      }
+    }
     if (oldWidget.status == widget.status) return;
 
     if (widget.status == AppTravelStatus.inProgress) {
@@ -143,6 +170,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   }
 
   Future<void> _maybeShowGuide() async {
+    if (!widget.isMyTravel) return;
     if (widget.status == AppTravelStatus.completed) return;
     final dismissed = await widget.guideStorage.isDismissed(widget.status);
     if (!mounted || dismissed) return;
@@ -160,19 +188,25 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   }
 
   bool get _shouldTrackLocation =>
-      mounted && widget.status == AppTravelStatus.inProgress;
+      mounted &&
+      widget.isMyTravel &&
+      widget.status == AppTravelStatus.inProgress;
 
   Future<void> _startLocationTracking() async {
+    if (!_shouldTrackLocation) return;
     final hasPermission = await _ensureLocationPermission();
     if (!hasPermission || !_shouldTrackLocation) return;
 
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       if (_shouldTrackLocation) {
         setState(
-          () => _currentLocation = LatLng(position.latitude, position.longitude),
+          () =>
+              _currentLocation = LatLng(position.latitude, position.longitude),
         );
       }
     } catch (_) {}
@@ -180,17 +214,21 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     if (!_shouldTrackLocation) return;
 
     _positionSubscription?.cancel();
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 5,
-      ),
-    ).listen((position) {
-      if (!mounted) return;
-      setState(
-        () => _currentLocation = LatLng(position.latitude, position.longitude),
-      );
-    });
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 5,
+          ),
+        ).listen((position) {
+          if (!mounted) return;
+          setState(
+            () => _currentLocation = LatLng(
+              position.latitude,
+              position.longitude,
+            ),
+          );
+        });
   }
 
   void _hideGuide() {
@@ -200,6 +238,14 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   void _dismissGuideForever() {
     _hideGuide();
     widget.guideStorage.markDismissed(widget.status);
+  }
+
+  void _handleBack() {
+    if (widget.onBackTap case final callback?) {
+      callback();
+      return;
+    }
+    Navigator.of(context).maybePop();
   }
 
   int get _dayCount => widget.info.totalDays;
@@ -275,7 +321,9 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
           label: spot.name,
           status: switch (spot.status) {
             'visited' => MapMarkerStatus.visited,
-            _ when allowVisiting && nearbySpotIds.contains(spot.touristSpotId) =>
+            _
+                when allowVisiting &&
+                    nearbySpotIds.contains(spot.touristSpotId) =>
               MapMarkerStatus.visiting,
             _ => MapMarkerStatus.notVisited,
           },
@@ -301,17 +349,11 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     final velocity = details.primaryVelocity ?? 0;
     if (velocity <= -_kSwipeVelocityThreshold) {
       setState(() {
-        _selectedSpotIndex = (_selectedSpotIndex + 1).clamp(
-          0,
-          spotCount - 1,
-        );
+        _selectedSpotIndex = (_selectedSpotIndex + 1).clamp(0, spotCount - 1);
       });
     } else if (velocity >= _kSwipeVelocityThreshold) {
       setState(() {
-        _selectedSpotIndex = (_selectedSpotIndex - 1).clamp(
-          0,
-          spotCount - 1,
-        );
+        _selectedSpotIndex = (_selectedSpotIndex - 1).clamp(0, spotCount - 1);
       });
     }
   }
@@ -346,6 +388,14 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   Widget _buildScaffold(int spotPageCount, int spotPageIndex) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      bottomNavigationBar: widget.isMyTravel
+          ? null
+          : TravelDetailPublicActions(
+              authorName: widget.authorName,
+              isFavorite: _isFavorite,
+              onFavoriteTap: _isFavoriteUpdating ? null : _toggleFavorite,
+              onFollowCourseTap: widget.onFollowCourseTap,
+            ),
 
       body: SafeArea(
         top: false,
@@ -371,11 +421,12 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                             title: widget.title,
                             showLock: !widget.isPublic,
                             showSettingsButton: true,
+                            isSettingsEnabled: widget.isMyTravel,
                             travelStatus: widget.status,
                             isLeader: widget.isLeader,
                             iconColor: AppColors.white,
                             textColor: AppColors.white,
-                            onBackTap: widget.onBackTap,
+                            onBackTap: _handleBack,
                             onSettingsTap: widget.onSettingsTap,
                             onCourseEditTap: widget.onCourseEditTap,
                             onMemberTap: widget.onMemberTap,
@@ -456,12 +507,15 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                           courseTransitionKey: '$_selectedDay-$spotPageIndex',
                           isCameraReady: _isCameraReady,
                           memberThumbnails: _focusedSpotMemberThumbnails,
-                          isCameraThumbnailPending: _isFocusedSpotThumbnailPending,
-                          onCameraTap: _activeCameraSpot != null
+                          isCameraThumbnailPending:
+                              _isFocusedSpotThumbnailPending,
+                          onCameraTap:
+                              widget.isMyTravel && _activeCameraSpot != null
                               ? () => widget.onCameraTap?.call(
                                   _activeCameraSpot!.courseSpotId,
                                 )
                               : null,
+                          showSaveLogButton: widget.isMyTravel,
                         ),
                       ],
                     ),
@@ -473,6 +527,27 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _toggleFavorite() async {
+    final next = !_isFavorite;
+    setState(() => _isFavoriteUpdating = true);
+    try {
+      await widget.onFavoriteToggle?.call(next);
+      if (!mounted) return;
+      setState(() => _isFavorite = next);
+      widget.onFavoriteChanged?.call(next);
+    } catch (error) {
+      if (!mounted) return;
+      final message = error is ApiException
+          ? error.message
+          : '찜 상태를 변경하지 못했습니다.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) setState(() => _isFavoriteUpdating = false);
+    }
   }
 }
 
@@ -583,7 +658,17 @@ List<TravelCourseModel> _previewCourses() {
   ];
 }
 
-@Preview(group: 'travel_detail', name: 'TravelDetailScreen - 여행 전', size: Size(390, 844))
+const List<TravelMemberModel> _previewMembers = [
+  TravelMemberModel(userId: 1, nickname: '민서', isLeader: true),
+  TravelMemberModel(userId: 2, nickname: '윤지', isLeader: false),
+  TravelMemberModel(userId: 3, nickname: '해림', isLeader: false),
+];
+
+@Preview(
+  group: 'travel_detail',
+  name: 'TravelDetailScreen - 여행 전',
+  size: Size(390, 844),
+)
 Widget travelDetailScreenUpcomingPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -597,7 +682,11 @@ Widget travelDetailScreenUpcomingPreview() {
   );
 }
 
-@Preview(group: 'travel_detail', name: 'TravelDetailScreen - 여행 중', size: Size(390, 844))
+@Preview(
+  group: 'travel_detail',
+  name: 'TravelDetailScreen - 여행 중',
+  size: Size(390, 844),
+)
 Widget travelDetailScreenInProgressPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -611,7 +700,11 @@ Widget travelDetailScreenInProgressPreview() {
   );
 }
 
-@Preview(group: 'travel_detail', name: 'TravelDetailScreen - 여행 후', size: Size(390, 844))
+@Preview(
+  group: 'travel_detail',
+  name: 'TravelDetailScreen - 여행 후',
+  size: Size(390, 844),
+)
 Widget travelDetailScreenCompletedPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -624,3 +717,24 @@ Widget travelDetailScreenCompletedPreview() {
     ),
   );
 }
+
+@Preview(group: 'haerim', name: '공개 여행 상세', size: Size(390, 844))
+Widget publicTravelDetailScreenPreview() {
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: TravelDetailScreen(
+      title: '경주 여행',
+      info: _previewInfo(),
+      status: AppTravelStatus.completed,
+      isLeader: false,
+      isMyTravel: false,
+      authorName: '윤지',
+      isFavorite: true,
+      courses: _previewCourses(),
+      members: _previewMembers,
+      onFollowCourseTap: _ignoreTap,
+    ),
+  );
+}
+
+void _ignoreTap() {}
