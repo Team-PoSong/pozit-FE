@@ -41,6 +41,7 @@ class _LikesScreenState extends State<LikesScreen> {
   List<LikedTravelModel>? _travels;
   Object? _error;
   final Set<int> _pendingTravelIds = {};
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -56,19 +57,21 @@ class _LikesScreenState extends State<LikesScreen> {
     super.didUpdateWidget(oldWidget);
     if (widget.initialTravels != null &&
         !listEquals(oldWidget.initialTravels, widget.initialTravels)) {
+      _loadGeneration++;
       _error = null;
       _travels = List.of(widget.initialTravels!);
     }
   }
 
   Future<void> _loadLikes() async {
+    final generation = ++_loadGeneration;
     setState(() => _error = null);
     try {
       final travels = await widget.repository.getLikes();
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() => _travels = travels);
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() => _error = error);
     }
   }
