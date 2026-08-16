@@ -420,8 +420,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                           TravelDetailTopBar(
                             title: widget.title,
                             showLock: !widget.isPublic,
-                            showSettingsButton: true,
-                            isSettingsEnabled: widget.isMyTravel,
+                            showSettingsButton: widget.isMyTravel,
                             travelStatus: widget.status,
                             isLeader: widget.isLeader,
                             iconColor: AppColors.white,
