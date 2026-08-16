@@ -32,10 +32,9 @@ class UserDatasource {
     String? appleAuthorizationCode,
     String? applePlatform,
   }) {
-    assert(
-      (appleAuthorizationCode == null) == (applePlatform == null),
-      'Apple 탈퇴 인증 코드와 플랫폼은 함께 전달해야 합니다.',
-    );
+    if ((appleAuthorizationCode == null) != (applePlatform == null)) {
+      throw ArgumentError('Apple 탈퇴 인증 코드와 플랫폼은 함께 전달해야 합니다.');
+    }
     final isAppleWithdrawal =
         appleAuthorizationCode != null && applePlatform != null;
     return DioClient.instance.delete(

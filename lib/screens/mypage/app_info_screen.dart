@@ -38,6 +38,7 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
   SupportInfoModel? _info;
   String? _version;
   Object? _error;
+  bool _isLoadingInfo = false;
 
   @override
   void initState() {
@@ -60,6 +61,8 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
   }
 
   Future<void> _loadInfo() async {
+    if (_isLoadingInfo) return;
+    _isLoadingInfo = true;
     setState(() => _error = null);
     try {
       final info = await widget.repository.getInfo();
@@ -68,6 +71,8 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = error);
+    } finally {
+      _isLoadingInfo = false;
     }
   }
 
