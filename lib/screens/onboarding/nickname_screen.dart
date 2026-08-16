@@ -8,8 +8,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/network/api_exception.dart';
-
-enum NicknameValidationState { idle, available, duplicate, error }
+import '../../data/models/user/nickname_validation_model.dart';
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({super.key, this.onNext});
@@ -51,11 +50,16 @@ class _NicknameScreenState extends State<NicknameScreen> {
       await widget.onNext?.call(_nicknameController.text.trim());
     } catch (error) {
       if (!mounted) return;
-      setState(() {
-        _validationState = error is ApiException && error.code == 'USER400_1'
-            ? NicknameValidationState.duplicate
-            : NicknameValidationState.error;
-      });
+      if (error is ApiException && error.code == 'USER400_1') {
+        setState(() => _validationState = NicknameValidationState.duplicate);
+      } else {
+        final message = error is ApiException
+            ? error.message
+            : '닉네임을 설정하지 못했습니다.';
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -105,7 +109,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
               const SizedBox(height: 4),
               _NicknameStatus(
                 state: _validationState,
-                currentLength: _nicknameController.text.length,
+                currentLength: _nicknameController.text.trim().length,
               ),
               const Spacer(),
               AppButton(

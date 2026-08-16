@@ -15,7 +15,7 @@ class LoginTokenModel {
       expiresIn: json['expiresIn'] as int,
       userId: json['userId'] as int,
       nickname: json['nickname'] as String,
-      isNewUser: json['isNewUser'] as bool,
+      isNewUser: json['isNewUser'] as bool? ?? false,
     );
   }
 
