@@ -56,6 +56,7 @@ class _LikesScreenState extends State<LikesScreen> {
     super.didUpdateWidget(oldWidget);
     if (widget.initialTravels != null &&
         !listEquals(oldWidget.initialTravels, widget.initialTravels)) {
+      _error = null;
       _travels = List.of(widget.initialTravels!);
     }
   }

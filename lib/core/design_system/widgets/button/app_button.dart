@@ -125,6 +125,7 @@ class AppFavoriteButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppButton(
       text: '찜하기',
+      isEnabled: onPressed != null,
       style: AppButtonStyle.tonal,
       backgroundColor: isFavorite ? AppColors.gray3 : AppColors.purple1,
       contentColor: isFavorite ? AppColors.gray5 : AppColors.purple3,
