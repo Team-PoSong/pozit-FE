@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_dimensions.dart';
-import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
+import '../../core/design_system/widgets/app_retry_error_view.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/like/liked_travel_model.dart';
 import '../../data/repositories/like/like_repository.dart';
@@ -13,7 +12,6 @@ import '../travel_detail/public_travel_detail_page.dart';
 import 'likes_content.dart';
 
 const double _kTopOffset = 4.0;
-const double _kErrorGap = 16.0;
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({
@@ -165,7 +163,12 @@ class _LikesScreenState extends State<LikesScreen> {
       final message = error is ApiException
           ? error.message
           : '찜 목록을 불러오지 못했습니다.';
-      return _LikesError(message: message, onRetry: _loadLikes);
+      return AppRetryErrorView(
+        message: message,
+        onRetry: _loadLikes,
+        retrySemanticLabel: '찜 목록 다시 불러오기',
+        isRetryUnderlined: true,
+      );
     }
     if (_travels case final travels?) {
       return LikesContent(
@@ -177,53 +180,6 @@ class _LikesScreenState extends State<LikesScreen> {
     }
     return const Center(
       child: CircularProgressIndicator(color: AppColors.purple3),
-    );
-  }
-}
-
-class _LikesError extends StatelessWidget {
-  const _LikesError({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.body.copyWith(color: AppColors.gray5),
-          ),
-          const SizedBox(height: _kErrorGap),
-          Semantics(
-            button: true,
-            label: '찜 목록 다시 불러오기',
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onRetry,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minWidth: AppDimensions.minimumTapTargetSize,
-                  minHeight: AppDimensions.minimumTapTargetSize,
-                ),
-                child: Center(
-                  child: Text(
-                    '다시 시도',
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.text,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

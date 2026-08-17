@@ -12,12 +12,14 @@ class AppRetryErrorView extends StatelessWidget {
     required this.onRetry,
     required this.retrySemanticLabel,
     this.retryLabel = '다시 시도',
+    this.isRetryUnderlined = false,
   });
 
   final String message;
   final VoidCallback onRetry;
   final String retrySemanticLabel;
   final String retryLabel;
+  final bool isRetryUnderlined;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,12 @@ class AppRetryErrorView extends StatelessWidget {
                 child: Center(
                   child: Text(
                     retryLabel,
-                    style: AppTextStyles.body.copyWith(color: AppColors.text),
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.text,
+                      decoration: isRetryUnderlined
+                          ? TextDecoration.underline
+                          : TextDecoration.none,
+                    ),
                   ),
                 ),
               ),

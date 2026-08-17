@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_images.dart';
-import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
+import '../../core/design_system/widgets/app_retry_error_view.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/travel/public_travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
@@ -13,7 +12,6 @@ import '../../data/repositories/travel/public_travel_repository.dart';
 import 'travel_detail_screen.dart';
 
 const double _kTopOffset = 4.0;
-const double _kErrorGap = 16.0;
 
 enum _PublicDetailLoadStatus { loading, error, loaded }
 
@@ -78,17 +76,28 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
   @override
   Widget build(BuildContext context) {
     return switch (_status) {
-      _PublicDetailLoadStatus.loading => const Scaffold(
+      _PublicDetailLoadStatus.loading => Scaffold(
         backgroundColor: AppColors.white,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.purple3),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(top: _kTopOffset),
+            child: Column(
+              children: [
+                AppDetailHeader(
+                  title: '여행 상세',
+                  onBack: () => Navigator.of(context).maybePop(),
+                ),
+                const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.purple3),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-      _PublicDetailLoadStatus.error => _PublicDetailError(
-        message: _errorMessage,
-        onBack: () => Navigator.of(context).maybePop(),
-        onRetry: _load,
-      ),
+      _PublicDetailLoadStatus.error => _buildError(),
       _PublicDetailLoadStatus.loaded => _buildDetail(_detail!),
     };
   }
@@ -125,6 +134,33 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
       onFollowCourseTap: widget.onFollowCourseTap,
     );
   }
+
+  Widget _buildError() {
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(top: _kTopOffset),
+          child: Column(
+            children: [
+              AppDetailHeader(
+                title: '여행 상세',
+                onBack: () => Navigator.of(context).maybePop(),
+              ),
+              Expanded(
+                child: AppRetryErrorView(
+                  message: _errorMessage,
+                  onRetry: _load,
+                  retrySemanticLabel: '공개 여행 다시 불러오기',
+                  isRetryUnderlined: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 int _visitedPlaceCount(PublicTravelDetailModel detail) {
@@ -140,73 +176,4 @@ ImageProvider<Object> _backgroundImage(String url) {
     return NetworkImage(url);
   }
   return const AssetImage(AppImages.travelMockup);
-}
-
-class _PublicDetailError extends StatelessWidget {
-  const _PublicDetailError({
-    required this.message,
-    required this.onBack,
-    required this.onRetry,
-  });
-
-  final String message;
-  final VoidCallback onBack;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(top: _kTopOffset),
-          child: Column(
-            children: [
-              AppDetailHeader(title: '여행 상세', onBack: onBack),
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.body.copyWith(
-                          color: AppColors.gray5,
-                        ),
-                      ),
-                      const SizedBox(height: _kErrorGap),
-                      Semantics(
-                        button: true,
-                        label: '공개 여행 다시 불러오기',
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: onRetry,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              minWidth: AppDimensions.minimumTapTargetSize,
-                              minHeight: AppDimensions.minimumTapTargetSize,
-                            ),
-                            child: Center(
-                              child: Text(
-                                '다시 시도',
-                                style: AppTextStyles.body.copyWith(
-                                  color: AppColors.text,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
