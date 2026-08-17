@@ -11,7 +11,11 @@ class AuthRepository {
   final AuthTokenStorage _tokenStorage;
 
   Future<LoginTokenModel> loginWithApple(AppleLoginRequest request) async {
-    return _login(path: '/api/auth/apple', data: request.toJson());
+    final deviceId = await _tokenStorage.readOrCreateDeviceId();
+    return _login(
+      path: '/api/auth/apple',
+      data: {...request.toJson(), 'deviceId': deviceId},
+    );
   }
 
   Future<LoginTokenModel> loginWithKakaoAccessToken(
@@ -28,11 +32,7 @@ class AuthRepository {
     required Map<String, dynamic> data,
   }) async {
     try {
-      final deviceId = await _tokenStorage.readOrCreateDeviceId();
-      final result = await DioClient.instance.post(
-        path,
-        data: {...data, 'deviceId': deviceId},
-      );
+      final result = await DioClient.instance.post(path, data: data);
 
       if (result is! Map<String, dynamic>) {
         throw const ApiException('로그인 응답 형식이 올바르지 않습니다.');
