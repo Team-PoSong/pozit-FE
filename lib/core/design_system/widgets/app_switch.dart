@@ -31,12 +31,12 @@ class _AppSwitchState extends State<AppSwitch> {
 
   bool _shouldAnimate = false;
 
-  bool get _isOn => widget.value && widget.isEnabled;
+  bool get _isOn => widget.value;
 
   @override
   void didUpdateWidget(covariant AppSwitch oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final wasOn = oldWidget.value && oldWidget.isEnabled;
+    final wasOn = oldWidget.value;
     _shouldAnimate = wasOn != _isOn;
   }
 
