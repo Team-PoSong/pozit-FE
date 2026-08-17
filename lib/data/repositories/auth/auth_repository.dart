@@ -11,7 +11,9 @@ class AuthRepository {
   final AuthTokenStorage _tokenStorage;
 
   Future<void> logout() async {
-    await DioClient.instance.post('/api/auth/logout');
+    try {
+      await DioClient.instance.post('/api/auth/logout');
+    } catch (_) {}
     await _tokenStorage.clear();
   }
 
