@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
@@ -10,7 +14,12 @@ import '../../core/design_system/widgets/app_bottom_gradient.dart';
 import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
+import '../../core/location/course_visiting.dart';
+import '../../data/models/travel/active_course_spot_model.dart';
+import '../../data/repositories/pozing/pozing_repository.dart';
+import '../../data/repositories/travel/travel_repository.dart';
 import '../explore/explore_content.dart';
+import '../pozing_camera/pozing_camera_screen.dart';
 import 'widgets/travel_completion_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -37,6 +46,8 @@ class HomeScreen extends StatefulWidget {
     this.initialTab = AppNavigationTab.travel,
     this.isCameraReady = false,
     this.assetPackage,
+    this.travelRepository = const TravelRepository(),
+    this.pozingRepository = const PozingRepository(),
   });
 
   final int incompleteCount;
@@ -58,8 +69,13 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onFilterResetTap;
   final List<ExploreTravelItem> exploreTravels;
   final AppNavigationTab initialTab;
+
+  /// 카메라 버튼 활성화를 강제로 켜고 싶을 때(프리뷰/테스트) 사용한다.
+  /// 실제 실행 중에는 '방문 중' 자동 판정 결과와 OR 조건으로 합쳐진다.
   final bool isCameraReady;
   final String? assetPackage;
+  final TravelRepository travelRepository;
+  final PozingRepository pozingRepository;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -74,11 +90,16 @@ class _HomeScreenState extends State<HomeScreen> {
   late AppNavigationTab _selectedTab;
   bool _isTravelMenuOpen = false;
 
+  List<ActiveCourseSpotModel> _activeSpots = const [];
+  LatLng? _currentLocation;
+  StreamSubscription<Position>? _positionSubscription;
+
   @override
   void initState() {
     super.initState();
     _selectedTab = widget.initialTab;
     _pageController = PageController(initialPage: _selectedTab.index);
+    _loadActiveSpots();
   }
 
   @override
@@ -92,7 +113,83 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _positionSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _loadActiveSpots() async {
+    try {
+      final spots = await widget.travelRepository.getActiveCourseSpots();
+      if (!mounted) return;
+      setState(() => _activeSpots = spots);
+      if (spots.isNotEmpty) _startLocationTracking();
+    } catch (_) {
+      // 방문 중 스팟을 불러오지 못해도 홈 화면은 정상적으로 보여준다.
+    }
+  }
+
+  Future<bool> _ensureLocationPermission() async {
+    if (!await Geolocator.isLocationServiceEnabled()) return false;
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+  }
+
+  Future<void> _startLocationTracking() async {
+    final hasPermission = await _ensureLocationPermission();
+    if (!hasPermission || !mounted) return;
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+      if (mounted) {
+        setState(
+          () => _currentLocation = LatLng(position.latitude, position.longitude),
+        );
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+
+    _positionSubscription?.cancel();
+    _positionSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 5,
+      ),
+    ).listen((position) {
+      if (!mounted) return;
+      setState(
+        () => _currentLocation = LatLng(position.latitude, position.longitude),
+      );
+    });
+  }
+
+  ActiveCourseSpotModel? get _nearbyActiveSpot =>
+      nearbyActiveCourseSpot(_currentLocation, _activeSpots);
+
+  bool get _isVisitingCameraReady => _nearbyActiveSpot != null;
+
+  VoidCallback? get _effectivePosongTap {
+    if (widget.onPosongTap != null) return widget.onPosongTap;
+    final spot = _nearbyActiveSpot;
+    if (spot == null) return null;
+    return () => _openPozingCameraScreen(spot);
+  }
+
+  Future<void> _openPozingCameraScreen(ActiveCourseSpotModel spot) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PozingCameraScreen(
+          courseSpotId: spot.courseSpotId,
+          repository: widget.pozingRepository,
+        ),
+      ),
+    );
   }
 
   void _toggleTravelMenu() {
@@ -158,8 +255,8 @@ class _HomeScreenState extends State<HomeScreen> {
           AppNavigationBar(
             selectedTab: _selectedTab,
             onChanged: _handleNavigationChanged,
-            onPosongTap: widget.onPosongTap,
-            isCameraReady: widget.isCameraReady,
+            onPosongTap: _effectivePosongTap,
+            isCameraReady: widget.isCameraReady || _isVisitingCameraReady,
             assetPackage: widget.assetPackage,
           ),
         ],

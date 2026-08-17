@@ -1,18 +1,34 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
+import '../../data/models/travel/active_course_spot_model.dart';
 import '../../data/models/travel/travel_course_model.dart';
 
 const double kCourseVisitingRadiusMeters = 100.0;
 
-bool isWithinCourseVisitingRadius(LatLng location, CourseSpotModel spot) {
+bool _isWithinRadius(LatLng location, double latitude, double longitude) {
   final distanceMeters = Geolocator.distanceBetween(
     location.latitude,
     location.longitude,
-    spot.latitude,
-    spot.longitude,
+    latitude,
+    longitude,
   );
   return distanceMeters <= kCourseVisitingRadiusMeters;
+}
+
+bool isWithinCourseVisitingRadius(LatLng location, CourseSpotModel spot) {
+  return _isWithinRadius(location, spot.latitude, spot.longitude);
+}
+
+ActiveCourseSpotModel? nearbyActiveCourseSpot(
+  LatLng? location,
+  List<ActiveCourseSpotModel> spots,
+) {
+  if (location == null) return null;
+  for (final spot in spots) {
+    if (_isWithinRadius(location, spot.latitude, spot.longitude)) return spot;
+  }
+  return null;
 }
 
 Set<int> nearbyTouristSpotIds(
