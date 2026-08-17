@@ -4,7 +4,6 @@ import 'package:flutter/widget_previews.dart';
 import '../app_colors.dart';
 import '../app_dimensions.dart';
 
-/// on/off 스위치
 class AppSwitch extends StatefulWidget {
   const AppSwitch({
     super.key,
@@ -88,7 +87,6 @@ class _AppSwitchState extends State<AppSwitch> {
   }
 }
 
-/// 누를 때마다 켜짐/꺼짐이 부드럽게 넘어가는 걸 확인하는 데모.
 class _SwitchDemo extends StatefulWidget {
   const _SwitchDemo();
 

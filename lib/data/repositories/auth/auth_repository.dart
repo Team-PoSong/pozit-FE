@@ -16,7 +16,11 @@ class AuthRepository {
   }
 
   Future<LoginTokenModel> loginWithApple(AppleLoginRequest request) async {
-    return _login(path: '/api/auth/apple', data: request.toJson());
+    final deviceId = await _tokenStorage.readOrCreateDeviceId();
+    return _login(
+      path: '/api/auth/apple',
+      data: {...request.toJson(), 'deviceId': deviceId},
+    );
   }
 
   Future<LoginTokenModel> loginWithKakaoAccessToken(
@@ -43,6 +47,7 @@ class AuthRepository {
       await _tokenStorage.save(
         accessToken: token.accessToken,
         tokenType: token.tokenType,
+        userId: token.userId,
       );
       return token;
     } on ApiException {

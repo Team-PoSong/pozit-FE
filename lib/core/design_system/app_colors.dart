@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// 앱 전역에서 사용하는 컬러 상수 정의
 class AppColors {
   const AppColors._();
 
@@ -29,6 +28,7 @@ class AppColors {
   static const Color error = Color(0xFFFF0000);
   static const Color white = Color(0xFFFFFFFF);
   static const Color white20 = Color(0x33FFFFFF);
+  static const Color dim30 = Color(0x4D000000);
   static const Color text = Color(0xFF161424);
   static const Color textSub = Color(0xFF6B7280);
   static const Color shadow = Color(0x19000000);
