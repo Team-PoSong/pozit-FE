@@ -70,14 +70,6 @@ class DioClient {
     return _send(() => _dio.delete(path, data: data));
   }
 
-  Future<dynamic> patch(String path, {Object? data}) {
-    return _send(() => _dio.patch(path, data: data));
-  }
-
-  Future<dynamic> delete(String path, {Object? data}) {
-    return _send(() => _dio.delete(path, data: data));
-  }
-
   Future<dynamic> _send(Future<Response<dynamic>> Function() request) async {
     try {
       final response = await request();
