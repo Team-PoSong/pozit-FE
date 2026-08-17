@@ -11,6 +11,7 @@ import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../explore/explore_content.dart';
+import '../invite_code/invite_code_screen.dart';
 import 'widgets/travel_completion_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -98,7 +99,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleJoinWithInviteCode() {
     _toggleTravelMenu();
-    widget.onJoinWithInviteCodeTap?.call();
+    if (widget.onJoinWithInviteCodeTap case final callback?) {
+      callback();
+      return;
+    }
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const InviteCodeScreen()));
   }
 
   void _handleNavigationChanged(AppNavigationTab tab) {
