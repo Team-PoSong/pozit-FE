@@ -27,14 +27,7 @@ class HomeScreen extends StatefulWidget {
     this.onJoinWithInviteCodeTap,
     this.onNavigationChanged,
     this.onPosongTap,
-    this.onSearchChanged,
-    this.onSearchSubmitted,
-    this.onSearchTap,
-    this.onRegionFilterTap,
-    this.onDateFilterTap,
-    this.onCategoryFilterTap,
-    this.onFilterResetTap,
-    this.exploreTravels = const [],
+    this.exploreContent = const ExploreContent(),
     this.initialTab = AppNavigationTab.travel,
     this.isCameraReady = false,
     this.assetPackage,
@@ -50,14 +43,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onJoinWithInviteCodeTap;
   final ValueChanged<AppNavigationTab>? onNavigationChanged;
   final VoidCallback? onPosongTap;
-  final ValueChanged<String>? onSearchChanged;
-  final ValueChanged<String>? onSearchSubmitted;
-  final VoidCallback? onSearchTap;
-  final VoidCallback? onRegionFilterTap;
-  final VoidCallback? onDateFilterTap;
-  final VoidCallback? onCategoryFilterTap;
-  final VoidCallback? onFilterResetTap;
-  final List<ExploreTravelItem> exploreTravels;
+  final Widget exploreContent;
   final AppNavigationTab initialTab;
   final bool isCameraReady;
   final String? assetPackage;
@@ -334,17 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  ExploreContent(
-                    travels: widget.exploreTravels,
-                    onSearchChanged: widget.onSearchChanged,
-                    onSearchSubmitted: widget.onSearchSubmitted,
-                    onSearchTap: widget.onSearchTap,
-                    onRegionFilterTap: widget.onRegionFilterTap,
-                    onDateFilterTap: widget.onDateFilterTap,
-                    onCategoryFilterTap: widget.onCategoryFilterTap,
-                    onFilterResetTap: widget.onFilterResetTap,
-                    assetPackage: widget.assetPackage,
-                  ),
+                  widget.exploreContent,
                 ],
               ),
             ),
