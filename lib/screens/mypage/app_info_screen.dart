@@ -3,10 +3,10 @@ import 'package:flutter/widget_previews.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
+import '../../core/design_system/widgets/app_retry_error_view.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/support/support_info_model.dart';
 import '../../data/repositories/support/support_repository.dart';
@@ -99,7 +99,11 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
       final message = error is ApiException
           ? error.message
           : '서비스 안내를 불러오지 못했습니다.';
-      return _AppInfoError(message: message, onRetry: _loadInfo);
+      return AppRetryErrorView(
+        message: message,
+        onRetry: _loadInfo,
+        retrySemanticLabel: '서비스 안내 다시 불러오기',
+      );
     }
 
     final info = _info;
@@ -216,50 +220,6 @@ class _AppInfoContent extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _AppInfoError extends StatelessWidget {
-  const _AppInfoError({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.body.copyWith(color: AppColors.gray5),
-          ),
-          const SizedBox(height: 16),
-          Semantics(
-            button: true,
-            label: '서비스 안내 다시 불러오기',
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onRetry,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minWidth: AppDimensions.minimumTapTargetSize,
-                  minHeight: AppDimensions.minimumTapTargetSize,
-                ),
-                child: Center(
-                  child: Text(
-                    '다시 시도',
-                    style: AppTextStyles.body.copyWith(color: AppColors.text),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

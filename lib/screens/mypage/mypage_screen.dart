@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_dimensions.dart';
-import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_confirm_dialog.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
+import '../../core/design_system/widgets/app_retry_error_view.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/datasources/auth/apple_login_service.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
@@ -59,6 +58,7 @@ class MyPageScreen extends StatefulWidget {
 class _MyPageScreenState extends State<MyPageScreen> {
   UserProfileModel? _profile;
   Object? _error;
+  bool _isLoadingProfile = false;
   bool _isAccountRequestRunning = false;
 
   @override
@@ -69,6 +69,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
   }
 
   Future<void> _loadProfile() async {
+    if (_isLoadingProfile) return;
+    _isLoadingProfile = true;
     setState(() => _error = null);
     try {
       final profile = await widget.userRepository.getMe();
@@ -77,6 +79,8 @@ class _MyPageScreenState extends State<MyPageScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = error);
+    } finally {
+      _isLoadingProfile = false;
     }
   }
 
@@ -242,7 +246,11 @@ class _MyPageScreenState extends State<MyPageScreen> {
       final message = error is ApiException
           ? error.message
           : '내 정보를 불러오지 못했습니다.';
-      return _MyPageError(message: message, onRetry: _loadProfile);
+      return AppRetryErrorView(
+        message: message,
+        onRetry: _loadProfile,
+        retrySemanticLabel: '내 정보 다시 불러오기',
+      );
     }
     if (_profile case final profile?) {
       return MyPageContent(
@@ -257,50 +265,6 @@ class _MyPageScreenState extends State<MyPageScreen> {
     }
     return const Center(
       child: CircularProgressIndicator(color: AppColors.purple3),
-    );
-  }
-}
-
-class _MyPageError extends StatelessWidget {
-  const _MyPageError({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.body.copyWith(color: AppColors.gray5),
-          ),
-          const SizedBox(height: 16),
-          Semantics(
-            button: true,
-            label: '내 정보 다시 불러오기',
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onRetry,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  minWidth: AppDimensions.minimumTapTargetSize,
-                  minHeight: AppDimensions.minimumTapTargetSize,
-                ),
-                child: Center(
-                  child: Text(
-                    '다시 시도',
-                    style: AppTextStyles.body.copyWith(color: AppColors.text),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
