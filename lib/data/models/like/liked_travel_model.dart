@@ -45,7 +45,7 @@ class LikedTravelModel {
       backgroundImageUrl: json['backgroundImageUrl'] as String? ?? '',
       completionRate: json['completionRate'] as int,
       tags: (json['tags'] as List<dynamic>? ?? const []).cast<String>(),
-      leaderNickname: json['leaderNickname'] as String,
+      leaderNickname: json['leaderNickname'] as String? ?? '',
       memberCount: json['memberCount'] as int,
       likeCount: json['likeCount'] as int,
       isLiked: json['isLiked'] as bool,
@@ -54,10 +54,8 @@ class LikedTravelModel {
 }
 
 AppTravelStatus _parseStatus(String status) {
-  return switch (status) {
-    'BEFORE' => AppTravelStatus.upcoming,
-    'IN_PROGRESS' => AppTravelStatus.inProgress,
-    'DONE' => AppTravelStatus.completed,
-    _ => throw FormatException('지원하지 않는 여행 상태입니다: $status'),
-  };
+  if (status != 'DONE') {
+    throw FormatException('찜할 수 없는 여행 상태입니다: $status');
+  }
+  return AppTravelStatus.completed;
 }

@@ -44,7 +44,7 @@ class PublicTravelDetailModel {
   final List<TravelMemberModel> members;
 
   factory PublicTravelDetailModel.fromJson(Map<String, dynamic> json) {
-    final leaderNickname = json['leaderNickname'] as String;
+    final leaderNickname = json['leaderNickname'] as String? ?? '';
     final rawCourses = (json['courses'] as List<dynamic>? ?? const [])
         .map((item) => TravelCourseModel.fromJson(item as Map<String, dynamic>))
         .toList();

@@ -27,7 +27,9 @@ class TravelDetailPublicActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = authorName.isEmpty ? '여행자' : authorName;
+    final message = authorName.isEmpty
+        ? '이 여행 코스를\n내 여행으로 가져와볼까요?'
+        : '$authorName님의 여행 코스를\n내 여행으로 가져와볼까요?';
 
     return ColoredBox(
       color: AppColors.white,
@@ -44,7 +46,7 @@ class TravelDetailPublicActions extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              '$displayName님의 여행 코스를\n내 여행으로 가져와볼까요?',
+              message,
               textAlign: TextAlign.center,
               style: AppTextStyles.body.copyWith(color: AppColors.text),
             ),

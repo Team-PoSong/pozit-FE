@@ -54,7 +54,9 @@ class LikesContent extends StatelessWidget {
           dateText: _dateText(travel.startDate, travel.endDate),
           tags: travel.tags,
           author: travel.leaderNickname,
-          participantCount: travel.memberCount > 0 ? travel.memberCount - 1 : 0,
+          participantCount: travel.memberCount > 0
+              ? travel.memberCount - 1
+              : null,
           backgroundImage: _networkImage(travel.backgroundImageUrl),
           isFavorite: travel.isLiked,
           favoriteCount: travel.likeCount,

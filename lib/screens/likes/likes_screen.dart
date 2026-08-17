@@ -53,12 +53,17 @@ class _LikesScreenState extends State<LikesScreen> {
   @override
   void didUpdateWidget(covariant LikesScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initialTravels != null &&
-        !listEquals(oldWidget.initialTravels, widget.initialTravels)) {
-      _loadGeneration++;
-      _error = null;
-      _travels = List.of(widget.initialTravels!);
+    if (listEquals(oldWidget.initialTravels, widget.initialTravels)) return;
+
+    _loadGeneration++;
+    _error = null;
+    if (widget.initialTravels case final travels?) {
+      _travels = List.of(travels);
+      return;
     }
+
+    _travels = null;
+    _loadLikes();
   }
 
   Future<void> _loadLikes() async {
