@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/network/api_exception.dart';
@@ -52,16 +53,47 @@ class PozingRepository {
     required int courseSpotId,
     required File videoFile,
   }) async {
+    final stopwatch = Stopwatch()..start();
     try {
+      debugPrint('[PozingUpload] step=presigned-url start');
       final presigned = await _getPresignedUrl(courseSpotId);
+      debugPrint(
+        '[PozingUpload] step=presigned-url ok elapsedMs=${stopwatch.elapsedMilliseconds}',
+      );
+
+      debugPrint('[PozingUpload] step=put-video start');
       await _putVideoToPresignedUrl(presigned.presignedUrl, videoFile);
-      return await _savePozing(
+      debugPrint(
+        '[PozingUpload] step=put-video ok elapsedMs=${stopwatch.elapsedMilliseconds}',
+      );
+
+      debugPrint('[PozingUpload] step=save start');
+      final result = await _savePozing(
         courseSpotId: courseSpotId,
         objectKey: presigned.objectKey,
       );
-    } on ApiException {
+      debugPrint(
+        '[PozingUpload] step=save ok elapsedMs=${stopwatch.elapsedMilliseconds}',
+      );
+      return result;
+    } on ApiException catch (error) {
+      debugPrint(
+        '[PozingUpload] failed with ApiException '
+        'elapsedMs=${stopwatch.elapsedMilliseconds} message=${error.message}',
+      );
       rethrow;
-    } catch (_) {
+    } on DioException catch (error) {
+      debugPrint(
+        '[PozingUpload] failed with raw DioException '
+        'elapsedMs=${stopwatch.elapsedMilliseconds} '
+        'type=${error.type} underlying=${error.error}',
+      );
+      throw const ApiException('포징 영상을 업로드하지 못했습니다.');
+    } catch (error) {
+      debugPrint(
+        '[PozingUpload] failed with unexpected error '
+        'elapsedMs=${stopwatch.elapsedMilliseconds} error=$error',
+      );
       throw const ApiException('포징 영상을 업로드하지 못했습니다.');
     }
   }
