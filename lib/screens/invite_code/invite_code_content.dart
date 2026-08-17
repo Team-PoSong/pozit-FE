@@ -199,15 +199,13 @@ class _InviteCodeInput extends StatelessWidget {
                 ],
                 onTap: focusAtEnd,
                 onChanged: onChanged,
-                cursorColor: AppColors.transparent,
-                style: AppTextStyles.body.copyWith(
-                  color: AppColors.transparent,
-                ),
+                cursorColor: Colors.transparent,
+                style: AppTextStyles.body.copyWith(color: Colors.transparent),
                 decoration: const InputDecoration(
                   counterText: '',
                   border: InputBorder.none,
                   filled: true,
-                  fillColor: AppColors.transparent,
+                  fillColor: Colors.transparent,
                 ),
               ),
             ),
@@ -237,7 +235,7 @@ class _InviteCodeCell extends StatelessWidget {
         ? AppColors.purple2
         : character.isNotEmpty
         ? AppColors.purple3
-        : AppColors.transparent;
+        : Colors.transparent;
     return Container(
       constraints: const BoxConstraints(minHeight: _codeCellMinHeight),
       padding: const EdgeInsets.symmetric(vertical: 23.5),
