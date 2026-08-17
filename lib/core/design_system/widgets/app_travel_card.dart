@@ -157,6 +157,20 @@ class _TravelCardThumbnail extends StatelessWidget {
 
   bool get _hasImage => image != null;
 
+  Widget _buildPlaceholder() {
+    return ColoredBox(
+      color: AppColors.gray2,
+      child: Center(
+        child: Image.asset(
+          AppImages.posongPlainMini,
+          width: 60,
+          height: 55,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
   String get _visibilityIcon {
     if (_hasImage) {
       return isPublic ? AppIcons.lockOpenWhite : AppIcons.lockClosedWhite;
@@ -173,19 +187,13 @@ class _TravelCardThumbnail extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (_hasImage)
-            Image(image: image!, fit: BoxFit.cover)
+            Image(
+              image: image!,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _buildPlaceholder(),
+            )
           else
-            ColoredBox(
-              color: AppColors.gray2,
-              child: Center(
-                child: Image.asset(
-                  AppImages.posongPlainMini,
-                  width: 60,
-                  height: 55,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
+            _buildPlaceholder(),
           if (isPozitPick)
             const Positioned(left: 10, top: 10, child: _PozitPickBadge()),
           if (isMyTravel && status == AppTravelStatus.upcoming)
