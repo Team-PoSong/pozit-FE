@@ -45,13 +45,16 @@ class _NicknameScreenState extends State<NicknameScreen> {
 
   Future<void> _submit() async {
     if (!_isAvailable || _isSubmitting) return;
+    final submittedNickname = _nicknameController.text.trim();
     setState(() => _isSubmitting = true);
     try {
-      await widget.onNext?.call(_nicknameController.text.trim());
+      await widget.onNext?.call(submittedNickname);
     } catch (error) {
       if (!mounted) return;
       if (error is ApiException && error.code == 'USER400_1') {
-        setState(() => _validationState = NicknameValidationState.duplicate);
+        if (_nicknameController.text.trim() == submittedNickname) {
+          setState(() => _validationState = NicknameValidationState.duplicate);
+        }
       } else {
         final message = error is ApiException
             ? error.message
