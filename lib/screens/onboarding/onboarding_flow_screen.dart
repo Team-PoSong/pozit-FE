@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
-import '../home/home_screen.dart';
+import '../auth/auth_gate.dart';
 import 'nickname_screen.dart';
 import 'terms_agreement_screen.dart';
 
@@ -22,8 +22,9 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
   }
 
   void _completeOnboarding() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const AuthGate()),
+      (_) => false,
     );
   }
 
