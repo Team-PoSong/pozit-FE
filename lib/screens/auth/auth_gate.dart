@@ -5,6 +5,7 @@ import '../../core/network/api_exception.dart';
 import '../../core/network/dio_client.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
 import '../home/home_screen.dart';
+import '../mypage/mypage_screen.dart';
 import 'login_screen.dart';
 
 enum _AuthGateStatus { checking, signedOut, signedIn }
@@ -114,6 +115,20 @@ class _AuthGateState extends State<AuthGate> {
     setState(() => _status = status);
   }
 
+  void _openMyPage() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => MyPageScreen(onSignedOut: _handleSignedOut),
+      ),
+    );
+  }
+
+  void _handleSignedOut() {
+    if (!mounted) return;
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    _setStatus(_AuthGateStatus.signedOut);
+  }
+
   @override
   Widget build(BuildContext context) {
     return switch (_status) {
@@ -122,7 +137,7 @@ class _AuthGateState extends State<AuthGate> {
         body: Center(child: CircularProgressIndicator()),
       ),
       _AuthGateStatus.signedOut => const LoginScreen(),
-      _AuthGateStatus.signedIn => const HomeScreen(),
+      _AuthGateStatus.signedIn => HomeScreen(onMyPageTap: _openMyPage),
     };
   }
 }
