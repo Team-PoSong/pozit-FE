@@ -45,6 +45,7 @@ class TravelDetailBottomSection extends StatelessWidget {
     this.memberThumbnails = const {},
     this.isCameraThumbnailPending = false,
     this.showSaveLogButton = true,
+    this.includeBottomSafeArea = true,
   });
 
   final AppTravelStatus status;
@@ -64,6 +65,12 @@ class TravelDetailBottomSection extends StatelessWidget {
 
   final bool isCameraThumbnailPending;
   final bool showSaveLogButton;
+  final bool includeBottomSafeArea;
+
+  double _bottomPadding(BuildContext context, double gap) {
+    return gap +
+        (includeBottomSafeArea ? MediaQuery.viewPaddingOf(context).bottom : 0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +81,7 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            _kBottomSafeGap + MediaQuery.of(context).padding.bottom,
+            _bottomPadding(context, _kBottomSafeGap),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -101,7 +108,7 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            _kInProgressBottomGap + MediaQuery.of(context).padding.bottom,
+            _bottomPadding(context, _kInProgressBottomGap),
           ),
           child: _CourseSwipeCue(
             courseKey: courseTransitionKey,
@@ -122,7 +129,7 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            _kBottomSafeGap + MediaQuery.of(context).padding.bottom,
+            _bottomPadding(context, _kBottomSafeGap),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

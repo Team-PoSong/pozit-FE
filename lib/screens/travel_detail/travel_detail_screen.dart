@@ -388,15 +388,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   Widget _buildScaffold(int spotPageCount, int spotPageIndex) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      bottomNavigationBar: widget.isMyTravel
-          ? null
-          : TravelDetailPublicActions(
-              authorName: widget.authorName,
-              isFavorite: _isFavorite,
-              onFavoriteTap: _isFavoriteUpdating ? null : _toggleFavorite,
-              onFollowCourseTap: widget.onFollowCourseTap,
-            ),
-
       body: SafeArea(
         top: false,
         bottom: false,
@@ -515,6 +506,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                                 )
                               : null,
                           showSaveLogButton: widget.isMyTravel,
+                          includeBottomSafeArea: widget.isMyTravel,
                         ),
                       ],
                     ),
@@ -522,6 +514,15 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                 ],
               ),
             ),
+            if (!widget.isMyTravel)
+              SliverToBoxAdapter(
+                child: TravelDetailPublicActions(
+                  authorName: widget.authorName,
+                  isFavorite: _isFavorite,
+                  onFavoriteTap: _isFavoriteUpdating ? null : _toggleFavorite,
+                  onFollowCourseTap: widget.onFollowCourseTap,
+                ),
+              ),
           ],
         ),
       ),
