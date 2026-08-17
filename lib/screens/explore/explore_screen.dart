@@ -60,8 +60,14 @@ class ExploreScreen extends StatelessWidget {
   final bool isCameraReady;
   final String? assetPackage;
 
+  void _handleBack(BuildContext context) {
+    onBackTap?.call();
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final exploreContent = _buildExploreContent();
     if (isTravelCreationMode) {
       return Scaffold(
         backgroundColor: AppColors.white,
@@ -72,11 +78,11 @@ class ExploreScreen extends StatelessWidget {
               children: [
                 AppDetailHeader(
                   title: '탐색',
-                  onBack: onBackTap,
+                  onBack: () => _handleBack(context),
                   assetPackage: assetPackage,
                 ),
                 const SizedBox(height: _detailHeaderToContentGap),
-                Expanded(child: _buildExploreContent()),
+                Expanded(child: exploreContent),
               ],
             ),
           ),
@@ -96,14 +102,7 @@ class ExploreScreen extends StatelessWidget {
       onJoinWithInviteCodeTap: onJoinWithInviteCodeTap,
       onNavigationChanged: onNavigationChanged,
       onPosongTap: onPosongTap,
-      onSearchChanged: onSearchChanged,
-      onSearchSubmitted: onSearchSubmitted,
-      onSearchTap: onSearchTap,
-      onRegionFilterTap: onRegionFilterTap,
-      onDateFilterTap: onDateFilterTap,
-      onCategoryFilterTap: onCategoryFilterTap,
-      onFilterResetTap: onFilterResetTap,
-      exploreTravels: travels,
+      exploreContent: exploreContent,
       isCameraReady: isCameraReady,
       assetPackage: assetPackage,
     );
