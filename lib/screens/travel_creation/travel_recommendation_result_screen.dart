@@ -183,86 +183,118 @@ class TravelRecommendationResultScreen extends StatelessWidget {
             ),
             const SizedBox(height: 40),
             Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '당신의 여행 취향을 담아\nPozit이 추천 코스를 준비했어요.',
-                      style: AppTextStyles.headline.copyWith(
-                        color: AppColors.text,
-                        height: 1.5,
-                        letterSpacing: -0.5,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '당신의 여행 취향을 담아\nPozit이 추천 코스를 준비했어요.',
+                            style: AppTextStyles.headline.copyWith(
+                              color: AppColors.text,
+                              height: 1.5,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          AppTravelCard(
+                            type: AppTravelCardType.pozitPick,
+                            title: '6월 추천, 강릉은 어때요?',
+                            location: '강원 강릉',
+                            dateText: '1박 2일',
+                            tags: const ['문화', '탐험'],
+                            author: '포송',
+                            backgroundImage: const AssetImage(
+                              AppImages.travelMockup,
+                            ),
+                            onTap: () => _openPozitPick(context),
+                          ),
+                          const SizedBox(height: 8),
+                          AppTravelCard(
+                            type: AppTravelCardType.otherTravel,
+                            title: '경주 여행',
+                            location: '경북 경주',
+                            dateText: '7/2 ~ 7/3',
+                            tags: const ['힐링', '미식'],
+                            author: '해림',
+                            participantCount: 2,
+                            favoriteCount: 14,
+                            backgroundImage: const AssetImage(
+                              AppImages.travelMockup,
+                            ),
+                            onTap: () => _openTravelDetail(
+                              context,
+                              destination: '경주',
+                              tags: const ['힐링', '미식'],
+                              authorName: '해림',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          AppTravelCard(
+                            type: AppTravelCardType.otherTravel,
+                            title: '강릉 데이트',
+                            location: '강원 강릉',
+                            dateText: '7/2 ~ 7/3',
+                            tags: const ['문화', '탐험'],
+                            author: '민서',
+                            participantCount: 2,
+                            favoriteCount: 12,
+                            backgroundImage: const AssetImage(
+                              AppImages.travelMockup,
+                            ),
+                            onTap: () => _openTravelDetail(
+                              context,
+                              destination: '강릉',
+                              tags: const ['문화', '탐험'],
+                              authorName: '민서',
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: GestureDetector(
+                              onTap: () => _browseOtherCourses(context),
+                              child: Text(
+                                '다른 사람 코스 둘러보기',
+                                style: AppTextStyles.body.copyWith(
+                                  color: AppColors.gray5,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: AppColors.gray5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    AppTravelCard(
-                      type: AppTravelCardType.pozitPick,
-                      title: '6월 추천, 강릉은 어때요?',
-                      location: '강원 강릉',
-                      dateText: '1박 2일',
-                      tags: const ['문화', '탐험'],
-                      author: '포송',
-                      backgroundImage: const AssetImage(AppImages.travelMockup),
-                      onTap: () => _openPozitPick(context),
-                    ),
-                    const SizedBox(height: 8),
-                    AppTravelCard(
-                      type: AppTravelCardType.otherTravel,
-                      title: '경주 여행',
-                      location: '경북 경주',
-                      dateText: '7/2 ~ 7/3',
-                      tags: const ['힐링', '미식'],
-                      author: '해림',
-                      participantCount: 2,
-                      favoriteCount: 14,
-                      backgroundImage: const AssetImage(AppImages.travelMockup),
-                      onTap: () => _openTravelDetail(
-                        context,
-                        destination: '경주',
-                        tags: const ['힐링', '미식'],
-                        authorName: '해림',
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    AppTravelCard(
-                      type: AppTravelCardType.otherTravel,
-                      title: '강릉 데이트',
-                      location: '강원 강릉',
-                      dateText: '7/2 ~ 7/3',
-                      tags: const ['문화', '탐험'],
-                      author: '민서',
-                      participantCount: 2,
-                      favoriteCount: 12,
-                      backgroundImage: const AssetImage(AppImages.travelMockup),
-                      onTap: () => _openTravelDetail(
-                        context,
-                        destination: '강릉',
-                        tags: const ['문화', '탐험'],
-                        authorName: '민서',
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: () => _browseOtherCourses(context),
-                        child: Text(
-                          '다른 사람 코스 둘러보기',
-                          style: AppTextStyles.body.copyWith(
-                            color: AppColors.gray5,
-                            decoration: TextDecoration.underline,
-                            decorationColor: AppColors.gray5,
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 150,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              const Color(0x00F4F5F6),
+                              Colors.black.withValues(alpha: 0.30),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],
