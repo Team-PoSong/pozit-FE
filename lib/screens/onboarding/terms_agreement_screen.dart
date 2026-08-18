@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -6,6 +8,7 @@ import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
+import '../../core/network/api_exception.dart';
 
 class TermsAgreementScreen extends StatefulWidget {
   const TermsAgreementScreen({
@@ -17,7 +20,7 @@ class TermsAgreementScreen extends StatefulWidget {
     this.assetPackage,
   });
 
-  final VoidCallback? onNext;
+  final FutureOr<void> Function()? onNext;
   final VoidCallback? onServiceTermsTap;
   final VoidCallback? onPrivacyTermsTap;
   final VoidCallback? onLocationTermsTap;
@@ -29,6 +32,7 @@ class TermsAgreementScreen extends StatefulWidget {
 
 class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
   final List<bool> _agreements = List<bool>.filled(4, false);
+  bool _isSubmitting = false;
 
   bool get _areAllAgreed => _agreements.every((isAgreed) => isAgreed);
 
@@ -43,6 +47,24 @@ class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
 
   void _toggleAgreement(int index) {
     setState(() => _agreements[index] = !_agreements[index]);
+  }
+
+  Future<void> _submit() async {
+    if (!_areAllAgreed || _isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onNext?.call();
+    } catch (error) {
+      if (!mounted) return;
+      final message = error is ApiException
+          ? error.message
+          : '약관 동의를 저장하지 못했습니다.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override
@@ -118,8 +140,8 @@ class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
               const Spacer(),
               AppButton(
                 text: '다음',
-                isEnabled: _areAllAgreed,
-                onPressed: widget.onNext,
+                isEnabled: _areAllAgreed && !_isSubmitting,
+                onPressed: _submit,
               ),
             ],
           ),

@@ -127,6 +127,7 @@ class _AppInputFieldState extends State<AppInputField> {
         focusNode: _focusNode,
         onChanged: widget.onChanged,
         onTap: widget.onTap,
+        onTapOutside: (_) => _focusNode.unfocus(),
         readOnly: widget.readOnly,
         autofocus: widget.autofocus,
         minLines: widget.minLines,

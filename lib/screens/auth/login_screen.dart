@@ -11,6 +11,7 @@ import '../../data/datasources/auth/apple_login_service.dart';
 import '../../data/datasources/auth/kakao_login_service.dart';
 import '../../data/models/auth/apple_login_request.dart';
 import '../../data/repositories/auth/auth_repository.dart';
+import '../home/home_screen.dart';
 import '../onboarding/onboarding_flow_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -24,9 +25,9 @@ class LoginScreen extends StatefulWidget {
   });
 
   final FutureOr<void> Function()? onAppleLogin;
-  final Future<void> Function(AppleLoginRequest request)? onAppleLoginRequest;
+  final Future<bool> Function(AppleLoginRequest request)? onAppleLoginRequest;
   final FutureOr<void> Function()? onKakaoLogin;
-  final Future<void> Function(String accessToken)? onKakaoAccessToken;
+  final Future<bool> Function(String accessToken)? onKakaoAccessToken;
   final String? assetPackage;
 
   @override
@@ -53,13 +54,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final request = await const AppleLoginService().login();
       if (widget.onAppleLoginRequest case final callback?) {
-        await callback(request);
+        final isNewUser = await callback(request);
+        if (!context.mounted) return;
+        await _openAfterLogin(context, isNewUser: isNewUser);
       } else {
-        await AuthRepository().loginWithApple(request);
+        final token = await AuthRepository().loginWithApple(request);
+        if (!context.mounted) return;
+        await _openAfterLogin(context, isNewUser: token.isNewUser);
+        return;
       }
-
-      if (!context.mounted) return;
-      await _openOnboarding(context);
     } on AppleLoginCanceledException {
       return;
     } on ApiException catch (error, stackTrace) {
@@ -101,13 +104,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final accessToken = await const KakaoLoginService().login();
       if (widget.onKakaoAccessToken case final callback?) {
-        await callback(accessToken);
+        final isNewUser = await callback(accessToken);
+        if (!context.mounted) return;
+        await _openAfterLogin(context, isNewUser: isNewUser);
       } else {
-        await AuthRepository().loginWithKakaoAccessToken(accessToken);
+        final token = await AuthRepository().loginWithKakaoAccessToken(
+          accessToken,
+        );
+        if (!context.mounted) return;
+        await _openAfterLogin(context, isNewUser: token.isNewUser);
+        return;
       }
-
-      if (!context.mounted) return;
-      await _openOnboarding(context);
     } on KakaoLoginCanceledException {
       return;
     } on ApiException catch (error, stackTrace) {
@@ -137,9 +144,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _openOnboarding(BuildContext context) {
+  Future<void> _openAfterLogin(
+    BuildContext context, {
+    required bool isNewUser,
+  }) {
     return Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const OnboardingFlowScreen()),
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            isNewUser ? const OnboardingFlowScreen() : const HomeScreen(),
+      ),
     );
   }
 
@@ -252,14 +265,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         const SizedBox(height: 15),
                         _LoginGuideBadge(assetPackage: widget.assetPackage),
-                        const SizedBox(height: 30),
-                        const Spacer(),
+                        const SizedBox(height: 25),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             _SocialLoginButton(
                               semanticLabel: 'Apple로 로그인',
+                              label: '애플로 시작',
                               asset: AppImages.apple,
                               assetPackage: widget.assetPackage,
                               isLoading: _activeLogin == _LoginMethod.apple,
@@ -267,9 +280,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ? null
                                   : () => _handleAppleLogin(context),
                             ),
-                            const SizedBox(width: 50),
+                            const SizedBox(width: 33),
                             _SocialLoginButton(
                               semanticLabel: '카카오로 로그인',
+                              label: '카카오로 시작',
                               asset: AppImages.kakao,
                               assetPackage: widget.assetPackage,
                               isLoading: _activeLogin == _LoginMethod.kakao,
@@ -280,8 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         SizedBox(
-                          height:
-                              MediaQuery.viewPaddingOf(context).bottom + 10,
+                          height: MediaQuery.viewPaddingOf(context).bottom + 10,
                         ),
                       ],
                     ),
@@ -330,6 +343,7 @@ class _LoginGuideBadge extends StatelessWidget {
 class _SocialLoginButton extends StatelessWidget {
   const _SocialLoginButton({
     required this.semanticLabel,
+    required this.label,
     required this.asset,
     required this.assetPackage,
     required this.onTap,
@@ -337,6 +351,7 @@ class _SocialLoginButton extends StatelessWidget {
   });
 
   final String semanticLabel;
+  final String label;
   final String asset;
   final String? assetPackage;
   final VoidCallback? onTap;
@@ -351,31 +366,31 @@ class _SocialLoginButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
-        child: SizedBox.square(
-          dimension: 60,
-          child: Stack(
-            alignment: Alignment.center,
+        child: SizedBox(
+          width: 90,
+          height: 79,
+          child: Column(
             children: [
-              Image.asset(asset, package: assetPackage, width: 60, height: 60),
-              if (isLoading)
-                Positioned.fill(
-                  child: Transform.translate(
-                    offset: const Offset(0, -4),
-                    child: Center(
-                      child: SizedBox.square(
-                        dimension: 52,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            const Positioned.fill(
-                              child: DecoratedBox(
-                                decoration: ShapeDecoration(
-                                  color: AppColors.white20,
-                                  shape: CircleBorder(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox.square(
+              SizedBox.square(
+                dimension: 44,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Image.asset(
+                      asset,
+                      package: assetPackage,
+                      width: 44,
+                      height: 44,
+                    ),
+                    if (isLoading)
+                      const Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: ShapeDecoration(
+                            color: AppColors.white20,
+                            shape: CircleBorder(),
+                          ),
+                          child: Center(
+                            child: SizedBox.square(
                               dimension: 24,
                               child: CircularProgressIndicator(
                                 key: Key('social-login-progress'),
@@ -383,12 +398,23 @@ class _SocialLoginButton extends StatelessWidget {
                                 color: AppColors.purple3,
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
+                  ],
                 ),
+              ),
+              const SizedBox(height: 15),
+              Text(
+                label,
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textSub,
+                  fontSize: 12,
+                  height: 18 / 12,
+                  letterSpacing: -0.5,
+                  package: assetPackage,
+                ),
+              ),
             ],
           ),
         ),
