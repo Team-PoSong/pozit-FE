@@ -222,7 +222,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.gray2,
+      backgroundColor: AppColors.white,
       body: SafeArea(
         bottom: false,
         child: Padding(
@@ -233,7 +233,12 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 color: AppColors.white,
                 child: const AppDetailHeader(title: '내 정보'),
               ),
-              Expanded(child: _buildBody()),
+              Expanded(
+                child: ColoredBox(
+                  color: AppColors.gray2,
+                  child: _buildBody(),
+                ),
+              ),
             ],
           ),
         ),
