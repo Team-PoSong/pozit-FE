@@ -11,7 +11,7 @@ import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/location/course_visiting.dart';
-import '../../data/models/travel_course_model.dart';
+import '../../data/models/travel/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import '../travel_detail/widgets/travel_status.dart';
 
@@ -47,7 +47,7 @@ class TravelCourseMapScreen extends StatefulWidget {
 class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
   late int _selectedDay = widget.initialDay;
 
-  int? _selectedSpotId;
+  late int? _selectedSpotId = _focusSpotIdForDay(widget.initialDay);
 
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionSubscription;
@@ -122,20 +122,8 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
     } catch (_) {}
   }
 
-  List<CourseSpotModel> get _spotsForSelectedDay {
-    final seenSpotIds = <int>{};
-    final merged = <CourseSpotModel>[];
-    for (final course in widget.courses.where(
-      (c) => c.dayNumber == _selectedDay,
-    )) {
-      final sorted = [...course.spots]
-        ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
-      for (final spot in sorted) {
-        if (seenSpotIds.add(spot.touristSpotId)) merged.add(spot);
-      }
-    }
-    return merged;
-  }
+  List<CourseSpotModel> get _spotsForSelectedDay =>
+      mergeSpotsForDay(widget.courses, _selectedDay);
 
   Set<int> get _nearbySpotIds =>
       nearbyTouristSpotIds(_currentLocation, _spotsForSelectedDay);
@@ -160,12 +148,19 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
     ];
   }
 
+  int? _focusSpotIdForDay(int dayNumber) {
+    for (final course in widget.courses) {
+      if (course.dayNumber == dayNumber) return course.initialFocusSpotId;
+    }
+    return null;
+  }
+
   void _handleDayChanged(int day) {
     final clamped = day.clamp(1, _dayCount);
     if (clamped == _selectedDay) return;
     setState(() {
       _selectedDay = clamped;
-      _selectedSpotId = null;
+      _selectedSpotId = _focusSpotIdForDay(clamped);
     });
   }
 

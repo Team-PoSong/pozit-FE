@@ -3,9 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/widgets/app_calendar.dart';
 
 void main() {
-  // 실사용 기기 논리 폭: iPhone SE1(320), 구형 Android(360), iPhone SE2/3·mini(375),
-  // iPhone 12/13/14(390), Pixel(393), 다수 Android(412), iPhone Pro Max(430),
-  // 폴더블/작은 태블릿(600), iPad mini 세로(768).
   const realisticWidths = [320.0, 360.0, 375.0, 390.0, 393.0, 412.0, 430.0, 600.0, 768.0];
 
   Future<void> pumpCalendarAt(
@@ -51,7 +48,6 @@ void main() {
     ) async {
       await pumpCalendarAt(tester, width);
 
-      // index 0,1 = prev/next month arrows; index 2 = first tappable date cell
       final cellFinder = find.byType(GestureDetector).at(2);
       final size = tester.getSize(cellFinder);
       expect(size.height, 32.0);
@@ -82,8 +78,6 @@ void main() {
   }
 
   group('실사용 기기 범위 밖의 극단적으로 좁은 폭', () {
-    // 실기기에는 존재하지 않는 폭(예: 스마트워치급)에서도 최소한
-    // 오버플로우 예외 없이 렌더링만은 보장되어야 한다.
     for (final width in [180.0, 240.0]) {
       testWidgets('width=$width: 셀이 좁아지더라도 오버플로우 예외는 없다', (
         tester,

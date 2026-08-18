@@ -23,6 +23,8 @@ class AppButton extends StatelessWidget {
   final double iconGap;
   final Color? contentColor;
   final Color? backgroundColor;
+  final Color? disabledContentColor;
+  final Color? disabledBackgroundColor;
 
   const AppButton({
     super.key,
@@ -41,6 +43,8 @@ class AppButton extends StatelessWidget {
     this.iconGap = 6.0,
     this.contentColor,
     this.backgroundColor,
+    this.disabledContentColor,
+    this.disabledBackgroundColor,
   });
 
   static const TextStyle _defaultTextStyle = TextStyle(
@@ -53,7 +57,8 @@ class AppButton extends StatelessWidget {
   bool get _isTappable => isEnabled;
 
   Color get _backgroundColor {
-    if (!isEnabled || !isActive) return AppColors.gray3;
+    if (!isEnabled) return disabledBackgroundColor ?? AppColors.gray3;
+    if (!isActive) return AppColors.gray3;
     if (backgroundColor != null) return backgroundColor!;
     return style == AppButtonStyle.filled
         ? AppColors.primary
@@ -61,7 +66,8 @@ class AppButton extends StatelessWidget {
   }
 
   Color get _contentColor {
-    if (!isEnabled || !isActive) return AppColors.gray5;
+    if (!isEnabled) return disabledContentColor ?? AppColors.gray5;
+    if (!isActive) return AppColors.gray5;
     if (contentColor != null) return contentColor!;
     return style == AppButtonStyle.filled ? AppColors.white : AppColors.purple3;
   }
@@ -119,17 +125,14 @@ class AppFavoriteButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppButton(
       text: '찜하기',
+      isEnabled: onPressed != null,
       style: AppButtonStyle.tonal,
-      isActive: isFavorite,
-      iconAsset: isFavorite ? AppIcons.heartMiddle : AppIcons.heartMiddleGray,
+      backgroundColor: isFavorite ? AppColors.gray3 : AppColors.purple1,
+      contentColor: isFavorite ? AppColors.gray5 : AppColors.purple3,
+      iconAsset: isFavorite ? AppIcons.heartMiddleGray : AppIcons.heartMiddle,
       iconWidth: 24,
       iconHeight: 24,
       iconGap: 14,
-      textStyle: const TextStyle(
-        fontFamily: 'Pretendard',
-        fontSize: 18,
-        fontWeight: FontWeight.w400,
-      ),
       onPressed: onPressed,
     );
   }

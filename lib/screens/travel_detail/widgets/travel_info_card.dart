@@ -7,7 +7,7 @@ import '../../../core/design_system/app_icons.dart';
 import '../../../core/design_system/app_text_styles.dart';
 import '../../../core/design_system/widgets/app_info_tag.dart';
 import '../../../core/design_system/widgets/progress/app_completion_progress_bar.dart';
-import '../../../data/models/travel_info_card_model.dart';
+import '../../../data/models/travel/travel_info_card_model.dart';
 
 class TravelInfoCard extends StatelessWidget {
   const TravelInfoCard({super.key, required this.info});
@@ -27,7 +27,6 @@ class TravelInfoCard extends StatelessWidget {
               child: Row(
                 children: [
                   Flexible(
-                    flex: 3,
                     child: Text(
                       info.destination,
                       maxLines: 1,
@@ -38,15 +37,11 @@ class TravelInfoCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 22),
-                  Flexible(
-                    flex: 2,
-                    child: Text(
-                      '${info.dateRangeText} · ${info.durationText}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.body.copyWith(
-                        color: AppColors.white,
-                      ),
+                  Text(
+                    '${info.dateRangeText} · ${info.durationText}',
+                    maxLines: 1,
+                    style: AppTextStyles.body.copyWith(
+                      color: AppColors.white,
                     ),
                   ),
                 ],

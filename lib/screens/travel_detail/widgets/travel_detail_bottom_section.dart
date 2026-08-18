@@ -7,6 +7,7 @@ import '../../../core/design_system/app_text_styles.dart';
 import '../../../core/design_system/app_travel_status.dart';
 import '../../../core/design_system/widgets/app_posing.dart';
 import '../../../core/design_system/widgets/button/app_button.dart';
+import '../../../data/models/travel/travel_member_model.dart';
 
 const double _kHorizontalPadding = 24.0;
 const double _kStatusToContentGap = 15.0;
@@ -21,34 +22,55 @@ const double _kBottomSafeGap = 7.0;
 const double _kInProgressBottomGap = 10.0;
 
 const Duration _kCourseSwipeCueDuration = Duration(milliseconds: 260);
-// Matches the map card's title label swipe: that text slides by 0.3 of its
-// own (narrow) width, which works out to roughly this many logical pixels.
-// The camera column is full-width, so it uses this fixed pixel distance
-// instead of the same 0.3 fraction of its own (much wider) width.
 const double _kCourseSwipeCueTranslateX = 24.0;
 const double _kCourseSwipeCueBeginOpacity = 0.6;
+
+const List<TravelMemberModel> _kPreviewMembers = [
+  TravelMemberModel(userId: 1, nickname: '현영', isLeader: true),
+  TravelMemberModel(userId: 2, nickname: '윤지', isLeader: false),
+  TravelMemberModel(userId: 3, nickname: '해림', isLeader: false),
+];
 
 class TravelDetailBottomSection extends StatelessWidget {
   const TravelDetailBottomSection({
     super.key,
     required this.status,
-    required this.companionCount,
+    required this.members,
+    this.myUserId,
     this.onSaveLogTap,
     this.cameraKey,
     this.courseTransitionKey,
     this.isCameraReady = false,
+    this.onCameraTap,
+    this.memberThumbnails = const {},
+    this.isCameraThumbnailPending = false,
+    this.showSaveLogButton = true,
+    this.includeBottomSafeArea = true,
   });
 
   final AppTravelStatus status;
-  final int companionCount;
+
+  final List<TravelMemberModel> members;
+  final int? myUserId;
   final VoidCallback? onSaveLogTap;
   final Key? cameraKey;
 
   final Object? courseTransitionKey;
 
-  /// Whether the current user is within the visiting radius of a course
-  /// spot, so their own posing tile's camera should be shown as on.
   final bool isCameraReady;
+
+  final VoidCallback? onCameraTap;
+
+  final Map<int, String> memberThumbnails;
+
+  final bool isCameraThumbnailPending;
+  final bool showSaveLogButton;
+  final bool includeBottomSafeArea;
+
+  double _bottomPadding(BuildContext context, double gap) {
+    return gap +
+        (includeBottomSafeArea ? MediaQuery.viewPaddingOf(context).bottom : 0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +81,7 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            _kBottomSafeGap + MediaQuery.of(context).padding.bottom,
+            _bottomPadding(context, _kBottomSafeGap),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -86,14 +108,18 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            _kInProgressBottomGap + MediaQuery.of(context).padding.bottom,
+            _bottomPadding(context, _kInProgressBottomGap),
           ),
           child: _CourseSwipeCue(
             courseKey: courseTransitionKey,
             child: _PosingColumn(
-              companionCount: companionCount,
+              members: members,
+              myUserId: myUserId,
               cameraKey: cameraKey,
               isCameraReady: isCameraReady,
+              onCameraTap: onCameraTap,
+              memberThumbnails: memberThumbnails,
+              isCameraThumbnailPending: isCameraThumbnailPending,
             ),
           ),
         );
@@ -103,17 +129,23 @@ class TravelDetailBottomSection extends StatelessWidget {
             _kHorizontalPadding,
             _kStatusToContentGap,
             _kHorizontalPadding,
-            _kBottomSafeGap + MediaQuery.of(context).padding.bottom,
+            _bottomPadding(context, _kBottomSafeGap),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _CourseSwipeCue(
                 courseKey: courseTransitionKey,
-                child: _PosingColumn(companionCount: companionCount),
+                child: _PosingColumn(
+                  members: members,
+                  myUserId: myUserId,
+                  memberThumbnails: memberThumbnails,
+                ),
               ),
-              const SizedBox(height: _kPosingToButtonGap),
-              AppButton(text: '여행 로그 저장하기', onPressed: onSaveLogTap),
+              if (showSaveLogButton) ...[
+                const SizedBox(height: _kPosingToButtonGap),
+                AppButton(text: '여행 로그 저장하기', onPressed: onSaveLogTap),
+              ],
             ],
           ),
         );
@@ -123,30 +155,52 @@ class TravelDetailBottomSection extends StatelessWidget {
 
 class _PosingColumn extends StatelessWidget {
   const _PosingColumn({
-    required this.companionCount,
+    required this.members,
+    this.myUserId,
+    this.memberThumbnails = const {},
     this.cameraKey,
     this.isCameraReady = false,
+    this.onCameraTap,
+    this.isCameraThumbnailPending = false,
   });
 
-  final int companionCount;
+  final List<TravelMemberModel> members;
+  final int? myUserId;
+  final Map<int, String> memberThumbnails;
   final Key? cameraKey;
   final bool isCameraReady;
+  final VoidCallback? onCameraTap;
+  final bool isCameraThumbnailPending;
 
   @override
   Widget build(BuildContext context) {
-    // companionCount는 본인을 포함한 전체 인원 수입니다. 0은 정상적으로
-    // 내려올 수 없는 값이지만, 방어적으로 본인 카메라 타일은 항상 보장합니다.
-    final tileCount = companionCount > 0 ? companionCount : 1;
+    final rows = members.isNotEmpty
+        ? members
+        : const [TravelMemberModel(userId: 0, nickname: '', isLeader: false)];
     return Column(
       children: [
-        for (int i = 0; i < tileCount; i++) ...[
+        for (int i = 0; i < rows.length; i++) ...[
           if (i > 0) const SizedBox(height: _kPosingGap),
-          AppPosing(
-            key: i == 0 ? cameraKey : null,
-            isCameraOn: i == 0 && isCameraReady,
+          _buildMemberPosing(
+            rows[i],
+            isSelf: myUserId != null && rows[i].userId == myUserId,
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildMemberPosing(TravelMemberModel member, {required bool isSelf}) {
+    final thumbnailUrl = memberThumbnails[member.userId];
+    final isPending = isSelf && isCameraThumbnailPending;
+    final canTap = isSelf && isCameraReady && !isPending;
+    return AppPosing(
+      key: isSelf ? cameraKey : null,
+      name: member.nickname.isEmpty ? null : member.nickname,
+      isCameraOn: canTap && thumbnailUrl == null,
+      thumbnailUrl: thumbnailUrl,
+      isThumbnailPending: isPending,
+      onTap: canTap ? onCameraTap : null,
     );
   }
 }
@@ -219,7 +273,7 @@ Widget travelDetailBottomSectionUpcomingPreview() {
         height: 300,
         child: TravelDetailBottomSection(
           status: AppTravelStatus.upcoming,
-          companionCount: 3,
+          members: _kPreviewMembers,
         ),
       ),
     ),
@@ -232,7 +286,7 @@ Widget travelDetailBottomSectionInProgressPreview() {
     home: Scaffold(
       body: TravelDetailBottomSection(
         status: AppTravelStatus.inProgress,
-        companionCount: 3,
+        members: _kPreviewMembers,
       ),
     ),
   );
@@ -244,7 +298,7 @@ Widget travelDetailBottomSectionCompletedPreview() {
     home: Scaffold(
       body: TravelDetailBottomSection(
         status: AppTravelStatus.completed,
-        companionCount: 3,
+        members: _kPreviewMembers,
       ),
     ),
   );

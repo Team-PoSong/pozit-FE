@@ -6,8 +6,8 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/saved_travel_model.dart';
-import '../../data/models/travel_course_model.dart';
-import '../../data/models/travel_info_card_model.dart';
+import '../../data/models/travel/travel_course_model.dart';
+import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/local/travel_store.dart';
 import '../course_edit/course_edit_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
@@ -52,6 +52,7 @@ class TravelRecommendationResultScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => TravelDetailScreen(
+          title: '$destination 여행',
           info: TravelInfoCardModel(
             destination: destination,
             startDate: DateTime(2026, 7, 2),

@@ -55,7 +55,7 @@ class _AppMakeTravelState extends State<AppMakeTravel> {
   Widget build(BuildContext context) {
     final label = switch (widget.type) {
       AppMakeTravelType.create => '여행 만들기',
-      AppMakeTravelType.joinWithInviteCode => '초대코드로 참여하기',
+      AppMakeTravelType.joinWithInviteCode => '초대 코드로 참여하기',
     };
 
     return Semantics(
@@ -105,7 +105,7 @@ Widget appMakeTravelCreateSelectedPreview() {
   );
 }
 
-@Preview(group: 'hycho', name: 'Make Travel - 초대코드 기본')
+@Preview(group: 'hycho', name: 'Make Travel - 초대 코드 기본')
 Widget appMakeTravelJoinDefaultPreview() {
   return const MaterialApp(
     home: Scaffold(
@@ -114,7 +114,7 @@ Widget appMakeTravelJoinDefaultPreview() {
   );
 }
 
-@Preview(group: 'hycho', name: 'Make Travel - 초대코드 선택')
+@Preview(group: 'hycho', name: 'Make Travel - 초대 코드 선택')
 Widget appMakeTravelJoinSelectedPreview() {
   return const MaterialApp(
     home: Scaffold(

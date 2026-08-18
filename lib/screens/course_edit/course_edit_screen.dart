@@ -6,12 +6,12 @@ import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location.dart';
-import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
-import '../../data/models/travel_course_model.dart';
+import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/tourist_spot_model.dart';
-import '../../data/mock/mock_tourist_spots.dart';
+import '../../data/models/tourist_spot_rank_model.dart';
+import '../../data/models/tourist_spot_search_result_model.dart';
 import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
@@ -30,8 +30,9 @@ class CourseEditScreen extends StatefulWidget {
     required this.courses,
     this.initialDay = 1,
     this.isCreationFlow = false,
-    this.popularSpots = const [],
+    this.onLoadPopularSpots,
     this.onSearch,
+    this.onAddSelectedSpots,
     this.onBackTap,
     this.onSave,
   });
@@ -40,8 +41,13 @@ class CourseEditScreen extends StatefulWidget {
   final int initialDay;
   final bool isCreationFlow;
 
-  final List<TouristSpotModel> popularSpots;
-  final Future<List<TouristSpotModel>> Function(String query)? onSearch;
+  final Future<TouristSpotRankPage> Function(int cursor)? onLoadPopularSpots;
+  final Future<TouristSpotSearchPage> Function(String keyword, int cursor)?
+  onSearch;
+  final Future<List<TouristSpotModel>> Function(
+    List<TouristSpotSearchResultModel> selected,
+  )?
+  onAddSelectedSpots;
 
   final VoidCallback? onBackTap;
 
@@ -64,48 +70,16 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
 
   late final Map<int, List<CourseSpotModel>> _spotsByDayIndex = {
     for (var i = 0; i < _dayNumbers.length; i++)
-      i + 1: _mergeSpotsForDayNumber(_dayNumbers[i]),
+      i + 1: mergeSpotsForDay(widget.courses, _dayNumbers[i]),
   };
 
   late int _selectedDay = widget.initialDay;
-  // 외부 저장 콜백이 있으면 추천 코스를 수정하지 않아도 바로 저장할 수 있습니다.
   late bool _hasChanges = widget.onSave != null;
 
   int get _dayCount => _dayNumbers.isEmpty ? 1 : _dayNumbers.length;
 
   List<CourseSpotModel> get _spotsForSelectedDay =>
       _spotsByDayIndex[_selectedDay] ?? const [];
-
-  List<TouristSpotModel> get _resolvedPopularSpots =>
-      widget.popularSpots.isEmpty
-      ? mockPopularTouristSpots
-      : widget.popularSpots;
-
-  Future<List<TouristSpotModel>> _searchMockSpots(String query) async {
-    final normalizedQuery = query.trim().toLowerCase();
-    return _resolvedPopularSpots
-        .where(
-          (spot) =>
-              spot.name.toLowerCase().contains(normalizedQuery) ||
-              spot.address.toLowerCase().contains(normalizedQuery),
-        )
-        .toList();
-  }
-
-  List<CourseSpotModel> _mergeSpotsForDayNumber(int dayNumber) {
-    final seenSpotIds = <int>{};
-    final merged = <CourseSpotModel>[];
-    for (final course in widget.courses.where(
-      (c) => c.dayNumber == dayNumber,
-    )) {
-      final sorted = [...course.spots]
-        ..sort((a, b) => a.orderIndex.compareTo(b.orderIndex));
-      for (final spot in sorted) {
-        if (seenSpotIds.add(spot.touristSpotId)) merged.add(spot);
-      }
-    }
-    return merged;
-  }
 
   void _handleDayChanged(int day) {
     setState(() => _selectedDay = day);
@@ -131,8 +105,9 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     final added = await Navigator.of(context).push<List<TouristSpotModel>>(
       MaterialPageRoute<List<TouristSpotModel>>(
         builder: (_) => LocationSearchScreen(
-          popularSpots: _resolvedPopularSpots,
-          onSearch: widget.onSearch ?? _searchMockSpots,
+          onLoadPopularSpots: widget.onLoadPopularSpots,
+          onSearch: widget.onSearch,
+          onAddSelectedSpots: widget.onAddSelectedSpots,
         ),
       ),
     );
@@ -161,14 +136,25 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     });
   }
 
+  int? _courseIdForDay(int dayNumber) {
+    for (final course in widget.courses) {
+      if (course.dayNumber == dayNumber) return course.courseId;
+    }
+    return null;
+  }
+
   void _handleSave() {
-    widget.onSave?.call({
-      for (final entry in _spotsByDayIndex.entries)
-        _dayNumberForIndex(entry.key): List.unmodifiable([
-          for (var i = 0; i < entry.value.length; i++)
-            entry.value[i].copyWith(orderIndex: i),
-        ]),
-    });
+    final spotsByCourseId = <int, List<CourseSpotModel>>{};
+    for (final entry in _spotsByDayIndex.entries) {
+      final courseId = _courseIdForDay(_dayNumberForIndex(entry.key));
+      if (courseId == null) continue;
+      spotsByCourseId[courseId] = List.unmodifiable([
+        for (var i = 0; i < entry.value.length; i++)
+          entry.value[i].copyWith(orderIndex: i),
+      ]);
+    }
+    widget.onSave?.call(spotsByCourseId);
+    Navigator.of(context).pop();
   }
 
   void _handleBack() {
@@ -186,19 +172,8 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TravelDetailTopBar(
-              title: widget.isCreationFlow ? '여행 생성하기' : '코스 수정',
-              onBackTap: _handleBack,
-            ),
-            if (widget.isCreationFlow) ...[
-              const SizedBox(height: 10),
-              const Align(
-                alignment: Alignment.center,
-                child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 2),
-              ),
-              const SizedBox(height: 40),
-            ] else
-              const SizedBox(height: _kTopBarToDateDetailGap),
+            TravelDetailTopBar(title: '코스 수정', onBackTap: _handleBack),
+            const SizedBox(height: _kTopBarToDateDetailGap),
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: _kHorizontalPadding,
@@ -286,7 +261,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                 AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
-                text: widget.isCreationFlow ? '여행 시작하기' : '저장하기',
+                text: '저장하기',
                 isEnabled: _hasChanges,
                 onPressed: _handleSave,
               ),

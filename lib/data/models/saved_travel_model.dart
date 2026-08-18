@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
 import '../../core/design_system/app_travel_status.dart';
-import 'travel_course_model.dart';
-import 'travel_info_card_model.dart';
+import 'travel/travel_course_model.dart';
+import 'travel/travel_info_card_model.dart';
 
 /// 홈에 표시할 저장된 여행 정보입니다.
 class SavedTravelModel {

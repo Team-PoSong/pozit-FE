@@ -13,10 +13,12 @@ import '../../core/design_system/widgets/button/app_chatbot_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/tourist_spot_model.dart';
+import '../../data/models/tourist_spot_rank_model.dart';
+import '../../data/models/tourist_spot_search_result_model.dart';
 import '../../data/mock/mock_tourist_spots.dart';
 import '../../data/models/saved_travel_model.dart';
-import '../../data/models/travel_course_model.dart';
-import '../../data/models/travel_info_card_model.dart';
+import '../../data/models/travel/travel_course_model.dart';
+import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/local/travel_store.dart';
 import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
@@ -64,15 +66,69 @@ class _TravelCourseCreationScreenState
       _courseCounts.values.any((count) => count > 0) ||
       _spotsByDay.values.any((spots) => spots.isNotEmpty);
 
-  Future<List<TouristSpotModel>> _searchMockSpots(String query) async {
+  Future<TouristSpotRankPage> _loadMockPopularSpots(int cursor) async {
+    return TouristSpotRankPage(
+      ranks: [
+        for (var i = 0; i < mockPopularTouristSpots.length; i++)
+          TouristSpotRankModel(
+            rank: i + 1,
+            touristSpotId: mockPopularTouristSpots[i].touristSpotId,
+            title: mockPopularTouristSpots[i].name,
+            address: mockPopularTouristSpots[i].address,
+            latitude: mockPopularTouristSpots[i].latitude,
+            longitude: mockPopularTouristSpots[i].longitude,
+            courseSpotCount: 0,
+          ),
+      ],
+      currentCursor: cursor,
+      nextCursor: null,
+      hasNext: false,
+    );
+  }
+
+  Future<TouristSpotSearchPage> _searchMockSpots(
+    String query,
+    int cursor,
+  ) async {
     final normalizedQuery = query.trim().toLowerCase();
-    return mockPopularTouristSpots
+    final spots = mockPopularTouristSpots
         .where(
           (spot) =>
               spot.name.toLowerCase().contains(normalizedQuery) ||
               spot.address.toLowerCase().contains(normalizedQuery),
         )
         .toList();
+    return TouristSpotSearchPage(
+      places: [
+        for (final spot in spots)
+          TouristSpotSearchResultModel(
+            contentId: '${spot.touristSpotId}',
+            contentTypeId: '12',
+            title: spot.name,
+            address: spot.address,
+            latitude: spot.latitude,
+            longitude: spot.longitude,
+          ),
+      ],
+      currentCursor: cursor,
+      nextCursor: null,
+      hasNext: false,
+    );
+  }
+
+  Future<List<TouristSpotModel>> _addMockSpots(
+    List<TouristSpotSearchResultModel> selected,
+  ) async {
+    return [
+      for (final spot in selected)
+        TouristSpotModel(
+          touristSpotId: int.parse(spot.contentId),
+          name: spot.title,
+          address: spot.address,
+          latitude: spot.latitude,
+          longitude: spot.longitude,
+        ),
+    ];
   }
 
   Future<void> _handleAddCourseTap() async {
@@ -85,8 +141,9 @@ class _TravelCourseCreationScreenState
     final spots = await Navigator.of(context).push<List<TouristSpotModel>>(
       MaterialPageRoute<List<TouristSpotModel>>(
         builder: (_) => LocationSearchScreen(
-          popularSpots: mockPopularTouristSpots,
+          onLoadPopularSpots: _loadMockPopularSpots,
           onSearch: _searchMockSpots,
+          onAddSelectedSpots: _addMockSpots,
         ),
       ),
     );
@@ -162,17 +219,12 @@ class _TravelCourseCreationScreenState
     final daysUntilStart = startDate.difference(todayDate).inDays;
     TravelStore.instance.save(
       SavedTravelModel(
-        id: 'created-' + dateRange.start.millisecondsSinceEpoch.toString(),
+        id: 'created-${dateRange.start.millisecondsSinceEpoch}',
         title: widget.travelInfo.name,
         location: widget.travelInfo.destination,
         dateText:
-            dateRange.start.month.toString() +
-            '/' +
-            dateRange.start.day.toString() +
-            ' ~ ' +
-            dateRange.end.month.toString() +
-            '/' +
-            dateRange.end.day.toString(),
+            '${dateRange.start.month}/${dateRange.start.day} ~ '
+            '${dateRange.end.month}/${dateRange.end.day}',
         author: '나',
         info: TravelInfoCardModel(
           destination: widget.travelInfo.destination,

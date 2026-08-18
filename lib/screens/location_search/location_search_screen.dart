@@ -10,11 +10,13 @@ import '../../core/design_system/widgets/app_location_select.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../data/models/tourist_spot_model.dart';
+import '../../data/models/tourist_spot_rank_model.dart';
+import '../../data/models/tourist_spot_search_result_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 
 const double _kHorizontalPadding = 24.0;
 
-const double _kTopBarToSearchBarGap = 25.0;
+const double _kTopBarToSearchBarGap = 33.0;
 const double _kSearchBarToErrorGap = 4.0;
 const double _kSearchBarToLabelGap = 24.0;
 const double _kLabelToListGap = 24.0;
@@ -28,17 +30,28 @@ const int _kMinQueryLength = 2;
 const int _kEmptyResultTopFlex = 157;
 const int _kEmptyResultBottomFlex = 184;
 
+const double _kLoadMoreScrollThreshold = 200.0;
+const int _kInitialPopularSpotsCursor = 1;
+const int _kInitialSearchCursor = 1;
+
 class LocationSearchScreen extends StatefulWidget {
   const LocationSearchScreen({
     super.key,
-    this.popularSpots = const [],
+    this.onLoadPopularSpots,
     this.onSearch,
+    this.onAddSelectedSpots,
     this.onBackTap,
   });
 
-  final List<TouristSpotModel> popularSpots;
+  final Future<TouristSpotRankPage> Function(int cursor)? onLoadPopularSpots;
 
-  final Future<List<TouristSpotModel>> Function(String query)? onSearch;
+  final Future<TouristSpotSearchPage> Function(String keyword, int cursor)?
+  onSearch;
+
+  final Future<List<TouristSpotModel>> Function(
+    List<TouristSpotSearchResultModel> selected,
+  )?
+  onAddSelectedSpots;
 
   final VoidCallback? onBackTap;
 
@@ -48,31 +61,172 @@ class LocationSearchScreen extends StatefulWidget {
 
 class _LocationSearchScreenState extends State<LocationSearchScreen> {
   final TextEditingController _controller = TextEditingController();
-  final Map<int, TouristSpotModel> _spotById = {};
-  final Set<int> _selectedIds = {};
+  final ScrollController _popularScrollController = ScrollController();
+  final ScrollController _searchScrollController = ScrollController();
+  final Map<String, TouristSpotSearchResultModel> _searchResultByContentId = {};
+  final Set<String> _selectedContentIds = {};
 
-  List<TouristSpotModel> _searchResults = [];
+  List<TouristSpotSearchResultModel> _searchResults = [];
+  int? _nextSearchCursor = _kInitialSearchCursor;
+  bool _hasNextSearchPage = false;
+  bool _isLoadingMoreSearch = false;
   bool _hasSearched = false;
   bool _showLengthError = false;
   bool _isSearching = false;
   bool _hasSearchError = false;
+  bool _isAddingSpots = false;
   int _searchRequestId = 0;
+  String _lastSearchedQuery = '';
 
-  List<TouristSpotModel> get _selectedSpots =>
-      _selectedIds.map((id) => _spotById[id]!).toList();
+  List<TouristSpotRankModel> _popularSpots = [];
+  int? _nextPopularCursor = _kInitialPopularSpotsCursor;
+  bool _hasNextPopularPage = false;
+  bool _isLoadingPopular = false;
+  bool _isLoadingMorePopular = false;
+  bool _hasPopularError = false;
+  final Map<int, TouristSpotRankModel> _popularSpotById = {};
+  final Set<int> _selectedPopularSpotIds = {};
+
+  List<TouristSpotSearchResultModel> get _selectedSearchResults =>
+      _selectedContentIds.map((id) => _searchResultByContentId[id]!).toList();
+
+  List<TouristSpotRankModel> get _selectedPopularSpots =>
+      _selectedPopularSpotIds.map((id) => _popularSpotById[id]!).toList();
 
   @override
   void initState() {
     super.initState();
-    for (final spot in widget.popularSpots) {
-      _spotById[spot.touristSpotId] = spot;
-    }
+    _popularScrollController.addListener(_handlePopularScroll);
+    _searchScrollController.addListener(_handleSearchScroll);
+    _loadPopularSpots();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _popularScrollController.dispose();
+    _searchScrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadPopularSpots() async {
+    if (widget.onLoadPopularSpots == null) return;
+
+    setState(() {
+      _isLoadingPopular = true;
+      _hasPopularError = false;
+    });
+
+    try {
+      final page = await widget.onLoadPopularSpots!(
+        _kInitialPopularSpotsCursor,
+      );
+      if (!mounted) return;
+      setState(() {
+        _popularSpots = page.ranks;
+        for (final spot in page.ranks) {
+          _popularSpotById[spot.touristSpotId] = spot;
+        }
+        _nextPopularCursor = page.nextCursor;
+        _hasNextPopularPage = page.hasNext;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _hasPopularError = true);
+    } finally {
+      if (mounted) setState(() => _isLoadingPopular = false);
+    }
+  }
+
+  Future<void> _loadMorePopularSpots() async {
+    final cursor = _nextPopularCursor;
+    if (widget.onLoadPopularSpots == null ||
+        _isLoadingMorePopular ||
+        !_hasNextPopularPage ||
+        cursor == null) {
+      return;
+    }
+
+    setState(() => _isLoadingMorePopular = true);
+    try {
+      final page = await widget.onLoadPopularSpots!(cursor);
+      if (!mounted) return;
+      setState(() {
+        _popularSpots = [..._popularSpots, ...page.ranks];
+        for (final spot in page.ranks) {
+          _popularSpotById[spot.touristSpotId] = spot;
+        }
+        _nextPopularCursor = page.nextCursor;
+        _hasNextPopularPage = page.hasNext;
+      });
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _isLoadingMorePopular = false);
+    }
+  }
+
+  void _handlePopularScroll() {
+    if (!_popularScrollController.hasClients) return;
+    final position = _popularScrollController.position;
+    if (position.pixels >=
+        position.maxScrollExtent - _kLoadMoreScrollThreshold) {
+      _loadMorePopularSpots();
+    }
+  }
+
+  Widget _buildPopularSpotsSection() {
+    if (_isLoadingPopular) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_hasPopularError) {
+      return _SearchError(onRetry: _loadPopularSpots);
+    }
+    if (_popularSpots.isEmpty) {
+      return const _EmptyResult();
+    }
+
+    return ListView.separated(
+      controller: _popularScrollController,
+      padding: const EdgeInsets.fromLTRB(
+        _kHorizontalPadding,
+        0,
+        _kHorizontalPadding,
+        _kLocationGap,
+      ),
+      itemCount: _popularSpots.length + (_isLoadingMorePopular ? 1 : 0),
+      separatorBuilder: (_, _) => const SizedBox(height: _kLocationGap),
+      itemBuilder: (context, index) {
+        if (index >= _popularSpots.length) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final spot = _popularSpots[index];
+        return AppLocationSelect(
+          key: ValueKey(spot.touristSpotId),
+          title: spot.title,
+          address: spot.address,
+          isSelected: _selectedPopularSpotIds.contains(spot.touristSpotId),
+          onChanged: (selected) =>
+              _handlePopularSpotSelectedChanged(spot, selected),
+        );
+      },
+    );
+  }
+
+  void _handlePopularSpotSelectedChanged(
+    TouristSpotRankModel spot,
+    bool selected,
+  ) {
+    setState(() {
+      _popularSpotById[spot.touristSpotId] = spot;
+      if (selected) {
+        _selectedPopularSpotIds.add(spot.touristSpotId);
+      } else {
+        _selectedPopularSpotIds.remove(spot.touristSpotId);
+      }
+    });
   }
 
   Future<void> _handleSearch(String rawQuery) async {
@@ -86,6 +240,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     }
 
     final requestId = ++_searchRequestId;
+    _lastSearchedQuery = query;
 
     setState(() {
       _showLengthError = false;
@@ -94,13 +249,15 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     });
 
     try {
-      final results = await widget.onSearch?.call(query) ?? const [];
+      final page = await widget.onSearch?.call(query, _kInitialSearchCursor);
       if (!mounted || requestId != _searchRequestId) return;
       setState(() {
         _hasSearched = true;
-        _searchResults = results;
-        for (final spot in results) {
-          _spotById[spot.touristSpotId] = spot;
+        _searchResults = page?.places ?? const [];
+        _nextSearchCursor = page?.nextCursor;
+        _hasNextSearchPage = page?.hasNext ?? false;
+        for (final spot in _searchResults) {
+          _searchResultByContentId[spot.contentId] = spot;
         }
       });
     } catch (_) {
@@ -113,7 +270,55 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     }
   }
 
+  Future<void> _loadMoreSearchResults() async {
+    final cursor = _nextSearchCursor;
+    if (widget.onSearch == null ||
+        _isLoadingMoreSearch ||
+        !_hasNextSearchPage ||
+        cursor == null) {
+      return;
+    }
+
+    final requestId = _searchRequestId;
+    setState(() => _isLoadingMoreSearch = true);
+    try {
+      final page = await widget.onSearch!(_lastSearchedQuery, cursor);
+      if (!mounted || requestId != _searchRequestId) return;
+      setState(() {
+        _searchResults = [..._searchResults, ...page.places];
+        _nextSearchCursor = page.nextCursor;
+        _hasNextSearchPage = page.hasNext;
+        for (final spot in page.places) {
+          _searchResultByContentId[spot.contentId] = spot;
+        }
+      });
+    } catch (_) {
+    } finally {
+      if (mounted && requestId == _searchRequestId) {
+        setState(() => _isLoadingMoreSearch = false);
+      }
+    }
+  }
+
+  void _handleSearchScroll() {
+    if (!_searchScrollController.hasClients) return;
+    final position = _searchScrollController.position;
+    if (position.pixels >=
+        position.maxScrollExtent - _kLoadMoreScrollThreshold) {
+      _loadMoreSearchResults();
+    }
+  }
+
   void _handleQueryChanged(String value) {
+    if (value.trim().isNotEmpty) {
+      setState(() {
+        _hasSearched = true;
+        _searchResults = [];
+        _showLengthError = false;
+        _hasSearchError = false;
+      });
+      return;
+    }
     setState(() {
       _hasSearched = false;
       _searchResults = [];
@@ -122,19 +327,50 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     });
   }
 
-  void _handleSpotSelectedChanged(TouristSpotModel spot, bool selected) {
+  void _handleSpotSelectedChanged(
+    TouristSpotSearchResultModel spot,
+    bool selected,
+  ) {
     setState(() {
-      _spotById[spot.touristSpotId] = spot;
+      _searchResultByContentId[spot.contentId] = spot;
       if (selected) {
-        _selectedIds.add(spot.touristSpotId);
+        _selectedContentIds.add(spot.contentId);
       } else {
-        _selectedIds.remove(spot.touristSpotId);
+        _selectedContentIds.remove(spot.contentId);
       }
     });
   }
 
-  void _handleAddTap() {
-    Navigator.of(context).pop(_selectedSpots);
+  Future<void> _handleAddTap() async {
+    final selectedPopular = _selectedPopularSpots;
+    final selectedSearch = _selectedSearchResults;
+    if (selectedPopular.isEmpty && selectedSearch.isEmpty) return;
+
+    setState(() => _isAddingSpots = true);
+    try {
+      final popularAsSpots = [
+        for (final spot in selectedPopular)
+          TouristSpotModel(
+            touristSpotId: spot.touristSpotId,
+            name: spot.title,
+            address: spot.address,
+            latitude: spot.latitude,
+            longitude: spot.longitude,
+          ),
+      ];
+      final savedSearchSpots = selectedSearch.isEmpty
+          ? const <TouristSpotModel>[]
+          : await widget.onAddSelectedSpots!(selectedSearch);
+
+      if (!mounted) return;
+      Navigator.of(context).pop([...popularAsSpots, ...savedSearchSpots]);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isAddingSpots = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('선택한 장소를 추가하지 못했어요. 다시 시도해주세요.')),
+      );
+    }
   }
 
   void _handleBack() {
@@ -144,16 +380,24 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hasQuery = _controller.text.trim().isNotEmpty;
-    final displayedSpots = _hasSearched
-        ? _searchResults
-        : hasQuery
-        ? const <TouristSpotModel>[]
-        : widget.popularSpots;
-
     final isEmptyResult =
-        _showLengthError || (_hasSearched && displayedSpots.isEmpty);
-    final selectedSpots = _selectedSpots;
+        _showLengthError ||
+        _hasSearchError ||
+        (_hasSearched && _searchResults.isEmpty);
+    final selectedChips = [
+      for (final spot in _selectedPopularSpots)
+        (
+          key: 'rank-${spot.touristSpotId}',
+          label: spot.title,
+          onRemove: () => _handlePopularSpotSelectedChanged(spot, false),
+        ),
+      for (final spot in _selectedSearchResults)
+        (
+          key: 'search-${spot.contentId}',
+          label: spot.title,
+          onRemove: () => _handleSpotSelectedChanged(spot, false),
+        ),
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -197,7 +441,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             ),
             const SizedBox(height: _kSearchBarToLabelGap),
             if (!_hasSearched &&
-                !hasQuery &&
                 !_showLengthError &&
                 !_isSearching &&
                 !_hasSearchError) ...[
@@ -213,61 +456,72 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               const SizedBox(height: _kLabelToListGap),
             ],
             Expanded(
-              child: _isSearching
-                  ? const Center(child: CircularProgressIndicator())
-                  : _hasSearchError
-                  ? _SearchError(onRetry: () => _handleSearch(_controller.text))
-                  : isEmptyResult
-                  ? const _EmptyResult()
-                  : ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: _kHorizontalPadding,
-                      ),
-                      itemCount: displayedSpots.length,
-                      separatorBuilder: (_, _) =>
-                          const SizedBox(height: _kLocationGap),
-                      itemBuilder: (context, index) {
-                        final spot = displayedSpots[index];
-                        return AppLocationSelect(
-                          key: ValueKey(spot.touristSpotId),
-                          title: spot.name,
-                          address: spot.address,
-                          isSelected: _selectedIds.contains(spot.touristSpotId),
-                          onChanged: (selected) =>
-                              _handleSpotSelectedChanged(spot, selected),
-                        );
-                      },
-                    ),
-            ),
-            if (selectedSpots.isNotEmpty) ...[
-              SizedBox(
-                height: 29,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: _kHorizontalPadding,
-                  ),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        for (var i = 0; i < selectedSpots.length; i++) ...[
-                          if (i > 0) const SizedBox(width: _kChipGap),
-                          AppDeletableChip(
-                            key: ValueKey(selectedSpots[i].touristSpotId),
-                            label: selectedSpots[i].name,
-                            onDeleted: () => _handleSpotSelectedChanged(
-                              selectedSpots[i],
-                              false,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: _isSearching
+                        ? const Center(child: CircularProgressIndicator())
+                        : isEmptyResult
+                        ? const _EmptyResult()
+                        : _hasSearched
+                        ? ListView.separated(
+                            controller: _searchScrollController,
+                            padding: const EdgeInsets.fromLTRB(
+                              _kHorizontalPadding,
+                              0,
+                              _kHorizontalPadding,
+                              _kLocationGap,
                             ),
-                          ),
-                        ],
-                      ],
-                    ),
+                            itemCount:
+                                _searchResults.length +
+                                (_isLoadingMoreSearch ? 1 : 0),
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: _kLocationGap),
+                            itemBuilder: (context, index) {
+                              if (index >= _searchResults.length) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+                              final spot = _searchResults[index];
+                              return AppLocationSelect(
+                                key: ValueKey(spot.contentId),
+                                title: spot.title,
+                                address: spot.address,
+                                isSelected: _selectedContentIds.contains(
+                                  spot.contentId,
+                                ),
+                                onChanged: (selected) =>
+                                    _handleSpotSelectedChanged(spot, selected),
+                              );
+                            },
+                          )
+                        : _buildPopularSpotsSection(),
                   ),
-                ),
+                  if (selectedChips.isNotEmpty)
+                    Positioned(
+                      left: _kHorizontalPadding,
+                      right: _kHorizontalPadding,
+                      bottom: _kChipsToButtonGap,
+                      child: Wrap(
+                        spacing: _kChipGap,
+                        runSpacing: _kChipGap,
+                        children: [
+                          for (final chip in selectedChips)
+                            AppDeletableChip(
+                              key: ValueKey(chip.key),
+                              label: chip.label,
+                              onDeleted: chip.onRemove,
+                            ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
-              const SizedBox(height: _kChipsToButtonGap),
-            ],
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 _kHorizontalPadding,
@@ -276,8 +530,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
-                text: '장소 추가하기',
-                isEnabled: selectedSpots.isNotEmpty,
+                text: _isAddingSpots ? '추가하는 중...' : '장소 추가하기',
+                isEnabled: selectedChips.isNotEmpty && !_isAddingSpots,
                 onPressed: _handleAddTap,
               ),
             ),
@@ -342,8 +596,7 @@ class _EmptyResult extends StatelessWidget {
           const SizedBox(height: _kEmptyImageToTextGap),
           Text(
             '검색 결과가 없어요.',
-            textAlign: TextAlign.center,
-            style: AppTextStyles.body.copyWith(color: AppColors.gray5),
+            style: AppTextStyles.subTitle.copyWith(color: AppColors.gray5),
           ),
           const Expanded(flex: _kEmptyResultBottomFlex, child: SizedBox()),
         ],
@@ -352,30 +605,65 @@ class _EmptyResult extends StatelessWidget {
   }
 }
 
-List<TouristSpotModel> _previewPopularSpots() {
+List<TouristSpotSearchResultModel> _previewSearchResults() {
   return const [
-    TouristSpotModel(
-      touristSpotId: 1,
-      name: '첨성대',
+    TouristSpotSearchResultModel(
+      contentId: '1',
+      contentTypeId: '12',
+      title: '첨성대',
       address: '경북 경주시 인왕동 839-1',
       latitude: 35.8347,
       longitude: 129.2194,
     ),
-    TouristSpotModel(
-      touristSpotId: 2,
-      name: '동궁과 월지',
+    TouristSpotSearchResultModel(
+      contentId: '2',
+      contentTypeId: '12',
+      title: '동궁과 월지',
       address: '경북 경주시 원화로 102',
       latitude: 35.8347,
       longitude: 129.2247,
     ),
-    TouristSpotModel(
-      touristSpotId: 3,
-      name: '대릉원',
+    TouristSpotSearchResultModel(
+      contentId: '3',
+      contentTypeId: '12',
+      title: '대릉원',
       address: '경북 경주시 계림로 9',
       latitude: 35.8351,
       longitude: 129.2118,
     ),
   ];
+}
+
+Future<TouristSpotRankPage> _previewLoadPopularSpots(int cursor) async {
+  await Future.delayed(const Duration(milliseconds: 300));
+  return TouristSpotRankPage(
+    ranks: const [
+      TouristSpotRankModel(
+        rank: 1,
+        touristSpotId: 1,
+        title: '첨성대',
+        address: '경북 경주시 인왕동 839-1',
+        courseSpotCount: 42,
+      ),
+      TouristSpotRankModel(
+        rank: 2,
+        touristSpotId: 2,
+        title: '동궁과 월지',
+        address: '경북 경주시 원화로 102',
+        courseSpotCount: 31,
+      ),
+      TouristSpotRankModel(
+        rank: 3,
+        touristSpotId: 3,
+        title: '대릉원',
+        address: '경북 경주시 계림로 9',
+        courseSpotCount: 20,
+      ),
+    ],
+    currentCursor: cursor,
+    nextCursor: null,
+    hasNext: false,
+  );
 }
 
 @Preview(
@@ -387,11 +675,31 @@ Widget locationSearchScreenPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     home: LocationSearchScreen(
-      popularSpots: _previewPopularSpots(),
-      onSearch: (query) async {
+      onLoadPopularSpots: _previewLoadPopularSpots,
+      onSearch: (keyword, cursor) async {
         await Future.delayed(const Duration(milliseconds: 300));
-        return _previewPopularSpots()
-            .where((spot) => spot.name.contains(query))
+        final matched = _previewSearchResults()
+            .where((spot) => spot.title.contains(keyword))
+            .toList();
+        return TouristSpotSearchPage(
+          places: matched,
+          currentCursor: cursor,
+          nextCursor: null,
+          hasNext: false,
+        );
+      },
+      onAddSelectedSpots: (selected) async {
+        await Future.delayed(const Duration(milliseconds: 300));
+        return selected
+            .map(
+              (spot) => TouristSpotModel(
+                touristSpotId: int.parse(spot.contentId),
+                name: spot.title,
+                address: spot.address,
+                latitude: spot.latitude,
+                longitude: spot.longitude,
+              ),
+            )
             .toList();
       },
     ),

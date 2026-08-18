@@ -8,11 +8,12 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/app_travel_status.dart';
+import '../../core/design_system/widgets/app_chip.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/app_posing.dart';
-import '../../core/design_system/widgets/app_travel_tag_grid.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/toggle/app_visibility_toggle.dart';
+import '../../data/models/travel/travel_tag_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_date_edit_screen.dart';
 
@@ -35,16 +36,22 @@ class TravelSettingsResult {
     required this.travelName,
     required this.startDate,
     required this.endDate,
-    required this.tags,
+    required this.tagIds,
     required this.isPublic,
+    required this.hasCoreFieldChanges,
+    required this.isPublicChanged,
     this.backgroundImage,
   });
 
   final String travelName;
   final DateTime startDate;
   final DateTime endDate;
-  final List<String> tags;
+  final List<int> tagIds;
   final bool isPublic;
+
+  final bool hasCoreFieldChanges;
+
+  final bool isPublicChanged;
   final File? backgroundImage;
 }
 
@@ -53,10 +60,11 @@ class TravelSettingsScreen extends StatefulWidget {
     super.key,
     required this.status,
     required this.destination,
+    required this.tagOptions,
     this.initialTravelName = '',
     this.initialStartDate,
     this.initialEndDate,
-    this.initialTags = const [],
+    this.initialTagIds = const [],
     this.initialIsPublic = false,
     this.initialBackgroundImage,
     this.onBackTap,
@@ -65,10 +73,11 @@ class TravelSettingsScreen extends StatefulWidget {
 
   final AppTravelStatus status;
   final String destination;
+  final List<TravelTagModel> tagOptions;
   final String initialTravelName;
   final DateTime? initialStartDate;
   final DateTime? initialEndDate;
-  final List<String> initialTags;
+  final List<int> initialTagIds;
   final bool initialIsPublic;
   final File? initialBackgroundImage;
   final VoidCallback? onBackTap;
@@ -91,7 +100,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
   );
   late DateTime? _startDate = widget.initialStartDate;
   late DateTime? _endDate = widget.initialEndDate;
-  late final Set<String> _selectedTags = {...widget.initialTags};
+  late final Set<int> _selectedTagIds = {...widget.initialTagIds};
   late bool _isPublic = widget.initialIsPublic;
   File? _backgroundImage;
 
@@ -100,21 +109,26 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
 
   bool get _isCompleted => widget.status == AppTravelStatus.completed;
 
-  bool get _hasChanges =>
+  bool get _isPublicChanged => _isPublic != widget.initialIsPublic;
+
+  bool get _hasCoreFieldChanges =>
       _travelNameController.text.trim() != widget.initialTravelName.trim() ||
       _startDate != widget.initialStartDate ||
       _endDate != widget.initialEndDate ||
-      _selectedTags.length != widget.initialTags.length ||
-      !_selectedTags.containsAll(widget.initialTags) ||
-      _isPublic != widget.initialIsPublic ||
+      _selectedTagIds.length != widget.initialTagIds.length ||
+      !_selectedTagIds.containsAll(widget.initialTagIds) ||
       _backgroundImage != widget.initialBackgroundImage;
 
-  bool get _isFormValid =>
-      _hasChanges &&
+  bool get _isCoreFieldsValid =>
       _travelNameController.text.trim().isNotEmpty &&
       _startDate != null &&
       _endDate != null &&
-      _selectedTags.isNotEmpty;
+      _selectedTagIds.isNotEmpty;
+
+  bool get _isFormValid {
+    if (_hasCoreFieldChanges && !_isCoreFieldsValid) return false;
+    return _hasCoreFieldChanges || _isPublicChanged;
+  }
 
   @override
   void initState() {
@@ -135,12 +149,12 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
 
   Future<void> _handlePickBackgroundImage() async {
     try {
-      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+      );
       if (picked == null || !mounted) return;
       setState(() => _backgroundImage = File(picked.path));
-    } catch (error) {
-      debugPrint('배경 사진 선택 실패: $error');
-    }
+    } catch (_) {}
   }
 
   Future<void> _handlePickDateRange() async {
@@ -160,13 +174,13 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
     });
   }
 
-  void _handleToggleTag(String tag) {
+  void _handleToggleTag(int tagId) {
     FocusScope.of(context).unfocus();
     setState(() {
-      if (_selectedTags.contains(tag)) {
-        _selectedTags.remove(tag);
-      } else if (_selectedTags.length < _kMaxTagCount) {
-        _selectedTags.add(tag);
+      if (_selectedTagIds.contains(tagId)) {
+        _selectedTagIds.remove(tagId);
+      } else if (_selectedTagIds.length < _kMaxTagCount) {
+        _selectedTagIds.add(tagId);
       }
     });
   }
@@ -177,8 +191,10 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
         travelName: _travelNameController.text.trim(),
         startDate: _startDate!,
         endDate: _endDate!,
-        tags: _selectedTags.toList(),
+        tagIds: _selectedTagIds.toList(),
         isPublic: _isPublic,
+        hasCoreFieldChanges: _hasCoreFieldChanges,
+        isPublicChanged: _isPublicChanged,
         backgroundImage: _backgroundImage,
       ),
     );
@@ -232,7 +248,9 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                         onTap: _handlePickBackgroundImage,
                         child: _backgroundImage == null
                             ? const AppPosing.travelPhoto()
-                            : _BackgroundPhotoPreview(image: _backgroundImage!),
+                            : _BackgroundPhotoPreview(
+                                image: _backgroundImage!,
+                              ),
                       ),
                       const SizedBox(height: _kPhotoToNameLabelGap),
                       const _SectionLabel('여행명'),
@@ -265,8 +283,9 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       const SizedBox(height: _kFieldToNextLabelGap),
                       const _SectionLabel('어떤 여행인가요?(최대 2개 선택)'),
                       const SizedBox(height: _kLabelToFieldGap),
-                      AppTravelTagGrid(
-                        selectedTags: _selectedTags,
+                      _TagGrid(
+                        tagOptions: widget.tagOptions,
+                        selectedTagIds: _selectedTagIds,
                         onToggle: _handleToggleTag,
                       ),
                       const SizedBox(height: _kTagGridToButtonGap),
@@ -360,8 +379,73 @@ class _VisibilitySection extends StatelessWidget {
   }
 }
 
+class _TagGrid extends StatelessWidget {
+  const _TagGrid({
+    required this.tagOptions,
+    required this.selectedTagIds,
+    required this.onToggle,
+  });
+
+  final List<TravelTagModel> tagOptions;
+  final Set<int> selectedTagIds;
+  final ValueChanged<int> onToggle;
+
+  static const int _columns = 4;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = [
+      for (var i = 0; i < tagOptions.length; i += _columns)
+        tagOptions.sublist(i, (i + _columns).clamp(0, tagOptions.length)),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var r = 0; r < rows.length; r++) ...[
+          if (r > 0) const SizedBox(height: 10),
+          Row(
+            children: [
+              for (var c = 0; c < rows[r].length; c++) ...[
+                if (c > 0) const SizedBox(width: 9),
+                Expanded(
+                  child: AppTagChip(
+                    label: '# ${rows[r][c].name}',
+                    isSelected: selectedTagIds.contains(rows[r][c].id),
+                    onTap: () => onToggle(rows[r][c].id),
+
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 10.0,
+                      horizontal: 12.0,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+const List<TravelTagModel> _kPreviewTagOptions = [
+  TravelTagModel(id: 1, name: '기록'),
+  TravelTagModel(id: 2, name: '미식'),
+  TravelTagModel(id: 3, name: '힐링'),
+  TravelTagModel(id: 4, name: '체험'),
+  TravelTagModel(id: 5, name: '문화'),
+  TravelTagModel(id: 6, name: '예술'),
+  TravelTagModel(id: 7, name: '쇼핑'),
+  TravelTagModel(id: 8, name: '탐험'),
+];
+
 TravelSettingsScreen _previewScreen(AppTravelStatus status) {
-  return TravelSettingsScreen(status: status, destination: '경주');
+  return TravelSettingsScreen(
+    status: status,
+    destination: '경주',
+    tagOptions: _kPreviewTagOptions,
+  );
 }
 
 @Preview(
