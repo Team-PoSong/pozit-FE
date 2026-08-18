@@ -9,6 +9,8 @@ import '../../data/models/travel/public_travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/like/like_repository.dart';
 import '../../data/repositories/travel/public_travel_repository.dart';
+import '../travel_creation/travel_creation_data.dart';
+import '../travel_creation/travel_schedule_screen.dart';
 import 'travel_detail_screen.dart';
 
 const double _kTopOffset = 4.0;
@@ -131,7 +133,20 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
           ? widget.likeRepository.likeTravel(detail.travelId)
           : widget.likeRepository.unlikeTravel(detail.travelId),
       onFavoriteChanged: widget.onFavoriteChanged,
-      onFollowCourseTap: widget.onFollowCourseTap,
+      onFollowCourseTap:
+          widget.onFollowCourseTap ?? () => _followCourse(detail),
+    );
+  }
+
+  void _followCourse(PublicTravelDetailModel detail) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelScheduleScreen(
+          destination: detail.destination,
+          creationMethod: TravelCreationMethod.wish,
+          initialCourses: detail.courses,
+        ),
+      ),
     );
   }
 

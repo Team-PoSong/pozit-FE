@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/travel/travel_course_model.dart';
+
 enum TravelCreationMethod { recommendation, create, wish }
 
 class TravelInfoResult {
@@ -11,6 +13,7 @@ class TravelInfoResult {
     this.creationMethod = TravelCreationMethod.create,
     this.transportation,
     this.densityLevel,
+    this.initialCourses = const [],
   });
 
   final String destination;
@@ -20,6 +23,7 @@ class TravelInfoResult {
   final TravelCreationMethod creationMethod;
   final String? transportation;
   final int? densityLevel;
+  final List<TravelCourseModel> initialCourses;
 
   TravelInfoResult copyWith({String? transportation, int? densityLevel}) {
     return TravelInfoResult(
@@ -30,6 +34,7 @@ class TravelInfoResult {
       creationMethod: creationMethod,
       transportation: transportation ?? this.transportation,
       densityLevel: densityLevel ?? this.densityLevel,
+      initialCourses: initialCourses,
     );
   }
 }

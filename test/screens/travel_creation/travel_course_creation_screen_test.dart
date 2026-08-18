@@ -8,8 +8,55 @@ import 'package:pozit/core/design_system/widgets/button/app_circle_button.dart';
 import 'package:pozit/screens/location_search/location_search_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
+import 'package:pozit/data/models/travel/travel_course_model.dart';
 
 void main() {
+  testWidgets('찜한 코스의 장소가 코스 구성 화면에 유지된다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelCourseCreationScreen(
+          travelInfo: TravelInfoResult(
+            destination: '경주',
+            dateRange: DateTimeRange(
+              start: DateTime(2026, 7, 3),
+              end: DateTime(2026, 7, 4),
+            ),
+            name: '가져온 여행',
+            tags: const {'힐링'},
+            creationMethod: TravelCreationMethod.wish,
+            initialCourses: [
+              TravelCourseModel(
+                courseId: 10,
+                dayNumber: 1,
+                date: DateTime(2026, 6, 5),
+                spots: const [
+                  CourseSpotModel(
+                    courseSpotId: 20,
+                    touristSpotId: 30,
+                    name: '첨성대',
+                    address: '경북 경주시 인왕동 839-1',
+                    latitude: 35.8347,
+                    longitude: 129.2194,
+                    orderIndex: 0,
+                    status: 'visited',
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('첨성대'), findsOneWidget);
+    expect(find.text('경북 경주시 인왕동 839-1'), findsOneWidget);
+  });
+
   testWidgets('선택한 일차와 굵은 제목이 같이 변경된다', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;

@@ -5,14 +5,6 @@ const Set<String> _kVisitedStatusSynonyms = {
   'completed',
   'complete',
 };
-const Set<String> _kNotVisitedStatusSynonyms = {
-  'notvisited',
-  'notvisit',
-  'unvisited',
-  'pending',
-  'none',
-};
-
 String _normalizeSpotStatus(String raw) {
   final normalized = raw.toLowerCase().replaceAll('_', '');
   if (_kVisitedStatusSynonyms.contains(normalized)) return 'visited';

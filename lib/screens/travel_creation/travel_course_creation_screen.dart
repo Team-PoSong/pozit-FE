@@ -57,6 +57,20 @@ class _TravelCourseCreationScreenState
   void initState() {
     super.initState();
     _courseCounts = {...widget.courseCounts};
+    for (final course in widget.travelInfo.initialCourses) {
+      final spots = [
+        for (final spot in course.spots)
+          TouristSpotModel(
+            touristSpotId: spot.touristSpotId,
+            name: spot.name,
+            address: spot.address,
+            latitude: spot.latitude,
+            longitude: spot.longitude,
+          ),
+      ];
+      _spotsByDay[course.dayNumber] = spots;
+      _courseCounts[course.dayNumber] = spots.length;
+    }
   }
 
   int get _dayCount =>

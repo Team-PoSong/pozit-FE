@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/widgets/app_chip.dart';
+import 'package:pozit/screens/likes/likes_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_destination_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_schedule_screen.dart';
@@ -31,6 +32,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TravelDestinationScreen), findsOneWidget);
+  });
+
+  testWidgets('찜한 코스는 기존 찜 목록으로 이동한다', (tester) async {
+    await pumpCreationScreen(tester);
+
+    await tester.ensureVisible(find.text('찜한 코스'));
+    await tester.tap(find.text('찜한 코스'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LikesScreen), findsOneWidget);
   });
 
   testWidgets('목 여행지를 검색·선택하고 다음을 누르면 날짜 선택으로 이동한다', (tester) async {

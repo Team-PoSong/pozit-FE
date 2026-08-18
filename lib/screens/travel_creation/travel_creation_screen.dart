@@ -4,6 +4,7 @@ import 'package:flutter/widget_previews.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_course_method_select.dart';
+import '../likes/likes_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
 import 'travel_destination_screen.dart';
@@ -35,6 +36,16 @@ class TravelCreationScreen extends StatelessWidget {
         builder: (_) => TravelDestinationScreen(creationMethod: creationMethod),
       ),
     );
+  }
+
+  void _openLikedCourses(BuildContext context) {
+    if (onWishTap case final callback?) {
+      callback();
+      return;
+    }
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const LikesScreen()));
   }
 
   @override
@@ -89,7 +100,7 @@ class TravelCreationScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     AppCourseMethodSelect(
                       method: AppCourseMethod.wish,
-                      onTap: onWishTap,
+                      onTap: () => _openLikedCourses(context),
                     ),
                   ],
                 ),

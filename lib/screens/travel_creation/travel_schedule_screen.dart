@@ -8,6 +8,7 @@ import '../../core/design_system/widgets/app_calendar.dart';
 import '../../core/design_system/widgets/app_travel_date_select.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
+import '../../data/models/travel/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
 import 'travel_info_screen.dart';
@@ -20,6 +21,7 @@ class TravelScheduleScreen extends StatefulWidget {
     this.onBackTap,
     this.minimumDate,
     this.creationMethod = TravelCreationMethod.create,
+    this.initialCourses = const [],
   });
 
   final String destination;
@@ -27,6 +29,7 @@ class TravelScheduleScreen extends StatefulWidget {
   final VoidCallback? onBackTap;
   final DateTime? minimumDate;
   final TravelCreationMethod creationMethod;
+  final List<TravelCourseModel> initialCourses;
 
   @override
   State<TravelScheduleScreen> createState() => _TravelScheduleScreenState();
@@ -110,6 +113,7 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
           destination: widget.destination,
           dateRange: range,
           creationMethod: widget.creationMethod,
+          initialCourses: widget.initialCourses,
         ),
       ),
     );

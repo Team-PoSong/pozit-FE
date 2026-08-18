@@ -8,6 +8,7 @@ import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/app_travel_tag_grid.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
+import '../../data/models/travel/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_course_creation_screen.dart';
 import 'travel_creation_data.dart';
@@ -21,6 +22,7 @@ class TravelInfoScreen extends StatefulWidget {
     this.onSave,
     this.onBackTap,
     this.creationMethod = TravelCreationMethod.create,
+    this.initialCourses = const [],
   });
 
   final String destination;
@@ -28,6 +30,7 @@ class TravelInfoScreen extends StatefulWidget {
   final ValueChanged<TravelInfoResult>? onSave;
   final VoidCallback? onBackTap;
   final TravelCreationMethod creationMethod;
+  final List<TravelCourseModel> initialCourses;
 
   @override
   State<TravelInfoScreen> createState() => _TravelInfoScreenState();
@@ -74,6 +77,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
       name: _nameController.text.trim(),
       tags: Set.unmodifiable(_selectedTags),
       creationMethod: widget.creationMethod,
+      initialCourses: widget.initialCourses,
     );
     final onSave = widget.onSave;
     if (onSave != null) {
