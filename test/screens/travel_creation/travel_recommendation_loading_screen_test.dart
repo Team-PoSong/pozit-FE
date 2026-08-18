@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/app_images.dart';
 import 'package:pozit/core/design_system/widgets/app_travel_card.dart';
+import 'package:pozit/screens/explore/explore_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/screens/travel_creation/travel_recommendation_loading_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_recommendation_result_screen.dart';
@@ -45,7 +46,15 @@ void main() {
 
     expect(find.byType(TravelRecommendationResultScreen), findsOneWidget);
     expect(find.byType(AppTravelCard), findsNWidgets(3));
-    expect(find.text('다른 사람 코스 둘러보기'), findsNothing);
+    final browseOtherCourses = find.text('다른 사람 코스 둘러보기');
+    expect(browseOtherCourses, findsOneWidget);
+
+    await tester.ensureVisible(browseOtherCourses);
+    await tester.tap(browseOtherCourses);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExploreScreen), findsOneWidget);
+    expect(find.text('탐색'), findsOneWidget);
   });
 
   testWidgets('재시도 중에는 추천 요청을 중복 실행하지 않는다', (tester) async {

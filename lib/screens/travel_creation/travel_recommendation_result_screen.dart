@@ -10,6 +10,8 @@ import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/local/travel_store.dart';
 import '../course_edit/course_edit_screen.dart';
+import '../explore/explore_content.dart';
+import '../explore/explore_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_detail/travel_detail_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
@@ -39,6 +41,23 @@ class TravelRecommendationResultScreen extends StatelessWidget {
     onRecommendationTap?.call();
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const PozitPickDetailScreen()),
+    );
+  }
+
+  void _browseOtherCourses(BuildContext context) {
+    final callback = onBrowseOtherCourses;
+    if (callback != null) {
+      callback();
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ExploreScreen(
+          isTravelCreationMode: true,
+          travels: explorePreviewTravels,
+        ),
+      ),
     );
   }
 
@@ -225,21 +244,20 @@ class TravelRecommendationResultScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    if (onBrowseOtherCourses != null)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: onBrowseOtherCourses,
-                          child: Text(
-                            '다른 사람 코스 둘러보기',
-                            style: AppTextStyles.body.copyWith(
-                              color: AppColors.gray5,
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColors.gray5,
-                            ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: () => _browseOtherCourses(context),
+                        child: Text(
+                          '다른 사람 코스 둘러보기',
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.gray5,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.gray5,
                           ),
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
