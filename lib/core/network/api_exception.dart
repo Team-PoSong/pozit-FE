@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 
 class ApiException implements Exception {
   const ApiException(this.message, {this.code, this.statusCode});
@@ -22,16 +19,6 @@ class ApiException implements Exception {
   }
 
   factory ApiException.fromDioException(DioException error) {
-    debugPrint(
-      '[ApiException] platform=${Platform.operatingSystem} '
-      'type=${error.type} '
-      'method=${error.requestOptions.method} '
-      'path=${error.requestOptions.path} '
-      'statusCode=${error.response?.statusCode} '
-      'underlying=${error.error} '
-      'message=${error.message}',
-    );
-
     final data = error.response?.data;
     if (data is Map<String, dynamic>) {
       return ApiException.fromServerResponse(
