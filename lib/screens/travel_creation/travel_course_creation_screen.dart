@@ -26,7 +26,6 @@ class TravelCourseCreationScreen extends StatefulWidget {
   const TravelCourseCreationScreen({
     super.key,
     required this.travelInfo,
-    this.courseCounts = const {},
     this.onAiTap,
     this.onAddCourseTap,
     this.onStartTravel,
@@ -34,7 +33,6 @@ class TravelCourseCreationScreen extends StatefulWidget {
   });
 
   final TravelInfoResult travelInfo;
-  final Map<int, int> courseCounts;
   final VoidCallback? onAiTap;
   final ValueChanged<int>? onAddCourseTap;
   final VoidCallback? onStartTravel;
@@ -48,27 +46,19 @@ class TravelCourseCreationScreen extends StatefulWidget {
 class _TravelCourseCreationScreenState
     extends State<TravelCourseCreationScreen> {
   int _selectedDay = 1;
-  late final Map<int, int> _courseCounts;
   final Map<int, List<TouristSpotModel>> _spotsByDay = {};
 
   @override
   void initState() {
     super.initState();
-    _courseCounts = {...widget.courseCounts};
     _initializeCopiedCourses();
   }
 
   @override
   void didUpdateWidget(covariant TravelCourseCreationScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.travelInfo == widget.travelInfo &&
-        oldWidget.courseCounts == widget.courseCounts) {
-      return;
-    }
+    if (oldWidget.travelInfo == widget.travelInfo) return;
     _selectedDay = _selectedDay.clamp(1, _dayCount);
-    _courseCounts
-      ..clear()
-      ..addAll(widget.courseCounts);
     _spotsByDay.clear();
     _initializeCopiedCourses();
   }
@@ -79,15 +69,12 @@ class _TravelCourseCreationScreenState
     );
     for (final entry in initialSpots.entries) {
       _spotsByDay[entry.key] = entry.value;
-      _courseCounts[entry.key] = entry.value.length;
     }
   }
 
   int get _dayCount => TravelCreationPipeline.dayCount(widget.travelInfo);
 
-  bool get _hasAnyCourse =>
-      _courseCounts.values.any((count) => count > 0) ||
-      _spotsByDay.values.any((spots) => spots.isNotEmpty);
+  bool get _hasAnyCourse => _spotsByDay.values.any((spots) => spots.isNotEmpty);
 
   Future<TouristSpotRankPage> _loadMockPopularSpots(int cursor) async {
     return TouristSpotRankPage(
@@ -183,7 +170,6 @@ class _TravelCourseCreationScreenState
       for (final spot in spots) {
         if (existingIds.add(spot.touristSpotId)) selectedSpots.add(spot);
       }
-      _courseCounts[_selectedDay] = selectedSpots.length;
     });
   }
 
@@ -199,12 +185,15 @@ class _TravelCourseCreationScreenState
     setState(() {
       final spots = _spotsByDay[_selectedDay]!;
       spots.removeWhere((item) => item.touristSpotId == spot.touristSpotId);
-      _courseCounts[_selectedDay] = spots.length;
     });
   }
 
   void _handleBack() {
-    widget.onBackTap?.call();
+    final onBackTap = widget.onBackTap;
+    if (onBackTap != null) {
+      onBackTap();
+      return;
+    }
     Navigator.of(context).maybePop();
   }
 
@@ -222,7 +211,7 @@ class _TravelCourseCreationScreenState
   @override
   Widget build(BuildContext context) {
     final selectedDaySpots = _spotsByDay[_selectedDay] ?? const [];
-    final selectedDayCourseCount = _courseCounts[_selectedDay] ?? 0;
+    final selectedDayCourseCount = selectedDaySpots.length;
 
     return Scaffold(
       backgroundColor: AppColors.white,

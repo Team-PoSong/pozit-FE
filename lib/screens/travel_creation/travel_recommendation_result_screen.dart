@@ -33,7 +33,11 @@ class TravelRecommendationResultScreen extends StatelessWidget {
   final VoidCallback? onRecommendationTap;
 
   void _handleBack(BuildContext context) {
-    onBackTap?.call();
+    final callback = onBackTap;
+    if (callback != null) {
+      callback();
+      return;
+    }
     Navigator.of(context).maybePop();
   }
 
