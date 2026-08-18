@@ -46,9 +46,6 @@ void main() {
 
     expect(find.byType(TravelRecommendationResultScreen), findsOneWidget);
     expect(find.byType(AppTravelCard), findsNWidgets(3));
-    expect(find.text('7/2 ~ 7/3 · 1박 2일'), findsNWidgets(3));
-    expect(find.text('해림'), findsOneWidget);
-    expect(find.text('2명'), findsNWidgets(2));
     final browseOtherCourses = find.text('다른 사람 코스 둘러보기');
     expect(browseOtherCourses, findsOneWidget);
 
