@@ -12,6 +12,7 @@ import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../explore/explore_content.dart';
 import '../invite_code/invite_code_screen.dart';
+import '../likes/likes_screen.dart';
 import 'widgets/travel_completion_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -113,6 +114,16 @@ class _HomeScreenState extends State<HomeScreen> {
     widget.onNavigationChanged?.call(tab);
   }
 
+  void _handleWishTap() {
+    if (widget.onWishTap case final callback?) {
+      callback();
+      return;
+    }
+    Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => const LikesScreen()));
+  }
+
   void _moveToTab(AppNavigationTab tab) {
     if (_selectedTab == tab) return;
 
@@ -164,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
             AppMainHeader(
               hasNotification: widget.hasNotification,
               onNotificationTap: widget.onNotificationTap,
-              onWishTap: widget.onWishTap,
+              onWishTap: _handleWishTap,
               onMyPageTap: widget.onMyPageTap,
               assetPackage: widget.assetPackage,
             ),

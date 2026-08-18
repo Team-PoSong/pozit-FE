@@ -26,6 +26,7 @@ class TravelDetailTopBar extends StatelessWidget {
     this.title,
     this.showLock = false,
     this.showSettingsButton = false,
+    this.isSettingsEnabled = true,
     this.travelStatusMode,
     this.travelStatus,
     this.isLeader,
@@ -55,6 +56,7 @@ class TravelDetailTopBar extends StatelessWidget {
   final bool showLock;
 
   final bool showSettingsButton;
+  final bool isSettingsEnabled;
 
   final TravelStatusMode? travelStatusMode;
 
@@ -127,6 +129,7 @@ class TravelDetailTopBar extends StatelessWidget {
               child: _IconButton(
                 icon: AppIcons.arrowLeft,
                 iconColor: iconColor,
+                semanticLabel: '뒤로가기',
                 onTap: onBackTap,
               ),
             ),
@@ -144,6 +147,7 @@ class TravelDetailTopBar extends StatelessWidget {
                   iconColor: iconColor,
                   travelStatus: travelStatus!,
                   isLeader: isLeader!,
+                  isEnabled: isSettingsEnabled,
                   onSettingsTap: onSettingsTap,
                   onCourseEditTap: onCourseEditTap,
                   onMemberTap: onMemberTap,
@@ -163,6 +167,7 @@ class _SettingsButton extends StatefulWidget {
     required this.iconColor,
     required this.travelStatus,
     required this.isLeader,
+    required this.isEnabled,
     this.onSettingsTap,
     this.onCourseEditTap,
     this.onMemberTap,
@@ -173,6 +178,7 @@ class _SettingsButton extends StatefulWidget {
   final Color iconColor;
   final AppTravelStatus travelStatus;
   final bool isLeader;
+  final bool isEnabled;
   final VoidCallback? onSettingsTap;
   final VoidCallback? onCourseEditTap;
   final VoidCallback? onMemberTap;
@@ -230,7 +236,8 @@ class _SettingsButtonState extends State<_SettingsButton> {
       child: _IconButton(
         icon: AppIcons.more,
         iconColor: widget.iconColor,
-        onTap: _handleTap,
+        semanticLabel: '여행 메뉴',
+        onTap: widget.isEnabled ? _handleTap : null,
       ),
     );
   }
@@ -240,25 +247,33 @@ class _IconButton extends StatelessWidget {
   const _IconButton({
     required this.icon,
     required this.iconColor,
+    required this.semanticLabel,
     this.onTap,
   });
 
   final String icon;
   final Color iconColor;
+  final String semanticLabel;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.all(_kTapTargetPadding),
-        child: SvgPicture.asset(
-          icon,
-          width: _kIconSize,
-          height: _kIconSize,
-          colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      label: semanticLabel,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Padding(
+          padding: const EdgeInsets.all(_kTapTargetPadding),
+          child: SvgPicture.asset(
+            icon,
+            width: _kIconSize,
+            height: _kIconSize,
+            colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+            excludeFromSemantics: true,
+          ),
         ),
       ),
     );
