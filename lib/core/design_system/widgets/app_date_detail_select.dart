@@ -11,7 +11,7 @@ class AppDateDetailSelect extends StatefulWidget {
     this.selectedDay,
     this.initialDay = 1,
     this.onChanged,
-  }) : assert(dayCount >= 1 && dayCount <= 4),
+  }) : assert(dayCount >= 1),
        assert(initialDay >= 1 && initialDay <= dayCount),
        assert(selectedDay == null || selectedDay >= 1),
        assert(selectedDay == null || selectedDay <= dayCount);
@@ -58,7 +58,7 @@ class _AppDateDetailSelectState extends State<AppDateDetailSelect> {
       2 => 173 / 345,
       3 => 107 / 345,
       4 => 79 / 345,
-      _ => throw StateError('dayCount는 1부터 4까지만 지원합니다.'),
+      _ => 1 / widget.dayCount - 7 / 345,
     };
   }
 

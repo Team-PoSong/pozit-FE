@@ -145,6 +145,7 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
           destination: detail.destination,
           creationMethod: TravelCreationMethod.wish,
           initialCourses: detail.courses,
+          initialTags: detail.tags,
         ),
       ),
     );

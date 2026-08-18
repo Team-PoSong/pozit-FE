@@ -3,12 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_images.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_retry_error_view.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/like/liked_travel_model.dart';
+import '../../data/models/travel/travel_course_model.dart';
+import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/like/like_repository.dart';
 import '../travel_detail/public_travel_detail_page.dart';
+import '../travel_detail/travel_detail_screen.dart';
+import '../travel_creation/travel_creation_data.dart';
+import '../travel_creation/travel_schedule_screen.dart';
 import 'likes_content.dart';
 
 const double _kTopOffset = 4.0;
@@ -121,6 +127,10 @@ class _LikesScreenState extends State<LikesScreen> {
     final travelIndex = travels.indexWhere((item) => item.travelId == travelId);
     if (travelIndex == -1) return;
     final travel = travels[travelIndex];
+    if (widget.initialTravels != null) {
+      await _openPreviewTravelDetail(travel);
+      return;
+    }
     var currentFavorite = travel.isLiked;
 
     await Navigator.of(context).push<void>(
@@ -137,6 +147,45 @@ class _LikesScreenState extends State<LikesScreen> {
     );
     if (!mounted || currentFavorite) return;
     _removeTravelLocally(travelId);
+  }
+
+  Future<void> _openPreviewTravelDetail(LikedTravelModel travel) {
+    final courses = _previewCourses(travel);
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelDetailScreen(
+          title: travel.title,
+          info: TravelInfoCardModel(
+            destination: travel.destination,
+            startDate: travel.startDate,
+            endDate: travel.endDate,
+            companionCount: travel.memberCount,
+            tags: travel.tags,
+            visitedPlaceCount: 0,
+            recordCount: 0,
+            completionRate: travel.completionRate / 100,
+          ),
+          status: travel.status,
+          isLeader: false,
+          isMyTravel: false,
+          authorName: travel.leaderNickname,
+          isFavorite: true,
+          courses: courses,
+          backgroundImage: const AssetImage(AppImages.travelMockup),
+          onFavoriteToggle: (_) async {},
+          onFollowCourseTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => TravelScheduleScreen(
+                destination: travel.destination,
+                creationMethod: TravelCreationMethod.wish,
+                initialCourses: courses,
+                initialTags: travel.tags,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _removeTravelLocally(int travelId) {
@@ -187,6 +236,37 @@ class _LikesScreenState extends State<LikesScreen> {
       child: CircularProgressIndicator(color: AppColors.purple3),
     );
   }
+}
+
+List<TravelCourseModel> _previewCourses(LikedTravelModel travel) {
+  const spots = [
+    ('첨성대', '경북 경주시 인왕동 839-1', 35.8347, 129.2194),
+    ('동궁과 월지', '경북 경주시 원화로 102', 35.8347, 129.2247),
+    ('대릉원', '경북 경주시 계림로 9', 35.8351, 129.2118),
+    ('황리단길', '경북 경주시 포석로 1080', 35.8370, 129.2090),
+  ];
+  final dayCount = travel.endDate.difference(travel.startDate).inDays + 1;
+  return List.generate(dayCount.clamp(1, 4), (dayIndex) {
+    final dayNumber = dayIndex + 1;
+    return TravelCourseModel(
+      courseId: dayNumber,
+      dayNumber: dayNumber,
+      date: travel.startDate.add(Duration(days: dayIndex)),
+      spots: [
+        for (var index = 0; index < spots.length; index++)
+          CourseSpotModel(
+            courseSpotId: dayNumber * 100 + index,
+            touristSpotId: dayNumber * 100 + index,
+            name: spots[index].$1,
+            address: spots[index].$2,
+            latitude: spots[index].$3,
+            longitude: spots[index].$4,
+            orderIndex: index,
+            status: 'notVisited',
+          ),
+      ],
+    );
+  });
 }
 
 @Preview(group: 'haerim', name: '찜 화면', size: Size(393, 852))

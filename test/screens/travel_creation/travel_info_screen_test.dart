@@ -7,6 +7,33 @@ import 'package:pozit/screens/travel_creation/travel_info_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_preferences_screen.dart';
 
 void main() {
+  testWidgets('찜한 코스의 태그는 미리 선택되어 있다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelInfoScreen(
+          destination: '경주',
+          dateRange: DateTimeRange(
+            start: DateTime(2026, 7, 3),
+            end: DateTime(2026, 7, 4),
+          ),
+          creationMethod: TravelCreationMethod.wish,
+          initialTags: const ['힐링', '미식'],
+        ),
+      ),
+    );
+
+    final selectedLabels = tester
+        .widgetList<AppTagChip>(find.byType(AppTagChip))
+        .where((chip) => chip.isSelected)
+        .map((chip) => chip.label);
+    expect(selectedLabels, containsAll(['# 힐링', '# 미식']));
+  });
+
   testWidgets('여행 태그는 최대 2개까지 선택하고 저장할 수 있다', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;

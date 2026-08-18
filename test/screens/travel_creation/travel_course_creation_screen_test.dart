@@ -11,6 +11,74 @@ import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/data/models/travel/travel_course_model.dart';
 
 void main() {
+  testWidgets('새 일정이 짧으면 초과 일차를 버리고 길면 뒤 일차를 비워둔다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final originalCourses = List.generate(4, _courseForDay);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelCourseCreationScreen(
+          travelInfo: TravelInfoResult(
+            destination: '경주',
+            dateRange: DateTimeRange(
+              start: DateTime(2026, 8, 1),
+              end: DateTime(2026, 8, 5),
+            ),
+            name: '긴 여행',
+            tags: const {'힐링'},
+            creationMethod: TravelCreationMethod.wish,
+            initialCourses: originalCourses,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('5일차'), findsOneWidget);
+    final fifthDayButton = find
+        .descendant(
+          of: find.byType(AppDateDetailSelect),
+          matching: find.byType(GestureDetector),
+        )
+        .last;
+    await tester.tap(fifthDayButton);
+    await tester.pumpAndSettle();
+    expect(find.text('5일차'), findsNWidgets(2));
+    expect(find.byType(AppLocation), findsNothing);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelCourseCreationScreen(
+          travelInfo: TravelInfoResult(
+            destination: '경주',
+            dateRange: DateTimeRange(
+              start: DateTime(2026, 8, 1),
+              end: DateTime(2026, 8, 3),
+            ),
+            name: '짧은 여행',
+            tags: const {'힐링'},
+            creationMethod: TravelCreationMethod.wish,
+            initialCourses: originalCourses,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('4일차'), findsNothing);
+    final firstDayButton = find
+        .descendant(
+          of: find.byType(AppDateDetailSelect),
+          matching: find.byType(GestureDetector),
+        )
+        .first;
+    await tester.tap(firstDayButton);
+    await tester.pumpAndSettle();
+    expect(find.text('1일차 장소'), findsOneWidget);
+  });
+
   testWidgets('찜한 코스의 장소가 코스 구성 화면에 유지된다', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;
@@ -196,4 +264,25 @@ void main() {
     expect(find.text('지금 인기 있는 장소'), findsOneWidget);
     expect(find.text('불국사'), findsOneWidget);
   });
+}
+
+TravelCourseModel _courseForDay(int zeroBasedDay) {
+  final day = zeroBasedDay + 1;
+  return TravelCourseModel(
+    courseId: day,
+    dayNumber: day,
+    date: DateTime(2026, 7, day),
+    spots: [
+      CourseSpotModel(
+        courseSpotId: day,
+        touristSpotId: day,
+        name: '$day일차 장소',
+        address: '$day일차 주소',
+        latitude: 35,
+        longitude: 129,
+        orderIndex: 0,
+        status: 'notVisited',
+      ),
+    ],
+  );
 }

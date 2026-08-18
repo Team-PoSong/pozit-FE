@@ -4,6 +4,7 @@ import 'package:flutter/widget_previews.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_course_method_select.dart';
+import '../likes/likes_content.dart';
 import '../likes/likes_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
@@ -43,9 +44,11 @@ class TravelCreationScreen extends StatelessWidget {
       callback();
       return;
     }
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const LikesScreen()));
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LikesScreen(initialTravels: likesPreviewTravels()),
+      ),
+    );
   }
 
   @override
@@ -82,6 +85,7 @@ class TravelCreationScreen extends StatelessWidget {
                     const SizedBox(height: 25),
                     AppCourseMethodSelect(
                       method: AppCourseMethod.recommendation,
+                      isSelected: false,
                       onTap: () => _openDestinationSearch(
                         context,
                         onRecommendationTap,
@@ -91,6 +95,7 @@ class TravelCreationScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     AppCourseMethodSelect(
                       method: AppCourseMethod.create,
+                      isSelected: false,
                       onTap: () => _openDestinationSearch(
                         context,
                         onCreateTap,
@@ -100,6 +105,7 @@ class TravelCreationScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     AppCourseMethodSelect(
                       method: AppCourseMethod.wish,
+                      isSelected: false,
                       onTap: () => _openLikedCourses(context),
                     ),
                   ],

@@ -57,7 +57,28 @@ class _TravelCourseCreationScreenState
   void initState() {
     super.initState();
     _courseCounts = {...widget.courseCounts};
-    for (final course in widget.travelInfo.initialCourses) {
+    _initializeCopiedCourses();
+  }
+
+  @override
+  void didUpdateWidget(covariant TravelCourseCreationScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.travelInfo == widget.travelInfo &&
+        oldWidget.courseCounts == widget.courseCounts) {
+      return;
+    }
+    _selectedDay = _selectedDay.clamp(1, _dayCount);
+    _courseCounts
+      ..clear()
+      ..addAll(widget.courseCounts);
+    _spotsByDay.clear();
+    _initializeCopiedCourses();
+  }
+
+  void _initializeCopiedCourses() {
+    for (final course in widget.travelInfo.initialCourses.where(
+      (course) => course.dayNumber <= _dayCount,
+    )) {
       final spots = [
         for (final spot in course.spots)
           TouristSpotModel(
@@ -74,7 +95,7 @@ class _TravelCourseCreationScreenState
   }
 
   int get _dayCount =>
-      widget.travelInfo.dateRange.duration.inDays.clamp(0, 3) + 1;
+      widget.travelInfo.dateRange.duration.inDays.clamp(0, 4) + 1;
 
   bool get _hasAnyCourse =>
       _courseCounts.values.any((count) => count > 0) ||

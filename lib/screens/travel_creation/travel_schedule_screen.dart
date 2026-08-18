@@ -22,6 +22,7 @@ class TravelScheduleScreen extends StatefulWidget {
     this.minimumDate,
     this.creationMethod = TravelCreationMethod.create,
     this.initialCourses = const [],
+    this.initialTags = const [],
   });
 
   final String destination;
@@ -30,6 +31,7 @@ class TravelScheduleScreen extends StatefulWidget {
   final DateTime? minimumDate;
   final TravelCreationMethod creationMethod;
   final List<TravelCourseModel> initialCourses;
+  final List<String> initialTags;
 
   @override
   State<TravelScheduleScreen> createState() => _TravelScheduleScreenState();
@@ -37,7 +39,6 @@ class TravelScheduleScreen extends StatefulWidget {
 
 class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
   static const int _maximumTripNights = 3;
-  static const String _maximumTripLengthMessage = '아직 포짓에서는 3박 4일까지만 지원해요';
 
   DateTime? _startDate;
   DateTime? _endDate;
@@ -50,9 +51,17 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
   bool get _exceedsMaximumTripLength =>
       _startDate != null &&
       _endDate != null &&
-      _endDate!.difference(_startDate!).inDays > _maximumTripNights;
+      _endDate!.difference(_startDate!).inDays >
+          (widget.creationMethod == TravelCreationMethod.wish
+              ? _maximumTripNights + 1
+              : _maximumTripNights);
 
   bool get _canContinue => _hasCompleteRange && !_exceedsMaximumTripLength;
+
+  String get _maximumTripLengthMessage =>
+      widget.creationMethod == TravelCreationMethod.wish
+      ? '찜한 코스는 4박 5일까지 가져올 수 있어요'
+      : '아직 포짓에서는 3박 4일까지만 지원해요';
 
   void _handleSelectionStarted(DateTime start) {
     setState(() {
@@ -114,6 +123,7 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
           dateRange: range,
           creationMethod: widget.creationMethod,
           initialCourses: widget.initialCourses,
+          initialTags: widget.initialTags,
         ),
       ),
     );

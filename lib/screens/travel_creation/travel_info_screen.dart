@@ -23,6 +23,7 @@ class TravelInfoScreen extends StatefulWidget {
     this.onBackTap,
     this.creationMethod = TravelCreationMethod.create,
     this.initialCourses = const [],
+    this.initialTags = const [],
   });
 
   final String destination;
@@ -31,6 +32,7 @@ class TravelInfoScreen extends StatefulWidget {
   final VoidCallback? onBackTap;
   final TravelCreationMethod creationMethod;
   final List<TravelCourseModel> initialCourses;
+  final List<String> initialTags;
 
   @override
   State<TravelInfoScreen> createState() => _TravelInfoScreenState();
@@ -39,7 +41,13 @@ class TravelInfoScreen extends StatefulWidget {
 class _TravelInfoScreenState extends State<TravelInfoScreen> {
   static const int _maximumTagCount = 2;
   final TextEditingController _nameController = TextEditingController();
-  final Set<String> _selectedTags = {};
+  late final Set<String> _selectedTags;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTags = widget.initialTags.take(_maximumTagCount).toSet();
+  }
 
   bool get _canSave =>
       _nameController.text.trim().isNotEmpty && _selectedTags.isNotEmpty;
