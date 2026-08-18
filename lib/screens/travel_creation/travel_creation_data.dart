@@ -4,8 +4,8 @@ import '../../data/models/travel/travel_course_model.dart';
 
 enum TravelCreationMethod { recommendation, create, wish }
 
-class TravelInfoResult {
-  const TravelInfoResult({
+class TravelCreationDraft {
+  const TravelCreationDraft({
     required this.destination,
     required this.dateRange,
     required this.name,
@@ -25,8 +25,8 @@ class TravelInfoResult {
   final int? densityLevel;
   final List<TravelCourseModel> initialCourses;
 
-  TravelInfoResult copyWith({String? transportation, int? densityLevel}) {
-    return TravelInfoResult(
+  TravelCreationDraft copyWith({String? transportation, int? densityLevel}) {
+    return TravelCreationDraft(
       destination: destination,
       dateRange: dateRange,
       name: name,
@@ -38,3 +38,5 @@ class TravelInfoResult {
     );
   }
 }
+
+typedef TravelInfoResult = TravelCreationDraft;

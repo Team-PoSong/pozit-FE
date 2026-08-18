@@ -11,6 +11,7 @@ import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
+import 'travel_creation_pipeline.dart';
 import 'travel_info_screen.dart';
 
 class TravelScheduleScreen extends StatefulWidget {
@@ -38,8 +39,6 @@ class TravelScheduleScreen extends StatefulWidget {
 }
 
 class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
-  static const int _maximumTripNights = 3;
-
   DateTime? _startDate;
   DateTime? _endDate;
   AppTravelDateSelection _activeSelection = AppTravelDateSelection.start;
@@ -52,9 +51,7 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
       _startDate != null &&
       _endDate != null &&
       _endDate!.difference(_startDate!).inDays >
-          (widget.creationMethod == TravelCreationMethod.wish
-              ? _maximumTripNights + 1
-              : _maximumTripNights);
+          TravelCreationPipeline.maximumTripNights(widget.creationMethod);
 
   bool get _canContinue => _hasCompleteRange && !_exceedsMaximumTripLength;
 

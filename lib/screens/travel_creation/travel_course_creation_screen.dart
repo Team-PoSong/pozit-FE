@@ -16,13 +16,11 @@ import '../../data/models/tourist_spot_model.dart';
 import '../../data/models/tourist_spot_rank_model.dart';
 import '../../data/models/tourist_spot_search_result_model.dart';
 import '../../data/mock/mock_tourist_spots.dart';
-import '../../data/models/saved_travel_model.dart';
-import '../../data/models/travel/travel_course_model.dart';
-import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/local/travel_store.dart';
 import '../location_search/location_search_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
+import 'travel_creation_pipeline.dart';
 
 class TravelCourseCreationScreen extends StatefulWidget {
   const TravelCourseCreationScreen({
@@ -76,26 +74,16 @@ class _TravelCourseCreationScreenState
   }
 
   void _initializeCopiedCourses() {
-    for (final course in widget.travelInfo.initialCourses.where(
-      (course) => course.dayNumber <= _dayCount,
-    )) {
-      final spots = [
-        for (final spot in course.spots)
-          TouristSpotModel(
-            touristSpotId: spot.touristSpotId,
-            name: spot.name,
-            address: spot.address,
-            latitude: spot.latitude,
-            longitude: spot.longitude,
-          ),
-      ];
-      _spotsByDay[course.dayNumber] = spots;
-      _courseCounts[course.dayNumber] = spots.length;
+    final initialSpots = TravelCreationPipeline.initialSpotsByDay(
+      widget.travelInfo,
+    );
+    for (final entry in initialSpots.entries) {
+      _spotsByDay[entry.key] = entry.value;
+      _courseCounts[entry.key] = entry.value.length;
     }
   }
 
-  int get _dayCount =>
-      widget.travelInfo.dateRange.duration.inDays.clamp(0, 4) + 1;
+  int get _dayCount => TravelCreationPipeline.dayCount(widget.travelInfo);
 
   bool get _hasAnyCourse =>
       _courseCounts.values.any((count) => count > 0) ||
@@ -221,65 +209,12 @@ class _TravelCourseCreationScreenState
   }
 
   void _handleStartTravel() {
-    final courses = List.generate(_dayCount, (index) {
-      final dayNumber = index + 1;
-      final spots = _spotsByDay[dayNumber] ?? const <TouristSpotModel>[];
-      return TravelCourseModel(
-        courseId: dayNumber,
-        dayNumber: dayNumber,
-        date: widget.travelInfo.dateRange.start.add(Duration(days: index)),
-        spots: [
-          for (var spotIndex = 0; spotIndex < spots.length; spotIndex++)
-            CourseSpotModel(
-              courseSpotId: spots[spotIndex].touristSpotId,
-              touristSpotId: spots[spotIndex].touristSpotId,
-              name: spots[spotIndex].name,
-              address: spots[spotIndex].address,
-              latitude: spots[spotIndex].latitude,
-              longitude: spots[spotIndex].longitude,
-              orderIndex: spotIndex,
-              status: 'notVisited',
-            ),
-        ],
-      );
-    });
-    final dateRange = widget.travelInfo.dateRange;
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
-    final startDate = DateTime(
-      dateRange.start.year,
-      dateRange.start.month,
-      dateRange.start.day,
+    final courses = TravelCreationPipeline.buildCourses(
+      widget.travelInfo,
+      _spotsByDay,
     );
-    final daysUntilStart = startDate.difference(todayDate).inDays;
     TravelStore.instance.save(
-      SavedTravelModel(
-        id: 'created-${dateRange.start.millisecondsSinceEpoch}',
-        title: widget.travelInfo.name,
-        location: widget.travelInfo.destination,
-        dateText:
-            '${dateRange.start.month}/${dateRange.start.day} ~ '
-            '${dateRange.end.month}/${dateRange.end.day}',
-        author: '나',
-        info: TravelInfoCardModel(
-          destination: widget.travelInfo.destination,
-          startDate: dateRange.start,
-          endDate: dateRange.end,
-          companionCount: 1,
-          tags: widget.travelInfo.tags.toList(),
-          visitedPlaceCount: 0,
-          recordCount: 0,
-          completionRate: 0,
-        ),
-        courses: courses,
-        dDay: daysUntilStart < 0
-            ? null
-            : daysUntilStart == 0
-            ? 'D-Day'
-            : 'D-$daysUntilStart',
-        tags: widget.travelInfo.tags.toList(),
-        participantCount: 1,
-      ),
+      TravelCreationPipeline.buildSavedTravel(widget.travelInfo, courses),
     );
     Navigator.of(context).popUntil((route) => route.isFirst);
   }

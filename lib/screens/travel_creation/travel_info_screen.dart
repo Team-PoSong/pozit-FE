@@ -12,6 +12,7 @@ import '../../data/models/travel/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_course_creation_screen.dart';
 import 'travel_creation_data.dart';
+import 'travel_creation_pipeline.dart';
 import 'travel_preferences_screen.dart';
 
 class TravelInfoScreen extends StatefulWidget {
@@ -96,7 +97,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) =>
-            widget.creationMethod == TravelCreationMethod.recommendation
+            TravelCreationPipeline.requiresPreferences(widget.creationMethod)
             ? TravelPreferencesScreen(travelInfo: result)
             : TravelCourseCreationScreen(travelInfo: result),
       ),
