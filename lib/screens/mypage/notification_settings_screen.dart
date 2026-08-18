@@ -5,6 +5,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_switch.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/models/user/notification_settings_model.dart';
 
 const double _kHorizontalPadding = 24.0;
@@ -20,7 +21,7 @@ class NotificationSettingsScreen extends StatefulWidget {
   });
 
   final NotificationSettingsModel initialSettings;
-  final ValueChanged<NotificationSettingsModel>? onChanged;
+  final Future<void> Function(NotificationSettingsModel settings)? onChanged;
 
   @override
   State<NotificationSettingsScreen> createState() =>
@@ -30,10 +31,29 @@ class NotificationSettingsScreen extends StatefulWidget {
 class _NotificationSettingsScreenState
     extends State<NotificationSettingsScreen> {
   late NotificationSettingsModel _settings = widget.initialSettings;
+  bool _isSaving = false;
 
-  void _update(NotificationSettingsModel next) {
-    setState(() => _settings = next);
-    widget.onChanged?.call(next);
+  Future<void> _update(NotificationSettingsModel next) async {
+    if (_isSaving) return;
+    final previous = _settings;
+    setState(() {
+      _settings = next;
+      _isSaving = true;
+    });
+    try {
+      await widget.onChanged?.call(next);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _settings = previous);
+      final message = error is ApiException
+          ? error.message
+          : '알림 설정을 변경하지 못했습니다.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   void _setMaster(bool value) {
@@ -68,6 +88,7 @@ class _NotificationSettingsScreenState
                       label: '푸시 알림 받기',
                       value: _settings.pushEnabled,
                       onChanged: _setMaster,
+                      isEnabled: !_isSaving,
                       isEmphasized: true,
                     ),
                     const SizedBox(height: 16),
@@ -84,35 +105,35 @@ class _NotificationSettingsScreenState
                       _SettingRow(
                         label: '여행 시작/종료 알림',
                         value: _settings.travelEnabled,
-                        isEnabled: childrenEnabled,
+                        isEnabled: childrenEnabled && !_isSaving,
                         onChanged: (value) =>
                             _update(_settings.copyWith(travelEnabled: value)),
                       ),
                       _SettingRow(
                         label: '그룹 활동 알림',
                         value: _settings.groupEnabled,
-                        isEnabled: childrenEnabled,
+                        isEnabled: childrenEnabled && !_isSaving,
                         onChanged: (value) =>
                             _update(_settings.copyWith(groupEnabled: value)),
                       ),
                       _SettingRow(
                         label: 'Pozing 등록 알림',
                         value: _settings.pozingEnabled,
-                        isEnabled: childrenEnabled,
+                        isEnabled: childrenEnabled && !_isSaving,
                         onChanged: (value) =>
                             _update(_settings.copyWith(pozingEnabled: value)),
                       ),
                       _SettingRow(
                         label: '코스 진행 알림',
                         value: _settings.courseEnabled,
-                        isEnabled: childrenEnabled,
+                        isEnabled: childrenEnabled && !_isSaving,
                         onChanged: (value) =>
                             _update(_settings.copyWith(courseEnabled: value)),
                       ),
                       _SettingRow(
                         label: '공지 및 이벤트 알림',
                         value: _settings.noticeEnabled,
-                        isEnabled: childrenEnabled,
+                        isEnabled: childrenEnabled && !_isSaving,
                         onChanged: (value) =>
                             _update(_settings.copyWith(noticeEnabled: value)),
                       ),
