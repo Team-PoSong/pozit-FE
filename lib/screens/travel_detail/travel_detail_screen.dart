@@ -201,6 +201,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
         ),
       );
       if (_shouldTrackLocation) {
@@ -209,7 +210,11 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
               _currentLocation = LatLng(position.latitude, position.longitude),
         );
       }
-    } catch (_) {}
+    } on TimeoutException {
+      if (_shouldTrackLocation) setState(() => _currentLocation = null);
+    } catch (error) {
+      if (_shouldTrackLocation) setState(() => _currentLocation = null);
+    }
 
     if (!_shouldTrackLocation) return;
 
@@ -220,15 +225,22 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
             accuracy: LocationAccuracy.high,
             distanceFilter: 5,
           ),
-        ).listen((position) {
-          if (!mounted) return;
-          setState(
-            () => _currentLocation = LatLng(
-              position.latitude,
-              position.longitude,
-            ),
-          );
-        });
+        ).listen(
+          (position) {
+            if (!_shouldTrackLocation) return;
+            setState(
+              () => _currentLocation = LatLng(
+                position.latitude,
+                position.longitude,
+              ),
+            );
+          },
+          onError: (Object error) {
+            if (_shouldTrackLocation) {
+              setState(() => _currentLocation = null);
+            }
+          },
+        );
   }
 
   void _hideGuide() {
