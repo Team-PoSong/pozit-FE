@@ -367,9 +367,9 @@ class _TravelCardContent extends StatelessWidget {
                 SvgPicture.asset(AppIcons.groupGray, width: 16, height: 16),
                 const SizedBox(width: 5),
                 Text(
-                  participantCount == null
+                  participantCount == null || participantCount! <= 1
                       ? author
-                      : '$author 외 $participantCount명',
+                      : '$author 외 ${participantCount! - 1}명',
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.gray5,
                     fontSize: 10,

@@ -13,6 +13,7 @@ import '../../core/design_system/widgets/app_info_tag.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../data/models/saved_travel_model.dart';
+import '../../data/mock/mock_travel_courses.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/local/travel_store.dart';
@@ -30,27 +31,35 @@ class PozitPickDetailScreen extends StatefulWidget {
 class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
   int _selectedDay = 1;
 
-  static const _spotNames = ['경포생태습지공원', '초당순두부', '강문 해변', '정동진 해변'];
-
-  List<TravelCourseModel> get _courses => List.generate(
-    4,
-    (index) => TravelCourseModel(
-      courseId: index + 1,
-      dayNumber: index + 1,
-      date: DateTime(2026, 6, index + 1),
-      spots: [
-        CourseSpotModel(
-          courseSpotId: index + 1,
-          touristSpotId: index + 1,
-          name: _spotNames[index],
-          address: '강원특별자치도 강릉시',
-          latitude: 37.79 + index * 0.01,
-          longitude: 128.90 + index * 0.01,
-          orderIndex: 0,
-          status: 'notVisited',
-        ),
-      ],
-    ),
+  List<TravelCourseModel> get _courses => buildMockTravelCourses(
+    startDate: DateTime(2026, 6, 1),
+    dayCount: 4,
+    spots: const [
+      MockCourseSpot(
+        name: '경포생태습지공원',
+        address: '강원특별자치도 강릉시',
+        latitude: 37.79,
+        longitude: 128.90,
+      ),
+      MockCourseSpot(
+        name: '초당순두부',
+        address: '강원특별자치도 강릉시',
+        latitude: 37.80,
+        longitude: 128.91,
+      ),
+      MockCourseSpot(
+        name: '강문 해변',
+        address: '강원특별자치도 강릉시',
+        latitude: 37.81,
+        longitude: 128.92,
+      ),
+      MockCourseSpot(
+        name: '정동진 해변',
+        address: '강원특별자치도 강릉시',
+        latitude: 37.82,
+        longitude: 128.93,
+      ),
+    ],
   );
 
   void _handlePrimaryTap() {
@@ -107,66 +116,58 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
     final course = _courses[_selectedDay - 1];
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: _Hero(onBack: () => Navigator.of(context).maybePop()),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 24, 180),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      AppDateDetailSelect(
-                        dayCount: 4,
-                        selectedDay: _selectedDay,
-                        onChanged: (day) => setState(() => _selectedDay = day),
-                      ),
-                      const SizedBox(height: 10),
-                      _CourseCard(
-                        course: course,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => TravelCourseMapScreen(
-                              courses: _courses,
-                              status: AppTravelStatus.completed,
-                              totalDays: _courses.length,
-                              initialDay: _selectedDay,
-                            ),
-                          ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: _Hero(onBack: () => Navigator.of(context).maybePop()),
+          ),
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(
+              24,
+              20,
+              24,
+              MediaQuery.paddingOf(context).bottom +
+                  AppDimensions.screenBottomPadding,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  AppDateDetailSelect(
+                    dayCount: 4,
+                    selectedDay: _selectedDay,
+                    onChanged: (day) => setState(() => _selectedDay = day),
+                  ),
+                  const SizedBox(height: 10),
+                  _CourseCard(
+                    course: course,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => TravelCourseMapScreen(
+                          courses: _courses,
+                          status: AppTravelStatus.completed,
+                          totalDays: _courses.length,
+                          initialDay: _selectedDay,
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      Image.asset(
-                        AppImages.carrier,
-                        width: 94,
-                        height: 154,
-                        fit: BoxFit.contain,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  Image.asset(
+                    AppImages.carrier,
+                    width: 94,
+                    height: 154,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Pozit이 직접 준비한 코스와 떠나볼까요?',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.body.copyWith(color: AppColors.gray5),
+                  ),
+                  const SizedBox(height: 26),
+                  AppButton(text: '이 코스 따라하기', onPressed: _handlePrimaryTap),
+                ],
               ),
-            ],
-          ),
-          Positioned(
-            left: 24,
-            right: 24,
-            bottom:
-                MediaQuery.paddingOf(context).bottom +
-                AppDimensions.screenBottomPadding,
-            child: Column(
-              children: [
-                Text(
-                  'Pozit이 직접 준비한 코스와 떠나볼까요?',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.body.copyWith(color: AppColors.gray5),
-                ),
-                const SizedBox(height: 26),
-                AppButton(text: '이 코스 따라하기', onPressed: _handlePrimaryTap),
-              ],
             ),
           ),
         ],

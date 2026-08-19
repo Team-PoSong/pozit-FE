@@ -7,12 +7,11 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_input_field.dart';
 import '../../core/design_system/widgets/app_travel_tag_grid.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
-import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/travel/travel_course_model.dart';
-import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_course_creation_screen.dart';
 import 'travel_creation_data.dart';
 import 'travel_creation_pipeline.dart';
+import 'widgets/travel_creation_header.dart';
 import 'travel_preferences_screen.dart';
 
 class TravelInfoScreen extends StatefulWidget {
@@ -114,12 +113,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TravelDetailTopBar(title: '여행 생성하기', onBackTap: _handleBack),
-            const SizedBox(height: 10),
-            const Align(
-              alignment: Alignment.center,
-              child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 1),
-            ),
+            TravelCreationHeader(currentStepIndex: 1, onBackTap: _handleBack),
             const SizedBox(height: 40),
             Expanded(
               child: SingleChildScrollView(

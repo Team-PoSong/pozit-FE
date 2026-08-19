@@ -11,16 +11,15 @@ import '../../core/design_system/widgets/app_location.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_chatbot_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
-import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/tourist_spot_model.dart';
 import '../../data/models/tourist_spot_rank_model.dart';
 import '../../data/models/tourist_spot_search_result_model.dart';
 import '../../data/mock/mock_tourist_spots.dart';
 import '../../data/repositories/local/travel_store.dart';
 import '../location_search/location_search_screen.dart';
-import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
 import 'travel_creation_pipeline.dart';
+import 'widgets/travel_creation_header.dart';
 
 class TravelCourseCreationScreen extends StatefulWidget {
   const TravelCourseCreationScreen({
@@ -220,20 +219,10 @@ class _TravelCourseCreationScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Stack(
-              children: [
-                TravelDetailTopBar(title: '여행 생성하기', onBackTap: _handleBack),
-                Positioned(
-                  right: 24,
-                  top: 14.5,
-                  child: AppChatbotButton(onPressed: widget.onAiTap),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            const Align(
-              alignment: Alignment.center,
-              child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 2),
+            TravelCreationHeader(
+              currentStepIndex: 2,
+              onBackTap: _handleBack,
+              trailing: AppChatbotButton(onPressed: widget.onAiTap),
             ),
             const SizedBox(height: 30),
             Padding(
@@ -256,52 +245,58 @@ class _TravelCourseCreationScreenState
               ),
             ),
             Expanded(
-              child: selectedDayCourseCount == 0
-                  ? const _EmptyCourseState()
-                  : ReorderableListView.builder(
-                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                      buildDefaultDragHandles: false,
-                      itemCount: selectedDaySpots.length,
-                      onReorderItem: _handleReorder,
-                      proxyDecorator: (child, index, animation) {
-                        return AnimatedBuilder(
-                          animation: animation,
-                          builder: (context, _) => Material(
-                            elevation: animation.value * 1.5,
-                            color: Colors.transparent,
-                            surfaceTintColor: Colors.transparent,
-                            shadowColor: Colors.black.withValues(alpha: 0.08),
-                            child: child,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: selectedDayCourseCount == 0
+                        ? const _EmptyCourseState()
+                        : ReorderableListView.builder(
+                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                            buildDefaultDragHandles: false,
+                            itemCount: selectedDaySpots.length,
+                            onReorderItem: _handleReorder,
+                            proxyDecorator: (child, index, animation) {
+                              return AnimatedBuilder(
+                                animation: animation,
+                                builder: (context, _) => Material(
+                                  elevation: animation.value * 1.5,
+                                  color: Colors.transparent,
+                                  surfaceTintColor: Colors.transparent,
+                                  shadowColor: Colors.black.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  child: child,
+                                ),
+                                child: child,
+                              );
+                            },
+                            itemBuilder: (context, index) {
+                              final spot = selectedDaySpots[index];
+                              return Padding(
+                                key: ValueKey(spot.touristSpotId),
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: AppLocation(
+                                  name: spot.name,
+                                  address: spot.address,
+                                  showReorderHandle: true,
+                                  reorderIndex: index,
+                                  onDelete: () => _handleDelete(spot),
+                                ),
+                              );
+                            },
                           ),
-                          child: child,
-                        );
-                      },
-                      itemBuilder: (context, index) {
-                        final spot = selectedDaySpots[index];
-                        return Padding(
-                          key: ValueKey(spot.touristSpotId),
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: AppLocation(
-                            name: spot.name,
-                            address: spot.address,
-                            showReorderHandle: true,
-                            reorderIndex: index,
-                            onDelete: () => _handleDelete(spot),
-                          ),
-                        );
-                      },
+                  ),
+                  Positioned(
+                    right: 24,
+                    bottom: 22,
+                    child: AppCircleButton(
+                      size: 62,
+                      backgroundColor: AppColors.purple3,
+                      iconAsset: AppIcons.plus,
+                      onPressed: _handleAddCourseTap,
                     ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: AppCircleButton(
-                  size: 62,
-                  backgroundColor: AppColors.purple3,
-                  iconAsset: AppIcons.plus,
-                  onPressed: _handleAddCourseTap,
-                ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 22),

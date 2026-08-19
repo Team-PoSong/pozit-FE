@@ -8,9 +8,8 @@ import '../../core/design_system/widgets/app_chip.dart';
 import '../../core/design_system/widgets/app_region_select.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
-import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
-import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
+import 'widgets/travel_creation_header.dart';
 import 'travel_schedule_screen.dart';
 
 typedef DestinationSearch = Future<List<String>> Function(String query);
@@ -156,12 +155,7 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TravelDetailTopBar(title: '여행 생성하기', onBackTap: _handleBack),
-            const SizedBox(height: 10),
-            const Align(
-              alignment: Alignment.center,
-              child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 0),
-            ),
+            TravelCreationHeader(currentStepIndex: 0, onBackTap: _handleBack),
             const SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -223,19 +217,13 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
                     ),
             ),
             if (_selectedDestination != null) ...[
-              SizedBox(
-                height: 29,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: AppDeletableChip(
-                      label: _selectedDestination!,
-                      onDeleted: () {
-                        setState(() => _selectedDestination = null);
-                      },
-                    ),
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: AppDeletableChip(
+                  label: _selectedDestination!,
+                  onDeleted: () {
+                    setState(() => _selectedDestination = null);
+                  },
                 ),
               ),
               const SizedBox(height: 17),

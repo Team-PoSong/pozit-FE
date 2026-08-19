@@ -9,6 +9,7 @@ import '../../core/design_system/widgets/app_retry_error_view.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/like/liked_travel_model.dart';
 import '../../data/models/travel/travel_course_model.dart';
+import '../../data/mock/mock_travel_courses.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/like/like_repository.dart';
 import '../travel_detail/public_travel_detail_page.dart';
@@ -239,34 +240,38 @@ class _LikesScreenState extends State<LikesScreen> {
 }
 
 List<TravelCourseModel> _previewCourses(LikedTravelModel travel) {
-  const spots = [
-    ('첨성대', '경북 경주시 인왕동 839-1', 35.8347, 129.2194),
-    ('동궁과 월지', '경북 경주시 원화로 102', 35.8347, 129.2247),
-    ('대릉원', '경북 경주시 계림로 9', 35.8351, 129.2118),
-    ('황리단길', '경북 경주시 포석로 1080', 35.8370, 129.2090),
-  ];
   final dayCount = travel.endDate.difference(travel.startDate).inDays + 1;
-  return List.generate(dayCount.clamp(1, 4), (dayIndex) {
-    final dayNumber = dayIndex + 1;
-    return TravelCourseModel(
-      courseId: dayNumber,
-      dayNumber: dayNumber,
-      date: travel.startDate.add(Duration(days: dayIndex)),
-      spots: [
-        for (var index = 0; index < spots.length; index++)
-          CourseSpotModel(
-            courseSpotId: dayNumber * 100 + index,
-            touristSpotId: dayNumber * 100 + index,
-            name: spots[index].$1,
-            address: spots[index].$2,
-            latitude: spots[index].$3,
-            longitude: spots[index].$4,
-            orderIndex: index,
-            status: 'notVisited',
-          ),
-      ],
-    );
-  });
+  return buildMockTravelCourses(
+    startDate: travel.startDate,
+    dayCount: dayCount.clamp(1, 4),
+    repeatSpotsEachDay: true,
+    spots: const [
+      MockCourseSpot(
+        name: '첨성대',
+        address: '경북 경주시 인왕동 839-1',
+        latitude: 35.8347,
+        longitude: 129.2194,
+      ),
+      MockCourseSpot(
+        name: '동궁과 월지',
+        address: '경북 경주시 원화로 102',
+        latitude: 35.8347,
+        longitude: 129.2247,
+      ),
+      MockCourseSpot(
+        name: '대릉원',
+        address: '경북 경주시 계림로 9',
+        latitude: 35.8351,
+        longitude: 129.2118,
+      ),
+      MockCourseSpot(
+        name: '황리단길',
+        address: '경북 경주시 포석로 1080',
+        latitude: 35.8370,
+        longitude: 129.2090,
+      ),
+    ],
+  );
 }
 
 @Preview(group: 'haerim', name: '찜 화면', size: Size(393, 852))

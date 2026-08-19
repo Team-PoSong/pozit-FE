@@ -4,8 +4,8 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
-import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/saved_travel_model.dart';
+import '../../data/mock/mock_travel_courses.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/local/travel_store.dart';
@@ -14,8 +14,8 @@ import '../explore/explore_content.dart';
 import '../explore/explore_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_detail/travel_detail_screen.dart';
-import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
+import 'widgets/travel_creation_header.dart';
 import 'pozit_pick_detail_screen.dart';
 
 class TravelRecommendationResultScreen extends StatelessWidget {
@@ -176,14 +176,9 @@ class TravelRecommendationResultScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TravelDetailTopBar(
-              title: '여행 생성하기',
+            TravelCreationHeader(
+              currentStepIndex: 1,
               onBackTap: () => _handleBack(context),
-            ),
-            const SizedBox(height: 10),
-            const Align(
-              alignment: Alignment.center,
-              child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 1),
             ),
             const SizedBox(height: 40),
             Expanded(
@@ -282,26 +277,19 @@ List<TravelCourseModel> _mockCourses(String destination) {
       : const ['경포생태습지공원', '초당순두부', '강문 해변', '정동진 해변'];
   final baseLatitude = destination == '경주' ? 35.80 : 37.75;
   final baseLongitude = destination == '경주' ? 129.20 : 128.90;
-
-  return List.generate(
-    2,
-    (dayIndex) => TravelCourseModel(
-      courseId: dayIndex + 1,
-      dayNumber: dayIndex + 1,
-      date: DateTime(2026, 7, dayIndex + 2),
-      spots: List.generate(
-        2,
-        (spotIndex) => CourseSpotModel(
-          courseSpotId: dayIndex * 2 + spotIndex + 1,
-          touristSpotId: dayIndex * 2 + spotIndex + 1,
-          name: names[dayIndex * 2 + spotIndex],
+  return buildMockTravelCourses(
+    startDate: DateTime(2026, 7, 2),
+    dayCount: 2,
+    spotsPerDay: 2,
+    firstSpotVisited: true,
+    spots: [
+      for (var index = 0; index < names.length; index++)
+        MockCourseSpot(
+          name: names[index],
           address: destination == '경주' ? '경북 경주시' : '강원특별자치도 강릉시',
-          latitude: baseLatitude + dayIndex * 0.01 + spotIndex * 0.005,
-          longitude: baseLongitude + dayIndex * 0.01 + spotIndex * 0.005,
-          orderIndex: spotIndex,
-          status: spotIndex == 0 ? 'visited' : 'notVisited',
+          latitude: baseLatitude + (index ~/ 2) * 0.01 + (index % 2) * 0.005,
+          longitude: baseLongitude + (index ~/ 2) * 0.01 + (index % 2) * 0.005,
         ),
-      ),
-    ),
+    ],
   );
 }

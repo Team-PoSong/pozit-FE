@@ -7,10 +7,9 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_calendar.dart';
 import '../../core/design_system/widgets/app_travel_date_select.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
-import '../../core/design_system/widgets/progress/app_day_segment_bar.dart';
 import '../../data/models/travel/travel_course_model.dart';
-import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
+import 'widgets/travel_creation_header.dart';
 import 'travel_creation_pipeline.dart';
 import 'travel_info_screen.dart';
 
@@ -137,12 +136,7 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TravelDetailTopBar(title: '여행 생성하기', onBackTap: _handleBack),
-            const SizedBox(height: 10),
-            const Align(
-              alignment: Alignment.center,
-              child: AppDaySegmentBar(totalDays: 3, currentDayIndex: 0),
-            ),
+            TravelCreationHeader(currentStepIndex: 0, onBackTap: _handleBack),
             const SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -168,7 +162,7 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
             const SizedBox(height: 24),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
