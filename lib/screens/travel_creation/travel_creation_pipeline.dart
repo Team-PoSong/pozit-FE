@@ -6,6 +6,8 @@ import '../../data/models/travel/travel_info_card_model.dart';
 import 'travel_creation_data.dart';
 
 abstract final class TravelCreationPipeline {
+  static int _savedTravelSequence = 0;
+
   static int maximumTripNights(TravelCreationMethod method) =>
       method == TravelCreationMethod.wish ? 4 : 3;
 
@@ -26,7 +28,11 @@ abstract final class TravelCreationPipeline {
     final maximumDay = dayCount(draft);
     for (final course in draft.initialCourses) {
       if (course.dayNumber > maximumDay) continue;
-      result[course.dayNumber] = [
+      final daySpots = result.putIfAbsent(
+        course.dayNumber,
+        () => <TouristSpotModel>[],
+      );
+      daySpots.addAll([
         for (final spot in course.spots)
           TouristSpotModel(
             touristSpotId: spot.touristSpotId,
@@ -35,7 +41,7 @@ abstract final class TravelCreationPipeline {
             latitude: spot.latitude,
             longitude: spot.longitude,
           ),
-      ];
+      ]);
     }
     return result;
   }
@@ -81,7 +87,7 @@ abstract final class TravelCreationPipeline {
     final tags = draft.tags.toList();
 
     return SavedTravelModel(
-      id: 'created-${start.millisecondsSinceEpoch}',
+      id: 'created-${current.microsecondsSinceEpoch}-${_savedTravelSequence++}',
       title: draft.name,
       location: draft.destination,
       dateText:

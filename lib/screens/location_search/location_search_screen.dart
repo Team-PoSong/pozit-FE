@@ -312,7 +312,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   void _handleQueryChanged(String value) {
     if (value.trim().isNotEmpty) {
       setState(() {
-        _hasSearched = true;
+        _hasSearched = false;
         _searchResults = [];
         _showLengthError = false;
         _hasSearchError = false;
@@ -380,6 +380,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditingQuery = _controller.text.trim().isNotEmpty && !_hasSearched;
     final isEmptyResult =
         _showLengthError ||
         _hasSearchError ||
@@ -440,7 +441,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               ),
             ),
             const SizedBox(height: _kSearchBarToLabelGap),
-            if (!_hasSearched &&
+            if (!isEditingQuery &&
+                !_hasSearched &&
                 !_showLengthError &&
                 !_isSearching &&
                 !_hasSearchError) ...[
@@ -499,6 +501,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                               );
                             },
                           )
+                        : isEditingQuery
+                        ? const SizedBox.shrink()
                         : _buildPopularSpotsSection(),
                   ),
                   if (selectedChips.isNotEmpty)

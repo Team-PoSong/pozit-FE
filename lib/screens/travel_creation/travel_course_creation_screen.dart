@@ -56,7 +56,14 @@ class _TravelCourseCreationScreenState
   @override
   void didUpdateWidget(covariant TravelCourseCreationScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.travelInfo == widget.travelInfo) return;
+    final dayCountChanged =
+        TravelCreationPipeline.dayCount(oldWidget.travelInfo) !=
+        TravelCreationPipeline.dayCount(widget.travelInfo);
+    final initialCoursesChanged = !identical(
+      oldWidget.travelInfo.initialCourses,
+      widget.travelInfo.initialCourses,
+    );
+    if (!dayCountChanged && !initialCoursesChanged) return;
     _selectedDay = _selectedDay.clamp(1, _dayCount);
     _spotsByDay.clear();
     _initializeCopiedCourses();
@@ -251,7 +258,7 @@ class _TravelCourseCreationScreenState
                     child: selectedDayCourseCount == 0
                         ? const _EmptyCourseState()
                         : ReorderableListView.builder(
-                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 92),
                             buildDefaultDragHandles: false,
                             itemCount: selectedDaySpots.length,
                             onReorderItem: _handleReorder,
