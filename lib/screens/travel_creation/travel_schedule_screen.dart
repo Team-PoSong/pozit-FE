@@ -162,7 +162,7 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
             const SizedBox(height: 24),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
+                padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

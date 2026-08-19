@@ -219,11 +219,14 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
             if (_selectedDestination != null) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: AppDeletableChip(
-                  label: _selectedDestination!,
-                  onDeleted: () {
-                    setState(() => _selectedDestination = null);
-                  },
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: AppDeletableChip(
+                    label: _selectedDestination!,
+                    onDeleted: () {
+                      setState(() => _selectedDestination = null);
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 17),
