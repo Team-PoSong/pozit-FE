@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/widgets/app_date_detail_select.dart';
@@ -9,6 +11,7 @@ import 'package:pozit/screens/location_search/location_search_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/data/models/travel/travel_course_model.dart';
+import 'package:pozit/data/models/tourist_spot_search_result_model.dart';
 
 void main() {
   testWidgets('새 일정이 짧으면 초과 일차를 버리고 길면 뒤 일차를 비워둔다', (tester) async {
@@ -263,6 +266,49 @@ void main() {
     await tester.pump();
     expect(find.text('지금 인기 있는 장소'), findsOneWidget);
     expect(find.text('불국사'), findsOneWidget);
+  });
+
+  testWidgets('검색 중 검색어를 바꾸면 이전 검색 응답을 무시한다', (tester) async {
+    final firstSearch = Completer<TouristSpotSearchPage>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LocationSearchScreen(
+          onSearch: (query, cursor) => firstSearch.future,
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(EditableText), '강릉');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    await tester.enterText(find.byType(EditableText), '경주');
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    firstSearch.complete(
+      const TouristSpotSearchPage(
+        places: [
+          TouristSpotSearchResultModel(
+            contentId: '1',
+            contentTypeId: '12',
+            title: '강릉 이전 결과',
+            address: '강릉시',
+            latitude: 37.7,
+            longitude: 128.8,
+          ),
+        ],
+        currentCursor: 1,
+        nextCursor: null,
+        hasNext: false,
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('강릉 이전 결과'), findsNothing);
+    expect(find.text('검색 결과가 없어요.'), findsNothing);
   });
 }
 

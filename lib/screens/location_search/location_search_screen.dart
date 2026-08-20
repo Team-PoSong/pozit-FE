@@ -310,20 +310,17 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   }
 
   void _handleQueryChanged(String value) {
-    if (value.trim().isNotEmpty) {
-      setState(() {
-        _hasSearched = false;
-        _searchResults = [];
-        _showLengthError = false;
-        _hasSearchError = false;
-      });
-      return;
-    }
     setState(() {
+      _searchRequestId++;
       _hasSearched = false;
       _searchResults = [];
+      _nextSearchCursor = _kInitialSearchCursor;
+      _hasNextSearchPage = false;
+      _isSearching = false;
+      _isLoadingMoreSearch = false;
       _showLengthError = false;
       _hasSearchError = false;
+      _lastSearchedQuery = '';
     });
   }
 

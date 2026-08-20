@@ -131,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
           info: travel.info,
           status: travel.status,
           isLeader: true,
+          isPublic: false,
           backgroundImage:
               travel.backgroundImage ??
               const AssetImage(AppImages.travelMockup),
