@@ -29,11 +29,26 @@ class PozitPickDetailScreen extends StatefulWidget {
 }
 
 class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
+  static final DateTime _startDate = DateTime(2026, 6, 1);
+  static final DateTime _endDate = DateTime(2026, 6, 4);
+
   int _selectedDay = 1;
 
+  int get _dayCount => _endDate.difference(_startDate).inDays + 1;
+
+  String get _durationText => '${_dayCount - 1}박 $_dayCount일';
+
+  String? get _dDay {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final daysUntilStart = _startDate.difference(today).inDays;
+    if (daysUntilStart < 0) return null;
+    return daysUntilStart == 0 ? 'D-Day' : 'D-$daysUntilStart';
+  }
+
   List<TravelCourseModel> get _courses => buildMockTravelCourses(
-    startDate: DateTime(2026, 6, 1),
-    dayCount: 4,
+    startDate: _startDate,
+    dayCount: _dayCount,
     spots: const [
       MockCourseSpot(
         name: '경포생태습지공원',
@@ -85,12 +100,12 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
                 id: 'pozit-pick-gangneung',
                 title: '6월 추천, 강릉은 어때요?',
                 location: '강원 강릉',
-                dateText: '3박 4일',
+                dateText: _durationText,
                 author: '나',
                 info: TravelInfoCardModel(
                   destination: '강릉',
-                  startDate: DateTime(2026, 6, 1),
-                  endDate: DateTime(2026, 6, 4),
+                  startDate: _startDate,
+                  endDate: _endDate,
                   companionCount: 1,
                   tags: const ['기록', '미식'],
                   visitedPlaceCount: 0,
@@ -98,7 +113,7 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
                   completionRate: 0,
                 ),
                 courses: savedCourses,
-                dDay: 'D-30',
+                dDay: _dDay,
                 backgroundImage: const AssetImage(AppImages.travelMockup),
                 tags: const ['기록', '미식'],
                 participantCount: 1,
@@ -119,7 +134,10 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: _Hero(onBack: () => Navigator.of(context).maybePop()),
+            child: _Hero(
+              durationText: '${_startDate.month}월 추천 · $_durationText',
+              onBack: () => Navigator.of(context).maybePop(),
+            ),
           ),
           SliverPadding(
             padding: EdgeInsets.fromLTRB(
@@ -133,7 +151,7 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
               child: Column(
                 children: [
                   AppDateDetailSelect(
-                    dayCount: 4,
+                    dayCount: _dayCount,
                     selectedDay: _selectedDay,
                     onChanged: (day) => setState(() => _selectedDay = day),
                   ),
@@ -177,7 +195,8 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({required this.onBack});
+  const _Hero({required this.durationText, required this.onBack});
+  final String durationText;
   final VoidCallback onBack;
 
   @override
@@ -224,7 +243,7 @@ class _Hero extends StatelessWidget {
                     ),
                     const SizedBox(width: 24),
                     Text(
-                      '6월 추천 · 1박 2일',
+                      durationText,
                       style: AppTextStyles.body.copyWith(
                         color: AppColors.white,
                       ),
