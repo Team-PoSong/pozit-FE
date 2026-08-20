@@ -293,9 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-                        SizedBox(
-                          height: MediaQuery.viewPaddingOf(context).bottom + 10,
-                        ),
+                        const Spacer(),
                       ],
                     ),
                   ),

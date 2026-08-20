@@ -90,9 +90,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   List<TouristSpotSearchResultModel> get _selectedSearchResults =>
       _selectedContentIds.map((id) => _searchResultByContentId[id]!).toList();
 
-  List<TouristSpotRankModel> get _selectedPopularSpots => _selectedPopularSpotIds
-      .map((id) => _popularSpotById[id]!)
-      .toList();
+  List<TouristSpotRankModel> get _selectedPopularSpots =>
+      _selectedPopularSpotIds.map((id) => _popularSpotById[id]!).toList();
 
   @override
   void initState() {
@@ -169,7 +168,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   void _handlePopularScroll() {
     if (!_popularScrollController.hasClients) return;
     final position = _popularScrollController.position;
-    if (position.pixels >= position.maxScrollExtent - _kLoadMoreScrollThreshold) {
+    if (position.pixels >=
+        position.maxScrollExtent - _kLoadMoreScrollThreshold) {
       _loadMorePopularSpots();
     }
   }
@@ -303,18 +303,24 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   void _handleSearchScroll() {
     if (!_searchScrollController.hasClients) return;
     final position = _searchScrollController.position;
-    if (position.pixels >= position.maxScrollExtent - _kLoadMoreScrollThreshold) {
+    if (position.pixels >=
+        position.maxScrollExtent - _kLoadMoreScrollThreshold) {
       _loadMoreSearchResults();
     }
   }
 
   void _handleQueryChanged(String value) {
-    if (value.trim().isNotEmpty) return;
     setState(() {
+      _searchRequestId++;
       _hasSearched = false;
       _searchResults = [];
+      _nextSearchCursor = _kInitialSearchCursor;
+      _hasNextSearchPage = false;
+      _isSearching = false;
+      _isLoadingMoreSearch = false;
       _showLengthError = false;
       _hasSearchError = false;
+      _lastSearchedQuery = '';
     });
   }
 
@@ -371,6 +377,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditingQuery = _controller.text.trim().isNotEmpty && !_hasSearched;
     final isEmptyResult =
         _showLengthError ||
         _hasSearchError ||
@@ -417,9 +424,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   ),
                   if (_showLengthError)
                     Positioned(
-                      top:
-                          AppDimensions.inputMinHeight +
-                          _kSearchBarToErrorGap,
+                      top: AppDimensions.inputMinHeight + _kSearchBarToErrorGap,
                       left: 0,
                       right: 0,
                       child: Text(
@@ -433,7 +438,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               ),
             ),
             const SizedBox(height: _kSearchBarToLabelGap),
-            if (!_hasSearched &&
+            if (!isEditingQuery &&
+                !_hasSearched &&
                 !_showLengthError &&
                 !_isSearching &&
                 !_hasSearchError) ...[
@@ -492,6 +498,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                               );
                             },
                           )
+                        : isEditingQuery
+                        ? const SizedBox.shrink()
                         : _buildPopularSpotsSection(),
                   ),
                   if (selectedChips.isNotEmpty)

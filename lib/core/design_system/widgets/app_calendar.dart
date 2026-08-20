@@ -30,6 +30,8 @@ const double _calendarOuterPadding =
 
 enum _CapType { round, pill, fade }
 
+enum AppCalendarSelectionTarget { start, end }
+
 class _HighlightPiece {
   final Rect rect;
   final Color? color;
@@ -55,6 +57,8 @@ class AppCalendar extends StatefulWidget {
   final DateTime? initialRangeEnd;
   final DateTime? minSelectableDate;
   final bool isCompact;
+  final AppCalendarSelectionTarget? selectionTarget;
+  final ValueChanged<DateTime>? onSelectionStarted;
   final void Function(DateTime start, DateTime end)? onRangeSelected;
   final VoidCallback? onSelectionCleared;
 
@@ -65,6 +69,8 @@ class AppCalendar extends StatefulWidget {
     this.initialRangeEnd,
     this.minSelectableDate,
     this.isCompact = false,
+    this.selectionTarget,
+    this.onSelectionStarted,
     this.onRangeSelected,
     this.onSelectionCleared,
   }) : assert(
@@ -408,6 +414,27 @@ class _AppCalendarState extends State<AppCalendar> {
           _rangeEnd = date;
         }
       } else {
+        if (widget.selectionTarget != null) {
+          final editsStart =
+              widget.selectionTarget == AppCalendarSelectionTarget.start;
+          if (editsStart) {
+            if (date.isBefore(_rangeStart!)) {
+              _rangeStart = date;
+            } else {
+              _rangeStart = null;
+              _rangeEnd = null;
+              selectionCleared = true;
+            }
+          } else if (date.isAfter(_rangeStart!)) {
+            _rangeEnd = date;
+          } else {
+            _rangeStart = null;
+            _rangeEnd = null;
+            selectionCleared = true;
+          }
+          return;
+        }
+
         final isStrictlyBetween =
             date.isAfter(_rangeStart!) && date.isBefore(_rangeEnd!);
 
@@ -427,6 +454,10 @@ class _AppCalendarState extends State<AppCalendar> {
 
     if (selectionCleared) {
       widget.onSelectionCleared?.call();
+    }
+
+    if (_rangeStart != null && _rangeEnd == null) {
+      widget.onSelectionStarted?.call(_rangeStart!);
     }
 
     if (_rangeStart != null && _rangeEnd != null) {

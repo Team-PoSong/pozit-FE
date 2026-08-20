@@ -95,7 +95,7 @@ List<LikedTravelModel> likesPreviewTravels() => [
     title: '경주 여행',
     destination: '경북 경주',
     startDate: DateTime(2026, 7, 2),
-    endDate: DateTime(2026, 7, 3),
+    endDate: DateTime(2026, 7, 5),
     tags: const ['힐링', '미식'],
     leaderNickname: '윤지',
     memberCount: 3,

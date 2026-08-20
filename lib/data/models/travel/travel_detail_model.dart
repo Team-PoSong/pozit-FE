@@ -2,7 +2,6 @@ import '../../../core/design_system/app_travel_status.dart';
 import 'travel_course_model.dart';
 import 'travel_member_model.dart';
 
-const Set<String> _kUpcomingStatusSynonyms = {'upcoming', 'before', 'ready'};
 const Set<String> _kInProgressStatusSynonyms = {
   'inprogress',
   'ongoing',
@@ -93,12 +92,16 @@ class TravelDetailModel {
       tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
       members:
           (json['members'] as List<dynamic>?)
-              ?.map((e) => TravelMemberModel.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) => TravelMemberModel.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
       courses:
           (json['courses'] as List<dynamic>?)
-              ?.map((e) => TravelCourseModel.fromJson(e as Map<String, dynamic>))
+              ?.map(
+                (e) => TravelCourseModel.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           const [],
     );

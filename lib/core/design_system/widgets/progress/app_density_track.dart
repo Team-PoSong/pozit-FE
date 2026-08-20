@@ -56,91 +56,115 @@ class _AppDensityTrackState extends State<AppDensityTrack> {
 
   @override
   Widget build(BuildContext context) {
-    final double? circleCenterX = _dragX ??
+    final double? circleCenterX =
+        _dragX ??
         (widget.selectedIndex != null
-            ? _tickLeftOffsets[widget.selectedIndex!.clamp(0, _tickLeftOffsets.length - 1)] + 1.5
+            ? _tickLeftOffsets[widget.selectedIndex!.clamp(
+                    0,
+                    _tickLeftOffsets.length - 1,
+                  )] +
+                  1.5
             : null);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 1.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('여유롭게', style: _labelStyle.copyWith(color: _labelColor)),
-          const SizedBox(width: 20.0),
-          SizedBox(
-            width: _trackWidth,
-            height: _trackHeight,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  left: 0,
-                  top: 5.0,
-                  child: Container(
-                    width: _trackWidth,
-                    height: 3.0,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [AppColors.purple1, AppColors.purple2],
-                      ),
-                    ),
-                  ),
-                ),
-                for (int i = 0; i < _tickLeftOffsets.length; i++)
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '여유롭게',
+              softWrap: false,
+              style: _labelStyle.copyWith(color: _labelColor),
+            ),
+            const SizedBox(width: 20.0),
+            SizedBox(
+              width: _trackWidth,
+              height: _trackHeight,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
                   Positioned(
-                    left: _tickLeftOffsets[i],
-                    top: 0,
+                    left: 0,
+                    top: 5.0,
                     child: Container(
-                      width: 3.0,
-                      height: _trackHeight,
-                      color: AppColors.purple2,
-                    ),
-                  ),
-                if (circleCenterX != null)
-                  Positioned(
-                    left: circleCenterX - _selectionRingSize / 2,
-                    top: _trackHeight / 2 - _selectionRingSize / 2,
-                    child: Container(
-                      width: _selectionRingSize,
-                      height: _selectionRingSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.purple3, width: 1.0),
-                        boxShadow: const [
-                          BoxShadow(color: AppColors.purple2, blurRadius: 4.0),
-                        ],
-                      ),
-                      child: Center(
-                        child: Container(
-                          width: _selectionDotSize,
-                          height: _selectionDotSize,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.purple3,
-                          ),
+                      width: _trackWidth,
+                      height: 3.0,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [AppColors.purple1, AppColors.purple2],
                         ),
                       ),
                     ),
                   ),
-                Positioned.fill(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTapUp: (details) => _handleTap(details.localPosition.dx),
-                    onHorizontalDragUpdate: (details) =>
-                        _handleDragUpdate(details.localPosition.dx),
-                    onHorizontalDragEnd: (_) => _handleDragEnd(),
-                    onHorizontalDragCancel: _handleDragEnd,
+                  for (int i = 0; i < _tickLeftOffsets.length; i++)
+                    Positioned(
+                      left: _tickLeftOffsets[i],
+                      top: 0,
+                      child: Container(
+                        width: 3.0,
+                        height: _trackHeight,
+                        color: AppColors.purple2,
+                      ),
+                    ),
+                  if (circleCenterX != null)
+                    Positioned(
+                      left: circleCenterX - _selectionRingSize / 2,
+                      top: _trackHeight / 2 - _selectionRingSize / 2,
+                      child: Container(
+                        width: _selectionRingSize,
+                        height: _selectionRingSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.purple3,
+                            width: 1.0,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AppColors.purple2,
+                              blurRadius: 4.0,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: _selectionDotSize,
+                            height: _selectionDotSize,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.purple3,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  Positioned.fill(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapUp: (details) =>
+                          _handleTap(details.localPosition.dx),
+                      onHorizontalDragUpdate: (details) =>
+                          _handleDragUpdate(details.localPosition.dx),
+                      onHorizontalDragEnd: (_) => _handleDragEnd(),
+                      onHorizontalDragCancel: _handleDragEnd,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 20.0),
-          Text('빽빽하게', style: _labelStyle.copyWith(color: _labelColor)),
-        ],
+            const SizedBox(width: 20.0),
+            Text(
+              '빽빽하게',
+              softWrap: false,
+              textAlign: TextAlign.end,
+              style: _labelStyle.copyWith(color: _labelColor),
+            ),
+          ],
+        ),
       ),
     );
   }

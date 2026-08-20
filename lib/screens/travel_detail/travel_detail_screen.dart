@@ -201,6 +201,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
         ),
       );
       if (_shouldTrackLocation) {
@@ -209,7 +210,11 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
               _currentLocation = LatLng(position.latitude, position.longitude),
         );
       }
-    } catch (_) {}
+    } on TimeoutException {
+      if (_shouldTrackLocation) setState(() => _currentLocation = null);
+    } catch (error) {
+      if (_shouldTrackLocation) setState(() => _currentLocation = null);
+    }
 
     if (!_shouldTrackLocation) return;
 
@@ -220,15 +225,22 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
             accuracy: LocationAccuracy.high,
             distanceFilter: 5,
           ),
-        ).listen((position) {
-          if (!mounted) return;
-          setState(
-            () => _currentLocation = LatLng(
-              position.latitude,
-              position.longitude,
-            ),
-          );
-        });
+        ).listen(
+          (position) {
+            if (!_shouldTrackLocation) return;
+            setState(
+              () => _currentLocation = LatLng(
+                position.latitude,
+                position.longitude,
+              ),
+            );
+          },
+          onError: (Object error) {
+            if (_shouldTrackLocation) {
+              setState(() => _currentLocation = null);
+            }
+          },
+        );
   }
 
   void _hideGuide() {
@@ -375,7 +387,8 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
           TravelDetailGuideOverlay(
             courseButtonKey: _courseButtonKey,
             mapKey: _mapKey,
-            cameraKey: widget.status == AppTravelStatus.inProgress
+            cameraKey:
+                widget.isMyTravel && widget.status == AppTravelStatus.inProgress
                 ? _cameraKey
                 : null,
             onDismiss: _hideGuide,
@@ -488,26 +501,24 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                             ),
                           ),
                         ),
-                        TravelDetailBottomSection(
-                          status: widget.status,
-                          members: widget.members,
-                          myUserId: widget.myUserId,
-                          onSaveLogTap: widget.onSaveLogTap,
-                          cameraKey: _cameraKey,
-                          courseTransitionKey: '$_selectedDay-$spotPageIndex',
-                          isCameraReady: _isCameraReady,
-                          memberThumbnails: _focusedSpotMemberThumbnails,
-                          isCameraThumbnailPending:
-                              _isFocusedSpotThumbnailPending,
-                          onCameraTap:
-                              widget.isMyTravel && _activeCameraSpot != null
-                              ? () => widget.onCameraTap?.call(
-                                  _activeCameraSpot!.courseSpotId,
-                                )
-                              : null,
-                          showSaveLogButton: widget.isMyTravel,
-                          includeBottomSafeArea: widget.isMyTravel,
-                        ),
+                        if (widget.isMyTravel)
+                          TravelDetailBottomSection(
+                            status: widget.status,
+                            members: widget.members,
+                            myUserId: widget.myUserId,
+                            onSaveLogTap: widget.onSaveLogTap,
+                            cameraKey: _cameraKey,
+                            courseTransitionKey: '$_selectedDay-$spotPageIndex',
+                            isCameraReady: _isCameraReady,
+                            memberThumbnails: _focusedSpotMemberThumbnails,
+                            isCameraThumbnailPending:
+                                _isFocusedSpotThumbnailPending,
+                            onCameraTap: _activeCameraSpot != null
+                                ? () => widget.onCameraTap?.call(
+                                    _activeCameraSpot!.courseSpotId,
+                                  )
+                                : null,
+                          ),
                       ],
                     ),
                   ),

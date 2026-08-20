@@ -10,7 +10,13 @@ import '../../core/design_system/widgets/app_bottom_gradient.dart';
 import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
+import '../../core/design_system/widgets/app_travel_card.dart';
+import '../../data/models/saved_travel_model.dart';
+import '../../data/repositories/local/travel_store.dart';
 import '../explore/explore_content.dart';
+import '../travel_creation/travel_creation_screen.dart';
+import '../travel_course_map/travel_course_map_screen.dart';
+import '../travel_detail/travel_detail_screen.dart';
 import '../invite_code/invite_code_screen.dart';
 import '../likes/likes_screen.dart';
 import 'widgets/travel_completion_toggle.dart';
@@ -95,7 +101,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleCreateTravel() {
     _toggleTravelMenu();
-    widget.onCreateTravelTap?.call();
+    final onCreateTravelTap = widget.onCreateTravelTap;
+    if (onCreateTravelTap != null) {
+      onCreateTravelTap();
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const TravelCreationScreen()),
+    );
   }
 
   void _handleJoinWithInviteCode() {
@@ -107,6 +121,36 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => const InviteCodeScreen()));
+  }
+
+  void _openSavedTravel(SavedTravelModel travel) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelDetailScreen(
+          title: travel.title,
+          info: travel.info,
+          status: travel.status,
+          isLeader: true,
+          isPublic: false,
+          backgroundImage:
+              travel.backgroundImage ??
+              const AssetImage(AppImages.travelMockup),
+          courses: travel.courses,
+          onCourseTap: (day) {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TravelCourseMapScreen(
+                  courses: travel.courses,
+                  status: travel.status,
+                  totalDays: travel.info.totalDays,
+                  initialDay: day,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   void _handleNavigationChanged(AppNavigationTab tab) {
@@ -193,14 +237,37 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: TravelCompletionToggle(
-                                incompleteCount: widget.incompleteCount,
-                                completeCount: widget.completeCount,
-                                selectedStatus: _selectedStatus,
-                                onChanged: (status) {
-                                  setState(() => _selectedStatus = status);
-                                },
-                              ),
+                              child:
+                                  ValueListenableBuilder<
+                                    List<SavedTravelModel>
+                                  >(
+                                    valueListenable:
+                                        TravelStore.instance.travels,
+                                    builder: (context, travels, _) {
+                                      return TravelCompletionToggle(
+                                        incompleteCount: travels
+                                            .where(
+                                              (travel) =>
+                                                  travel.status !=
+                                                  AppTravelStatus.completed,
+                                            )
+                                            .length,
+                                        completeCount: travels
+                                            .where(
+                                              (travel) =>
+                                                  travel.status ==
+                                                  AppTravelStatus.completed,
+                                            )
+                                            .length,
+                                        selectedStatus: _selectedStatus,
+                                        onChanged: (status) {
+                                          setState(
+                                            () => _selectedStatus = status,
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                             ),
                             const SizedBox(width: 11),
                             OverlayPortal(
@@ -302,31 +369,74 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Expanded(
-                        child: Column(
-                          children: [
-                            const Spacer(flex: 7),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Image.asset(
-                                  AppImages.posongCarrier,
-                                  package: widget.assetPackage,
-                                  width: 219,
-                                  height: 150,
-                                  fit: BoxFit.contain,
-                                ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  '여행이 없어요! 포짓과 함께 떠나볼까요?',
-                                  textAlign: TextAlign.center,
-                                  style: AppTextStyles.body.copyWith(
-                                    color: AppColors.gray5,
+                        child: ValueListenableBuilder<List<SavedTravelModel>>(
+                          valueListenable: TravelStore.instance.travels,
+                          builder: (context, travels, _) {
+                            final filteredTravels = travels.where((travel) {
+                              final isCompleted =
+                                  travel.status == AppTravelStatus.completed;
+                              return _selectedStatus ==
+                                      TravelCompletionStatus.complete
+                                  ? isCompleted
+                                  : !isCompleted;
+                            }).toList();
+                            if (filteredTravels.isEmpty) {
+                              return Column(
+                                children: [
+                                  const Spacer(flex: 7),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        AppImages.posongCarrier,
+                                        package: widget.assetPackage,
+                                        width: 219,
+                                        height: 150,
+                                        fit: BoxFit.contain,
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Text(
+                                        '여행이 없어요! 포짓과 함께 떠나볼까요?',
+                                        textAlign: TextAlign.center,
+                                        style: AppTextStyles.body.copyWith(
+                                          color: AppColors.gray5,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(flex: 9),
-                          ],
+                                  const Spacer(flex: 9),
+                                ],
+                              );
+                            }
+                            return ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(
+                                24,
+                                20,
+                                24,
+                                24,
+                              ),
+                              itemCount: filteredTravels.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final travel = filteredTravels[index];
+                                return AppTravelCard(
+                                  type: AppTravelCardType.myTravel,
+                                  title: travel.title,
+                                  location: travel.location,
+                                  dateText: travel.dateText,
+                                  author: travel.author,
+                                  status: travel.status,
+                                  dDay: travel.dDay,
+                                  tags: travel.tags,
+                                  participantCount: travel.participantCount,
+                                  backgroundImage: travel.backgroundImage,
+                                  isPublic: false,
+                                  onTap: () => _openSavedTravel(travel),
+                                );
+                              },
+                            );
+                          },
                         ),
                       ),
                     ],

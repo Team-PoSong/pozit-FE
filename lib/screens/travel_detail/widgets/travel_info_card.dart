@@ -5,17 +5,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/design_system/app_colors.dart';
 import '../../../core/design_system/app_icons.dart';
 import '../../../core/design_system/app_text_styles.dart';
+import '../../../core/design_system/widgets/app_info_tag.dart';
 import '../../../core/design_system/widgets/progress/app_completion_progress_bar.dart';
 import '../../../data/models/travel/travel_info_card_model.dart';
-
-const TextStyle _tagTextStyle = TextStyle(
-  fontFamily: 'Pretendard',
-  fontSize: 10,
-  fontWeight: FontWeight.w500,
-  height: 14 / 10,
-  letterSpacing: 0,
-  color: AppColors.gray5,
-);
 
 class TravelInfoCard extends StatelessWidget {
   const TravelInfoCard({super.key, required this.info});
@@ -78,7 +70,7 @@ class TravelInfoCard extends StatelessWidget {
             children: [
               for (int i = 0; i < visibleTags.length; i++) ...[
                 if (i > 0) const SizedBox(width: 4),
-                _InfoTag(label: visibleTags[i]),
+                AppInfoTag(label: visibleTags[i]),
               ],
             ],
           ),
@@ -118,28 +110,6 @@ class TravelInfoCard extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class _InfoTag extends StatelessWidget {
-  const _InfoTag({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = label.startsWith('#') ? label : '# $label';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: ShapeDecoration(
-        color: AppColors.white.withValues(alpha: 0.9),
-        shape: const StadiumBorder(
-          side: BorderSide(color: AppColors.gray5, width: 0.5),
-        ),
-      ),
-      child: Text(text, style: _tagTextStyle),
     );
   }
 }
