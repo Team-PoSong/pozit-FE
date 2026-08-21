@@ -119,8 +119,16 @@ class PozingRepository {
     await createTransferDio(sendTimeout: _kVideoTransferTimeout).put(
       presignedUrl,
       data: bytes,
-      options: Options(headers: {'Content-Type': 'video/mp4'}),
+      options: Options(
+        headers: {'Content-Type': _contentTypeFor(videoFile.path)},
+      ),
     );
+  }
+
+  String _contentTypeFor(String path) {
+    final lower = path.toLowerCase();
+    if (lower.endsWith('.mov')) return 'video/quicktime';
+    return 'video/mp4';
   }
 
   Future<PozingSaveResponse> _savePozing({

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
+import '../../models/travel/active_course_spot_model.dart';
 import '../../models/travel/presigned_url_response.dart';
 import '../../models/travel/travel_course_model.dart';
 import '../../models/travel/travel_detail_model.dart';
@@ -157,6 +158,24 @@ class TravelRepository {
     if (lower.endsWith('.webp')) return 'image/webp';
     if (lower.endsWith('.heic')) return 'image/heic';
     return 'application/octet-stream';
+  }
+
+  Future<List<ActiveCourseSpotModel>> getActiveCourseSpots() async {
+    try {
+      final result = await DioClient.instance.get('/api/travels/active-spots');
+
+      if (result is! Map<String, dynamic> || result['spots'] is! List) {
+        throw const ApiException('방문 중인 스팟 응답 형식이 올바르지 않습니다.');
+      }
+
+      return (result['spots'] as List<dynamic>)
+          .map((e) => ActiveCourseSpotModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('방문 중인 여행 정보를 불러오지 못했습니다.');
+    }
   }
 
   Future<TravelCourseModel> getCourseDetail(int courseId) async {
