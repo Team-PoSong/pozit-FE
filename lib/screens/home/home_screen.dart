@@ -155,12 +155,19 @@ class _HomeScreenState extends State<HomeScreen> {
         accuracy: LocationAccuracy.high,
         distanceFilter: 5,
       ),
-    ).listen((position) {
-      if (!mounted) return;
-      setState(
-        () => _currentLocation = LatLng(position.latitude, position.longitude),
-      );
-    });
+    ).listen(
+      (position) {
+        if (!mounted) return;
+        setState(
+          () =>
+              _currentLocation = LatLng(position.latitude, position.longitude),
+        );
+      },
+      onError: (_) {
+        if (!mounted) return;
+        setState(() => _currentLocation = null);
+      },
+    );
   }
 
   ActiveCourseSpotModel? get _nearbyActiveSpot =>
