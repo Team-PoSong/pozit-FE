@@ -1,0 +1,197 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
+
+import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_dimensions.dart';
+import '../../core/design_system/app_text_styles.dart';
+import '../../core/design_system/widgets/app_input_field.dart';
+import '../../core/design_system/widgets/app_travel_tag_grid.dart';
+import '../../core/design_system/widgets/button/app_button.dart';
+import '../../data/models/travel/travel_course_model.dart';
+import 'travel_course_creation_screen.dart';
+import 'travel_creation_data.dart';
+import 'travel_creation_pipeline.dart';
+import 'widgets/travel_creation_header.dart';
+import 'travel_preferences_screen.dart';
+
+class TravelInfoScreen extends StatefulWidget {
+  const TravelInfoScreen({
+    super.key,
+    required this.destination,
+    required this.dateRange,
+    this.onSave,
+    this.onBackTap,
+    this.creationMethod = TravelCreationMethod.create,
+    this.initialCourses = const [],
+    this.initialTags = const [],
+  });
+
+  final String destination;
+  final DateTimeRange dateRange;
+  final ValueChanged<TravelInfoResult>? onSave;
+  final VoidCallback? onBackTap;
+  final TravelCreationMethod creationMethod;
+  final List<TravelCourseModel> initialCourses;
+  final List<String> initialTags;
+
+  @override
+  State<TravelInfoScreen> createState() => _TravelInfoScreenState();
+}
+
+class _TravelInfoScreenState extends State<TravelInfoScreen> {
+  static const int _maximumTagCount = 2;
+  final TextEditingController _nameController = TextEditingController();
+  late final Set<String> _selectedTags;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTags = widget.initialTags.take(_maximumTagCount).toSet();
+  }
+
+  bool get _canSave =>
+      _nameController.text.trim().isNotEmpty && _selectedTags.isNotEmpty;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _handleTagTap(String tag) {
+    setState(() {
+      if (_selectedTags.contains(tag)) {
+        _selectedTags.remove(tag);
+      } else if (_selectedTags.length < _maximumTagCount) {
+        _selectedTags.add(tag);
+      }
+    });
+  }
+
+  void _handleBack() {
+    final onBackTap = widget.onBackTap;
+    if (onBackTap != null) {
+      onBackTap();
+      return;
+    }
+    Navigator.of(context).maybePop();
+  }
+
+  void _handleSave() {
+    if (!_canSave) return;
+    final result = TravelInfoResult(
+      destination: widget.destination,
+      dateRange: widget.dateRange,
+      name: _nameController.text.trim(),
+      tags: Set.unmodifiable(_selectedTags),
+      creationMethod: widget.creationMethod,
+      initialCourses: widget.initialCourses,
+    );
+    final onSave = widget.onSave;
+    if (onSave != null) {
+      onSave(result);
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            TravelCreationPipeline.requiresPreferences(widget.creationMethod)
+            ? TravelPreferencesScreen(travelInfo: result)
+            : TravelCourseCreationScreen(travelInfo: result),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      body: SafeArea(
+        maintainBottomViewPadding: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TravelCreationHeader(currentStepIndex: 1, onBackTap: _handleBack),
+            const SizedBox(height: 40),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '어떤 여행인지 알려주세요.',
+                      style: AppTextStyles.headline.copyWith(
+                        color: AppColors.text,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      '여행명',
+                      style: AppTextStyles.subTitle.copyWith(
+                        color: AppColors.text,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    AppInputField(
+                      controller: _nameController,
+                      hintText: '직접 입력',
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    const SizedBox(height: 40),
+                    Text(
+                      '어떤 여행인가요?(최대 2개 선택)',
+                      style: AppTextStyles.subTitle.copyWith(
+                        color: AppColors.text,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    AppTravelTagGrid(
+                      selectedTags: _selectedTags,
+                      onToggle: _handleTagTap,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                24,
+                0,
+                24,
+                AppDimensions.screenBottomPadding,
+              ),
+              child: AppButton(
+                text: '다음',
+                isEnabled: _canSave,
+                onPressed: _handleSave,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+@Preview(group: 'hycho', name: 'Travel Info', size: Size(393, 852))
+Widget travelInfoScreenPreview() {
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: MediaQuery(
+      data: const MediaQueryData(
+        size: Size(393, 852),
+        padding: EdgeInsets.only(top: 59, bottom: 34),
+      ),
+      child: TravelInfoScreen(
+        destination: '경상북도 경주시',
+        dateRange: DateTimeRange(
+          start: DateTime(2026, 7, 3),
+          end: DateTime(2026, 7, 5),
+        ),
+      ),
+    ),
+  );
+}

@@ -14,12 +14,20 @@ import '../../core/design_system/widgets/app_bottom_gradient.dart';
 import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
+import '../../core/design_system/widgets/app_travel_card.dart';
 import '../../core/location/course_visiting.dart';
+import '../../data/models/saved_travel_model.dart';
 import '../../data/models/travel/active_course_spot_model.dart';
+import '../../data/repositories/local/travel_store.dart';
 import '../../data/repositories/pozing/pozing_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
 import '../explore/explore_content.dart';
+import '../invite_code/invite_code_screen.dart';
+import '../likes/likes_screen.dart';
 import '../pozing_camera/pozing_camera_screen.dart';
+import '../travel_creation/travel_creation_screen.dart';
+import '../travel_course_map/travel_course_map_screen.dart';
+import '../travel_detail/travel_detail_screen.dart';
 import 'widgets/travel_completion_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -35,14 +43,7 @@ class HomeScreen extends StatefulWidget {
     this.onJoinWithInviteCodeTap,
     this.onNavigationChanged,
     this.onPosongTap,
-    this.onSearchChanged,
-    this.onSearchSubmitted,
-    this.onSearchTap,
-    this.onRegionFilterTap,
-    this.onDateFilterTap,
-    this.onCategoryFilterTap,
-    this.onFilterResetTap,
-    this.exploreTravels = const [],
+    this.exploreContent = const ExploreContent(),
     this.initialTab = AppNavigationTab.travel,
     this.isCameraReady = false,
     this.assetPackage,
@@ -60,14 +61,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onJoinWithInviteCodeTap;
   final ValueChanged<AppNavigationTab>? onNavigationChanged;
   final VoidCallback? onPosongTap;
-  final ValueChanged<String>? onSearchChanged;
-  final ValueChanged<String>? onSearchSubmitted;
-  final VoidCallback? onSearchTap;
-  final VoidCallback? onRegionFilterTap;
-  final VoidCallback? onDateFilterTap;
-  final VoidCallback? onCategoryFilterTap;
-  final VoidCallback? onFilterResetTap;
-  final List<ExploreTravelItem> exploreTravels;
+  final Widget exploreContent;
   final AppNavigationTab initialTab;
 
   /// 카메라 버튼 활성화를 강제로 켜고 싶을 때(프리뷰/테스트) 사용한다.
@@ -204,17 +198,71 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleCreateTravel() {
     _toggleTravelMenu();
-    widget.onCreateTravelTap?.call();
+    final onCreateTravelTap = widget.onCreateTravelTap;
+    if (onCreateTravelTap != null) {
+      onCreateTravelTap();
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const TravelCreationScreen()),
+    );
   }
 
   void _handleJoinWithInviteCode() {
     _toggleTravelMenu();
-    widget.onJoinWithInviteCodeTap?.call();
+    if (widget.onJoinWithInviteCodeTap case final callback?) {
+      callback();
+      return;
+    }
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const InviteCodeScreen()));
+  }
+
+  void _openSavedTravel(SavedTravelModel travel) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelDetailScreen(
+          title: travel.title,
+          info: travel.info,
+          status: travel.status,
+          isLeader: true,
+          isPublic: false,
+          backgroundImage:
+              travel.backgroundImage ??
+              const AssetImage(AppImages.travelMockup),
+          courses: travel.courses,
+          onCourseTap: (day) {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TravelCourseMapScreen(
+                  courses: travel.courses,
+                  status: travel.status,
+                  totalDays: travel.info.totalDays,
+                  initialDay: day,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   void _handleNavigationChanged(AppNavigationTab tab) {
     _moveToTab(tab);
     widget.onNavigationChanged?.call(tab);
+  }
+
+  void _handleWishTap() {
+    if (widget.onWishTap case final callback?) {
+      callback();
+      return;
+    }
+    Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => const LikesScreen()));
   }
 
   void _moveToTab(AppNavigationTab tab) {
@@ -268,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
             AppMainHeader(
               hasNotification: widget.hasNotification,
               onNotificationTap: widget.onNotificationTap,
-              onWishTap: widget.onWishTap,
+              onWishTap: _handleWishTap,
               onMyPageTap: widget.onMyPageTap,
               assetPackage: widget.assetPackage,
             ),
@@ -286,14 +334,37 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: TravelCompletionToggle(
-                                incompleteCount: widget.incompleteCount,
-                                completeCount: widget.completeCount,
-                                selectedStatus: _selectedStatus,
-                                onChanged: (status) {
-                                  setState(() => _selectedStatus = status);
-                                },
-                              ),
+                              child:
+                                  ValueListenableBuilder<
+                                    List<SavedTravelModel>
+                                  >(
+                                    valueListenable:
+                                        TravelStore.instance.travels,
+                                    builder: (context, travels, _) {
+                                      return TravelCompletionToggle(
+                                        incompleteCount: travels
+                                            .where(
+                                              (travel) =>
+                                                  travel.status !=
+                                                  AppTravelStatus.completed,
+                                            )
+                                            .length,
+                                        completeCount: travels
+                                            .where(
+                                              (travel) =>
+                                                  travel.status ==
+                                                  AppTravelStatus.completed,
+                                            )
+                                            .length,
+                                        selectedStatus: _selectedStatus,
+                                        onChanged: (status) {
+                                          setState(
+                                            () => _selectedStatus = status,
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                             ),
                             const SizedBox(width: 11),
                             OverlayPortal(
@@ -395,46 +466,79 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Expanded(
-                        child: Column(
-                          children: [
-                            const Spacer(flex: 7),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Image.asset(
-                                  AppImages.posongCarrier,
-                                  package: widget.assetPackage,
-                                  width: 219,
-                                  height: 150,
-                                  fit: BoxFit.contain,
-                                ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  '여행이 없어요! 포짓과 함께 떠나볼까요?',
-                                  textAlign: TextAlign.center,
-                                  style: AppTextStyles.body.copyWith(
-                                    color: AppColors.gray5,
+                        child: ValueListenableBuilder<List<SavedTravelModel>>(
+                          valueListenable: TravelStore.instance.travels,
+                          builder: (context, travels, _) {
+                            final filteredTravels = travels.where((travel) {
+                              final isCompleted =
+                                  travel.status == AppTravelStatus.completed;
+                              return _selectedStatus ==
+                                      TravelCompletionStatus.complete
+                                  ? isCompleted
+                                  : !isCompleted;
+                            }).toList();
+                            if (filteredTravels.isEmpty) {
+                              return Column(
+                                children: [
+                                  const Spacer(flex: 7),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        AppImages.posongCarrier,
+                                        package: widget.assetPackage,
+                                        width: 219,
+                                        height: 150,
+                                        fit: BoxFit.contain,
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Text(
+                                        '여행이 없어요! 포짓과 함께 떠나볼까요?',
+                                        textAlign: TextAlign.center,
+                                        style: AppTextStyles.body.copyWith(
+                                          color: AppColors.gray5,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            const Spacer(flex: 9),
-                          ],
+                                  const Spacer(flex: 9),
+                                ],
+                              );
+                            }
+                            return ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(
+                                24,
+                                20,
+                                24,
+                                24,
+                              ),
+                              itemCount: filteredTravels.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final travel = filteredTravels[index];
+                                return AppTravelCard(
+                                  type: AppTravelCardType.myTravel,
+                                  title: travel.title,
+                                  location: travel.location,
+                                  dateText: travel.dateText,
+                                  author: travel.author,
+                                  status: travel.status,
+                                  dDay: travel.dDay,
+                                  tags: travel.tags,
+                                  participantCount: travel.participantCount,
+                                  backgroundImage: travel.backgroundImage,
+                                  isPublic: false,
+                                  onTap: () => _openSavedTravel(travel),
+                                );
+                              },
+                            );
+                          },
                         ),
                       ),
                     ],
                   ),
-                  ExploreContent(
-                    travels: widget.exploreTravels,
-                    onSearchChanged: widget.onSearchChanged,
-                    onSearchSubmitted: widget.onSearchSubmitted,
-                    onSearchTap: widget.onSearchTap,
-                    onRegionFilterTap: widget.onRegionFilterTap,
-                    onDateFilterTap: widget.onDateFilterTap,
-                    onCategoryFilterTap: widget.onCategoryFilterTap,
-                    onFilterResetTap: widget.onFilterResetTap,
-                    assetPackage: widget.assetPackage,
-                  ),
+                  widget.exploreContent,
                 ],
               ),
             ),

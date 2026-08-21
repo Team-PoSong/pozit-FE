@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
-import '../home/home_screen.dart';
+import '../../data/repositories/user/onboarding_repository.dart';
+import '../auth/auth_gate.dart';
 import 'nickname_screen.dart';
 import 'terms_agreement_screen.dart';
 
@@ -16,14 +17,20 @@ class OnboardingFlowScreen extends StatefulWidget {
 
 class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
   _OnboardingStep _step = _OnboardingStep.nickname;
+  final OnboardingRepository _repository = const OnboardingRepository();
 
-  void _showTermsAgreement(String _) {
+  Future<void> _showTermsAgreement(String nickname) async {
+    await _repository.updateNickname(nickname);
+    if (!mounted) return;
     setState(() => _step = _OnboardingStep.terms);
   }
 
-  void _completeOnboarding() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+  Future<void> _completeOnboarding() async {
+    await _repository.saveRequiredTermAgreements();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const AuthGate()),
+      (_) => false,
     );
   }
 

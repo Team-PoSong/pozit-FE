@@ -18,6 +18,8 @@ class AppInputField extends StatefulWidget {
     this.autofocus = false,
     this.isError = false,
     this.maxLength,
+    this.minLines,
+    this.maxLines = 1,
     this.inputFormatters,
     this.textColor,
   });
@@ -31,6 +33,8 @@ class AppInputField extends StatefulWidget {
   final bool autofocus;
   final bool isError;
   final int? maxLength;
+  final int? minLines;
+  final int maxLines;
   final List<TextInputFormatter>? inputFormatters;
 
   final Color? textColor;
@@ -123,9 +127,11 @@ class _AppInputFieldState extends State<AppInputField> {
         focusNode: _focusNode,
         onChanged: widget.onChanged,
         onTap: widget.onTap,
+        onTapOutside: (_) => _focusNode.unfocus(),
         readOnly: widget.readOnly,
         autofocus: widget.autofocus,
-        maxLines: 1,
+        minLines: widget.minLines,
+        maxLines: widget.maxLines,
         maxLength: widget.maxLength,
         inputFormatters: widget.inputFormatters,
         buildCounter:
@@ -135,7 +141,9 @@ class _AppInputFieldState extends State<AppInputField> {
               required isFocused,
               required maxLength,
             }) => null,
-        textAlignVertical: TextAlignVertical.center,
+        textAlignVertical: widget.maxLines == 1
+            ? TextAlignVertical.center
+            : TextAlignVertical.top,
         cursorColor: AppColors.text,
         style: AppTextStyles.body.copyWith(
           color: widget.textColor ?? AppColors.text,

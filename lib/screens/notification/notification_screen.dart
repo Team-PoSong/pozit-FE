@@ -104,7 +104,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 }
 
 class _NotificationTopBar extends StatelessWidget {
-  const _NotificationTopBar({super.key, required this.onBackTap});
+  const _NotificationTopBar({required this.onBackTap});
 
   final VoidCallback onBackTap;
 

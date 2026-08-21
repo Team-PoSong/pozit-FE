@@ -45,4 +45,15 @@ class NotificationSettingsModel {
       noticeEnabled: profile.notiNoticeEnabled,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'pushEnabled': pushEnabled,
+      'notiTravelEnabled': travelEnabled,
+      'notiGroupEnabled': groupEnabled,
+      'notiPozingEnabled': pozingEnabled,
+      'notiCourseEnabled': courseEnabled,
+      'notiNoticeEnabled': noticeEnabled,
+    };
+  }
 }

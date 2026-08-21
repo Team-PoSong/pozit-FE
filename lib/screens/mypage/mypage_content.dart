@@ -209,12 +209,7 @@ class _Section extends StatelessWidget {
   const _Section({
     required this.title,
     required this.children,
-    this.padding = const EdgeInsets.fromLTRB(
-      _kHorizontalPadding,
-      22,
-      12,
-      24,
-    ),
+    this.padding = const EdgeInsets.fromLTRB(_kHorizontalPadding, 22, 12, 24),
   });
 
   final String title;

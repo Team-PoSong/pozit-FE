@@ -157,6 +157,20 @@ class _TravelCardThumbnail extends StatelessWidget {
 
   bool get _hasImage => image != null;
 
+  Widget _buildPlaceholder() {
+    return ColoredBox(
+      color: AppColors.gray2,
+      child: Center(
+        child: Image.asset(
+          AppImages.posongPlainMini,
+          width: 60,
+          height: 55,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
   String get _visibilityIcon {
     if (_hasImage) {
       return isPublic ? AppIcons.lockOpenWhite : AppIcons.lockClosedWhite;
@@ -173,19 +187,13 @@ class _TravelCardThumbnail extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (_hasImage)
-            Image(image: image!, fit: BoxFit.cover)
+            Image(
+              image: image!,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _buildPlaceholder(),
+            )
           else
-            ColoredBox(
-              color: AppColors.gray2,
-              child: Center(
-                child: Image.asset(
-                  AppImages.posongPlainMini,
-                  width: 60,
-                  height: 55,
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
+            _buildPlaceholder(),
           if (isPozitPick)
             const Positioned(left: 10, top: 10, child: _PozitPickBadge()),
           if (isMyTravel && status == AppTravelStatus.upcoming)
@@ -299,21 +307,28 @@ class _TravelCardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 10,
-            runSpacing: 2,
+          Row(
             children: [
-              Text(
-                location,
-                style: AppTextStyles.caption2.copyWith(
-                  color: AppColors.purple3,
+              Flexible(
+                child: Text(
+                  location,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption2.copyWith(
+                    color: AppColors.purple3,
+                  ),
                 ),
               ),
-              Text(
-                dateText,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppColors.gray5,
-                  fontWeight: FontWeight.w400,
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  dateText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.gray5,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             ],
@@ -321,6 +336,8 @@ class _TravelCardContent extends StatelessWidget {
           const SizedBox(height: 9),
           Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppTextStyles.subTitle.copyWith(color: AppColors.text),
           ),
           const SizedBox(height: 15),
@@ -350,9 +367,9 @@ class _TravelCardContent extends StatelessWidget {
                 SvgPicture.asset(AppIcons.groupGray, width: 16, height: 16),
                 const SizedBox(width: 5),
                 Text(
-                  participantCount == null
+                  participantCount == null || participantCount! <= 1
                       ? author
-                      : '$author 외 $participantCount명',
+                      : '$author 외 ${participantCount! - 1}명',
                   style: AppTextStyles.caption.copyWith(
                     color: AppColors.gray5,
                     fontSize: 10,

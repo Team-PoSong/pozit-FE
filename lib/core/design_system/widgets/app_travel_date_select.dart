@@ -25,19 +25,25 @@ double _measureTextWidth(String text, TextStyle style, TextScaler textScaler) {
   return width;
 }
 
+enum AppTravelDateSelection { start, end }
+
 class AppTravelDate extends StatefulWidget {
   const AppTravelDate({
     super.key,
     required this.startDate,
     required this.endDate,
     this.showTitle = true,
+    this.activeSelection,
+    this.onSelectionChanged,
     this.onTap,
   });
 
-  final DateTime startDate;
-  final DateTime endDate;
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   final bool showTitle;
+  final AppTravelDateSelection? activeSelection;
+  final ValueChanged<AppTravelDateSelection>? onSelectionChanged;
 
   final VoidCallback? onTap;
 
@@ -45,18 +51,18 @@ class AppTravelDate extends StatefulWidget {
   State<AppTravelDate> createState() => _AppTravelDateState();
 }
 
-enum _TravelDateSelection { start, end }
-
 class _AppTravelDateState extends State<AppTravelDate> {
-  _TravelDateSelection _selection = _TravelDateSelection.start;
+  AppTravelDateSelection _selection = AppTravelDateSelection.start;
 
-  String _formatDate(DateTime date) => '${date.month}월 ${date.day}일';
+  String _formatDate(DateTime? date) =>
+      date == null ? '' : '${date.month}월 ${date.day}일';
 
-  void _select(_TravelDateSelection selection) {
+  void _select(AppTravelDateSelection selection) {
     if (_selection != selection) {
       setState(() => _selection = selection);
     }
 
+    widget.onSelectionChanged?.call(selection);
     widget.onTap?.call();
   }
 
@@ -64,7 +70,8 @@ class _AppTravelDateState extends State<AppTravelDate> {
   Widget build(BuildContext context) {
     final formattedStartDate = _formatDate(widget.startDate);
     final formattedEndDate = _formatDate(widget.endDate);
-    final isStartSelected = _selection == _TravelDateSelection.start;
+    final selection = widget.activeSelection ?? _selection;
+    final isStartSelected = selection == AppTravelDateSelection.start;
     final textScaler = MediaQuery.textScalerOf(context);
 
     final startTextWidth = math.max(
@@ -134,10 +141,7 @@ class _AppTravelDateState extends State<AppTravelDate> {
                   width: startTextWidth,
                   top: 0,
                   bottom: 0,
-                  child: _DateText(
-                    label: '여행 시작일',
-                    date: formattedStartDate,
-                  ),
+                  child: _DateText(label: '여행 시작일', date: formattedStartDate),
                 ),
                 Positioned(
                   left: 0,
@@ -149,7 +153,7 @@ class _AppTravelDateState extends State<AppTravelDate> {
                     selected: isStartSelected,
                     label: '여행 시작일 $formattedStartDate',
                     child: GestureDetector(
-                      onTap: () => _select(_TravelDateSelection.start),
+                      onTap: () => _select(AppTravelDateSelection.start),
                       behavior: HitTestBehavior.opaque,
                     ),
                   ),
@@ -164,7 +168,7 @@ class _AppTravelDateState extends State<AppTravelDate> {
                     selected: !isStartSelected,
                     label: '여행 종료일 $formattedEndDate',
                     child: GestureDetector(
-                      onTap: () => _select(_TravelDateSelection.end),
+                      onTap: () => _select(AppTravelDateSelection.end),
                       behavior: HitTestBehavior.opaque,
                     ),
                   ),

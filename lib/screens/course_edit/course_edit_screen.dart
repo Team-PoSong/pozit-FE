@@ -29,6 +29,7 @@ class CourseEditScreen extends StatefulWidget {
     super.key,
     required this.courses,
     this.initialDay = 1,
+    this.isCreationFlow = false,
     this.onLoadPopularSpots,
     this.onSearch,
     this.onAddSelectedSpots,
@@ -38,6 +39,7 @@ class CourseEditScreen extends StatefulWidget {
 
   final List<TravelCourseModel> courses;
   final int initialDay;
+  final bool isCreationFlow;
 
   final Future<TouristSpotRankPage> Function(int cursor)? onLoadPopularSpots;
   final Future<TouristSpotSearchPage> Function(String keyword, int cursor)?
@@ -72,7 +74,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
   };
 
   late int _selectedDay = widget.initialDay;
-  bool _hasChanges = false;
+  late bool _hasChanges = widget.onSave != null;
 
   int get _dayCount => _dayNumbers.isEmpty ? 1 : _dayNumbers.length;
 
@@ -152,7 +154,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
       ]);
     }
     widget.onSave?.call(spotsByCourseId);
-    Navigator.of(context).pop();
+    if (Navigator.of(context).canPop()) Navigator.of(context).pop();
   }
 
   void _handleBack() {
