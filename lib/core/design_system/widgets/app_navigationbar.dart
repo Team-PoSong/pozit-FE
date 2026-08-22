@@ -11,6 +11,18 @@ import '../app_text_styles.dart';
 enum AppNavigationTab { travel, explore }
 
 class AppNavigationBar extends StatefulWidget {
+  /// 바텀 네비게이션 바(알약 모양) 자체의 높이입니다.
+  static const double height = 63;
+
+  /// 여유 간격을 포함해, 플로팅 네비게이션 바가 화면 콘텐츠를 가리지 않도록
+  /// 스크롤 영역 하단에 둬야 하는 최소 여백입니다.
+  static double clearance(BuildContext context, {double extraGap = 0}) {
+    return MediaQuery.paddingOf(context).bottom +
+        AppDimensions.bottomNavigationSpacing +
+        height +
+        extraGap;
+  }
+
   const AppNavigationBar({
     super.key,
     this.selectedTab,
@@ -34,7 +46,7 @@ class AppNavigationBar extends StatefulWidget {
 
 class _AppNavigationBarState extends State<AppNavigationBar> {
   static const double _navigationWidth = 283;
-  static const double _navigationHeight = 63;
+  static const double _navigationHeight = AppNavigationBar.height;
 
   late AppNavigationTab _selectedTab;
 

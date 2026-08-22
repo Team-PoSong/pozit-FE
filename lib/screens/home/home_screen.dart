@@ -302,6 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      extendBody: true,
       bottomNavigationBar: Stack(
         alignment: Alignment.topCenter,
         clipBehavior: Clip.none,
@@ -513,11 +514,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             }
                             return ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(
+                              padding: EdgeInsets.fromLTRB(
                                 24,
                                 20,
                                 24,
-                                24,
+                                AppNavigationBar.clearance(context),
                               ),
                               itemCount: filteredTravels.length,
                               separatorBuilder: (_, _) =>
