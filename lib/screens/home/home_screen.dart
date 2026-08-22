@@ -63,9 +63,6 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onPosongTap;
   final Widget exploreContent;
   final AppNavigationTab initialTab;
-
-  /// 카메라 버튼 활성화를 강제로 켜고 싶을 때(프리뷰/테스트) 사용한다.
-  /// 실제 실행 중에는 '방문 중' 자동 판정 결과와 OR 조건으로 합쳐진다.
   final bool isCameraReady;
   final String? assetPackage;
   final TravelRepository travelRepository;
@@ -119,9 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       setState(() => _activeSpots = spots);
       if (spots.isNotEmpty) _startLocationTracking();
-    } catch (_) {
-      // 방문 중 스팟을 불러오지 못해도 홈 화면은 정상적으로 보여준다.
-    }
+    } catch (_) {}
   }
 
   Future<bool> _ensureLocationPermission() async {
@@ -481,8 +476,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
-                      // 토글/버튼이 스크롤에 밀려도 목록 첫 카드가 바로 붙지 않도록
-                      // 고정 여백을 둔다. (스크롤되는 ListView 패딩이 아니라 별도 위젯)
                       const SizedBox(height: _travelListTopGap),
                       Expanded(
                         child: ValueListenableBuilder<List<SavedTravelModel>>(
@@ -527,8 +520,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             return ListView.separated(
                               padding: EdgeInsets.fromLTRB(
                                 24,
-                                // 카드 그림자가 ListView 상단 클리핑 경계에 잘리지
-                                // 않도록 아이템 간격(8)과 동일한 여유를 둔다.
                                 8,
                                 24,
                                 AppNavigationBar.clearance(context),

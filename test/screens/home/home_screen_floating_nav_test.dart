@@ -105,7 +105,6 @@ void main() {
     );
     final scrollableState = tester.state<ScrollableState>(scrollable.first);
 
-    // 실제로 끝까지 스크롤했을 때(=더 이상 스크롤할 수 없는 지점) 상태를 확인합니다.
     scrollableState.position.jumpTo(scrollableState.position.maxScrollExtent);
     await tester.pumpAndSettle();
 
@@ -136,8 +135,6 @@ void main() {
     );
     final menuButtonFinder = find.bySemanticsLabel('여행 메뉴 열기');
 
-    // 토글/버튼이 목록 레이아웃을 밀어내는 형제 위젯이라면 목록 뷰포트는
-    // 토글/버튼 아래, 즉 화면 상단보다 아래에서 시작합니다.
     final listViewportTop = tester.getTopLeft(tripList).dy;
     final menuButtonTop = tester.getTopLeft(menuButtonFinder).dy;
 
@@ -158,8 +155,6 @@ void main() {
           '목록 첫 카드가 토글/+ 버튼 바로 아래에 붙지 않도록 고정 여백이 있어야 합니다.',
     );
 
-    // 목록을 스크롤해도 토글/버튼과 목록 사이의 고정 여백은 그대로 유지되어야 합니다
-    // (여백이 스크롤되는 ListView 패딩이 아니라 레이아웃에 고정된 위젯이기 때문입니다).
     final scrollable = find.descendant(
       of: tripList,
       matching: find.byType(Scrollable),
