@@ -6,6 +6,7 @@ import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_filter_chip.dart';
+import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
 import 'widgets/explore_filter_sheet.dart';
@@ -286,7 +287,9 @@ class _ExploreContentState extends State<ExploreContent> {
           const SizedBox(height: 18),
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.only(bottom: 20),
+              padding: EdgeInsets.only(
+                bottom: AppNavigationBar.clearance(context),
+              ),
               itemCount: visibleTravels.length,
               separatorBuilder: (_, _) =>
                   const SizedBox(height: _travelCardGap),

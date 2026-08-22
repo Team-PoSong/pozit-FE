@@ -10,6 +10,7 @@ import 'package:pozit/screens/auth/auth_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await KakaoSdk.init(nativeAppKey: AppConfig.kakaoNativeAppKey);
 
   assert(

@@ -63,9 +63,6 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onPosongTap;
   final Widget exploreContent;
   final AppNavigationTab initialTab;
-
-  /// 카메라 버튼 활성화를 강제로 켜고 싶을 때(프리뷰/테스트) 사용한다.
-  /// 실제 실행 중에는 '방문 중' 자동 판정 결과와 OR 조건으로 합쳐진다.
   final bool isCameraReady;
   final String? assetPackage;
   final TravelRepository travelRepository;
@@ -76,6 +73,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const double _travelListTopGap = 20;
+
   final _travelMenuController = OverlayPortalController();
   final _travelMenuButtonKey = GlobalKey();
 
@@ -117,9 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       setState(() => _activeSpots = spots);
       if (spots.isNotEmpty) _startLocationTracking();
-    } catch (_) {
-      // 방문 중 스팟을 불러오지 못해도 홈 화면은 정상적으로 보여준다.
-    }
+    } catch (_) {}
   }
 
   Future<bool> _ensureLocationPermission() async {
@@ -138,11 +135,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       if (mounted) {
         setState(
-          () => _currentLocation = LatLng(position.latitude, position.longitude),
+          () =>
+              _currentLocation = LatLng(position.latitude, position.longitude),
         );
       }
     } catch (_) {}
@@ -150,24 +150,27 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
 
     _positionSubscription?.cancel();
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 5,
-      ),
-    ).listen(
-      (position) {
-        if (!mounted) return;
-        setState(
-          () =>
-              _currentLocation = LatLng(position.latitude, position.longitude),
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 5,
+          ),
+        ).listen(
+          (position) {
+            if (!mounted) return;
+            setState(
+              () => _currentLocation = LatLng(
+                position.latitude,
+                position.longitude,
+              ),
+            );
+          },
+          onError: (_) {
+            if (!mounted) return;
+            setState(() => _currentLocation = null);
+          },
         );
-      },
-      onError: (_) {
-        if (!mounted) return;
-        setState(() => _currentLocation = null);
-      },
-    );
   }
 
   ActiveCourseSpotModel? get _nearbyActiveSpot =>
@@ -302,6 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      extendBody: true,
       bottomNavigationBar: Stack(
         alignment: Alignment.topCenter,
         clipBehavior: Clip.none,
@@ -472,6 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: _travelListTopGap),
                       Expanded(
                         child: ValueListenableBuilder<List<SavedTravelModel>>(
                           valueListenable: TravelStore.instance.travels,
@@ -513,11 +518,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             }
                             return ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(
+                              padding: EdgeInsets.fromLTRB(
                                 24,
-                                20,
+                                8,
                                 24,
-                                24,
+                                AppNavigationBar.clearance(context),
                               ),
                               itemCount: filteredTravels.length,
                               separatorBuilder: (_, _) =>

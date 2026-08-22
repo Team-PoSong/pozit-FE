@@ -50,7 +50,6 @@ class _PozingCameraScreenState extends State<PozingCameraScreen> {
 
     XFile? video;
     try {
-      // OS 기본 카메라 앱을 그대로 띄워 촬영을 위임한다.
       video = await _imagePicker.pickVideo(
         source: ImageSource.camera,
         preferredCameraDevice: CameraDevice.rear,
