@@ -527,7 +527,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             return ListView.separated(
                               padding: EdgeInsets.fromLTRB(
                                 24,
-                                0,
+                                // 카드 그림자가 ListView 상단 클리핑 경계에 잘리지
+                                // 않도록 아이템 간격(8)과 동일한 여유를 둔다.
+                                8,
                                 24,
                                 AppNavigationBar.clearance(context),
                               ),
