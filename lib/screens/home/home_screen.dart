@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
@@ -11,18 +15,22 @@ import '../../core/design_system/widgets/app_main_header.dart';
 import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
+import '../../core/location/course_visiting.dart';
 import '../../data/models/saved_travel_model.dart';
+import '../../data/models/travel/active_course_spot_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/models/travel/travel_list_model.dart';
 import '../../data/repositories/local/travel_store.dart';
+import '../../data/repositories/pozing/pozing_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
 import '../explore/explore_content.dart';
-import '../travel_creation/travel_creation_screen.dart';
-import '../travel_course_map/travel_course_map_screen.dart';
-import '../travel_detail/travel_detail_screen.dart';
-import '../travel_detail/travel_detail_page.dart';
 import '../invite_code/invite_code_screen.dart';
 import '../likes/likes_screen.dart';
+import '../pozing_camera/pozing_camera_screen.dart';
+import '../travel_creation/travel_creation_screen.dart';
+import '../travel_course_map/travel_course_map_screen.dart';
+import '../travel_detail/travel_detail_page.dart';
+import '../travel_detail/travel_detail_screen.dart';
 import 'widgets/travel_completion_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -42,6 +50,8 @@ class HomeScreen extends StatefulWidget {
     this.initialTab = AppNavigationTab.travel,
     this.isCameraReady = false,
     this.assetPackage,
+    this.travelRepository = const TravelRepository(),
+    this.pozingRepository = const PozingRepository(),
   });
 
   final int incompleteCount;
@@ -58,12 +68,16 @@ class HomeScreen extends StatefulWidget {
   final AppNavigationTab initialTab;
   final bool isCameraReady;
   final String? assetPackage;
+  final TravelRepository travelRepository;
+  final PozingRepository pozingRepository;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const double _travelListTopGap = 20;
+
   final _travelMenuController = OverlayPortalController();
   final _travelMenuButtonKey = GlobalKey();
 
@@ -71,7 +85,10 @@ class _HomeScreenState extends State<HomeScreen> {
   late final PageController _pageController;
   late AppNavigationTab _selectedTab;
   bool _isTravelMenuOpen = false;
-  final TravelRepository _travelRepository = const TravelRepository();
+
+  List<ActiveCourseSpotModel> _activeSpots = const [];
+  LatLng? _currentLocation;
+  StreamSubscription<Position>? _positionSubscription;
 
   @override
   void initState() {
@@ -79,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedTab = widget.initialTab;
     _pageController = PageController(initialPage: _selectedTab.index);
     _loadTravels();
+    _loadActiveSpots();
   }
 
   @override
@@ -92,7 +110,94 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _positionSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _loadActiveSpots() async {
+    try {
+      final spots = await widget.travelRepository.getActiveCourseSpots();
+      if (!mounted) return;
+      setState(() => _activeSpots = spots);
+      if (spots.isNotEmpty) _startLocationTracking();
+    } catch (_) {}
+  }
+
+  Future<bool> _ensureLocationPermission() async {
+    if (!await Geolocator.isLocationServiceEnabled()) return false;
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    return permission == LocationPermission.always ||
+        permission == LocationPermission.whileInUse;
+  }
+
+  Future<void> _startLocationTracking() async {
+    final hasPermission = await _ensureLocationPermission();
+    if (!hasPermission || !mounted) return;
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      if (mounted) {
+        setState(
+          () =>
+              _currentLocation = LatLng(position.latitude, position.longitude),
+        );
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+
+    _positionSubscription?.cancel();
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 5,
+          ),
+        ).listen(
+          (position) {
+            if (!mounted) return;
+            setState(
+              () => _currentLocation = LatLng(
+                position.latitude,
+                position.longitude,
+              ),
+            );
+          },
+          onError: (_) {
+            if (!mounted) return;
+            setState(() => _currentLocation = null);
+          },
+        );
+  }
+
+  ActiveCourseSpotModel? get _nearbyActiveSpot =>
+      nearbyActiveCourseSpot(_currentLocation, _activeSpots);
+
+  bool get _isVisitingCameraReady => _nearbyActiveSpot != null;
+
+  VoidCallback? get _effectivePosongTap {
+    if (widget.onPosongTap != null) return widget.onPosongTap;
+    final spot = _nearbyActiveSpot;
+    if (spot == null) return null;
+    return () => _openPozingCameraScreen(spot);
+  }
+
+  Future<void> _openPozingCameraScreen(ActiveCourseSpotModel spot) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PozingCameraScreen(
+          courseSpotId: spot.courseSpotId,
+          repository: widget.pozingRepository,
+        ),
+      ),
+    );
   }
 
   void _toggleTravelMenu() {
@@ -122,8 +227,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadTravels() async {
     try {
       final results = await Future.wait([
-        _travelRepository.getTravels(isDone: false),
-        _travelRepository.getTravels(isDone: true),
+        widget.travelRepository.getTravels(isDone: false),
+        widget.travelRepository.getTravels(isDone: true),
       ]);
       if (!mounted) return;
       final travels = [...results[0], ...results[1]];
@@ -271,6 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      extendBody: true,
       bottomNavigationBar: Stack(
         alignment: Alignment.topCenter,
         clipBehavior: Clip.none,
@@ -279,8 +385,8 @@ class _HomeScreenState extends State<HomeScreen> {
           AppNavigationBar(
             selectedTab: _selectedTab,
             onChanged: _handleNavigationChanged,
-            onPosongTap: widget.onPosongTap,
-            isCameraReady: widget.isCameraReady,
+            onPosongTap: _effectivePosongTap,
+            isCameraReady: widget.isCameraReady || _isVisitingCameraReady,
             assetPackage: widget.assetPackage,
           ),
         ],
@@ -441,6 +547,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: _travelListTopGap),
                       Expanded(
                         child: ValueListenableBuilder<List<SavedTravelModel>>(
                           valueListenable: TravelStore.instance.travels,
@@ -482,11 +589,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             }
                             return ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(
+                              padding: EdgeInsets.fromLTRB(
                                 24,
-                                20,
+                                8,
                                 24,
-                                24,
+                                AppNavigationBar.clearance(context),
                               ),
                               itemCount: filteredTravels.length,
                               separatorBuilder: (_, _) =>

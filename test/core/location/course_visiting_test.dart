@@ -1,7 +1,25 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 import 'package:pozit/core/location/course_visiting.dart';
+import 'package:pozit/data/models/travel/active_course_spot_model.dart';
 import 'package:pozit/data/models/travel/travel_course_model.dart';
+
+ActiveCourseSpotModel _activeSpot({
+  int travelId = 1,
+  int courseSpotId = 1,
+  int touristSpotId = 1,
+  double latitude = 35.8347,
+  double longitude = 129.2247,
+}) {
+  return ActiveCourseSpotModel(
+    travelId: travelId,
+    courseSpotId: courseSpotId,
+    touristSpotId: touristSpotId,
+    name: '동궁과 월지',
+    latitude: latitude,
+    longitude: longitude,
+  );
+}
 
 CourseSpotModel _spot({
   int courseSpotId = 1,
@@ -128,5 +146,33 @@ void main() {
     final focus = nearbyCourseFocus(location, [day1Course, day2Course]);
 
     expect(focus, (dayNumber: 2, spotIndex: 0));
+  });
+
+  test('현재 위치를 모르면 방문 중인 활성 스팟이 없다', () {
+    final spots = [_activeSpot()];
+
+    expect(nearbyActiveCourseSpot(null, spots), isNull);
+  });
+
+  test('반경 안에 있는 활성 스팟을 반환한다', () {
+    final near = _activeSpot(courseSpotId: 1, touristSpotId: 10);
+    final far = _activeSpot(
+      courseSpotId: 2,
+      touristSpotId: 20,
+      latitude: near.latitude + 0.01,
+    );
+    final location = LatLng(near.latitude, near.longitude);
+
+    expect(
+      nearbyActiveCourseSpot(location, [far, near])?.courseSpotId,
+      near.courseSpotId,
+    );
+  });
+
+  test('반경 안에 활성 스팟이 없으면 null을 반환한다', () {
+    final spot = _activeSpot();
+    final far = LatLng(spot.latitude + 0.01, spot.longitude);
+
+    expect(nearbyActiveCourseSpot(far, [spot]), isNull);
   });
 }

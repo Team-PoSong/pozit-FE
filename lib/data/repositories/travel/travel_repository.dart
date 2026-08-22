@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/dio_client.dart';
+import '../../models/travel/active_course_spot_model.dart';
 import '../../models/travel/presigned_url_response.dart';
 import '../../models/travel/like_based_travel_model.dart';
 import '../../models/travel/travel_course_model.dart';
@@ -79,17 +80,38 @@ class TravelRepository {
     }
   }
 
-  Future<TravelRecommendationModel> previewRecommendations(int travelId) async {
+  Future<TravelRecommendationCardModel> previewRecommendationCard(
+    int travelId,
+  ) async {
     try {
       final result = await DioClient.instance.post(
-        '/api/travels/$travelId/recommendations/preview',
+        '/api/travels/$travelId/recommendations/preview/card',
+      );
+      if (result is! Map<String, dynamic>) {
+        throw const ApiException('추천 카드 응답 형식이 올바르지 않습니다.');
+      }
+      return TravelRecommendationCardModel.fromJson(result);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('추천 카드를 불러오지 못했습니다.');
+    }
+  }
+
+  Future<TravelRecommendationModel> getRecommendationPreview(
+    int travelId,
+    String previewId,
+  ) async {
+    try {
+      final result = await DioClient.instance.get(
+        '/api/travels/$travelId/recommendations/previews/$previewId',
       );
       if (result is! Map<String, dynamic>) {
         throw const ApiException('추천 코스 응답 형식이 올바르지 않습니다.');
       }
       final recommendation = TravelRecommendationModel.fromJson(result);
       if (!recommendation.days.any((day) => day.places.isNotEmpty)) {
-        throw const ApiException('추천 가능한 장소를 찾지 못했어요. 잠시 후 다시 시도해주세요.');
+        throw const ApiException('추천 가능한 장소를 찾지 못했어요. 다시 추천해주세요.');
       }
       return recommendation;
     } on ApiException {
@@ -297,6 +319,24 @@ class TravelRepository {
     if (lower.endsWith('.webp')) return 'image/webp';
     if (lower.endsWith('.heic')) return 'image/heic';
     return 'application/octet-stream';
+  }
+
+  Future<List<ActiveCourseSpotModel>> getActiveCourseSpots() async {
+    try {
+      final result = await DioClient.instance.get('/api/travels/active-spots');
+
+      if (result is! Map<String, dynamic> || result['spots'] is! List) {
+        throw const ApiException('방문 중인 스팟 응답 형식이 올바르지 않습니다.');
+      }
+
+      return (result['spots'] as List<dynamic>)
+          .map((e) => ActiveCourseSpotModel.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('방문 중인 여행 정보를 불러오지 못했습니다.');
+    }
   }
 
   Future<TravelCourseModel> getCourseDetail(int courseId) async {

@@ -18,6 +18,7 @@ import '../explore/travel_creation_explore_page.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_detail/travel_detail_screen.dart';
 import '../travel_detail/travel_detail_page.dart';
+import '../travel_detail/public_travel_detail_page.dart';
 import 'travel_creation_data.dart';
 import 'widgets/travel_creation_header.dart';
 import 'pozit_pick_detail_screen.dart';
@@ -30,6 +31,7 @@ class TravelRecommendationResultScreen extends StatelessWidget {
     this.onBrowseOtherCourses,
     this.onRecommendationTap,
     this.travelId,
+    this.recommendationCard,
     this.recommendation,
     this.repository = const TravelRepository(),
   });
@@ -39,6 +41,7 @@ class TravelRecommendationResultScreen extends StatelessWidget {
   final VoidCallback? onBrowseOtherCourses;
   final VoidCallback? onRecommendationTap;
   final int? travelId;
+  final TravelRecommendationCardModel? recommendationCard;
   final TravelRecommendationModel? recommendation;
   final TravelRepository repository;
 
@@ -181,11 +184,15 @@ class TravelRecommendationResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final apiRecommendation = recommendation;
+    final apiRecommendationCard = recommendationCard;
     final apiTravelId = travelId;
-    if (apiRecommendation != null && apiTravelId != null) {
+    if (apiRecommendation != null &&
+        apiRecommendationCard != null &&
+        apiTravelId != null) {
       return _ApiRecommendationResult(
         travelInfo: travelInfo,
         travelId: apiTravelId,
+        recommendationCard: apiRecommendationCard,
         recommendation: apiRecommendation,
         repository: repository,
         onBackTap: onBackTap,
@@ -297,6 +304,7 @@ class _ApiRecommendationResult extends StatefulWidget {
   const _ApiRecommendationResult({
     required this.travelInfo,
     required this.travelId,
+    required this.recommendationCard,
     required this.recommendation,
     required this.repository,
     this.onBackTap,
@@ -305,6 +313,7 @@ class _ApiRecommendationResult extends StatefulWidget {
 
   final TravelInfoResult travelInfo;
   final int travelId;
+  final TravelRecommendationCardModel recommendationCard;
   final TravelRecommendationModel recommendation;
   final TravelRepository repository;
   final VoidCallback? onBackTap;
@@ -344,6 +353,7 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
   }
 
   void _openPreview() {
+    final card = widget.recommendationCard;
     final places = widget.recommendation.days
         .expand((day) => day.places)
         .toList();
@@ -358,13 +368,11 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
       MaterialPageRoute<void>(
         builder: (_) => PozitPickDetailScreen(
           courses: _courses,
-          startDate: widget.travelInfo.dateRange.start,
-          endDate: widget.travelInfo.dateRange.end,
-          destination: widget.travelInfo.destination,
-          title:
-              '${widget.travelInfo.dateRange.start.month}월 추천, '
-              '${widget.travelInfo.destination} 여행은 어때요?',
-          tags: widget.travelInfo.tags.toList(),
+          startDate: card.startDate,
+          endDate: card.endDate,
+          destination: card.destination,
+          title: card.cardTitle.isEmpty ? card.travelTitle : card.cardTitle,
+          tags: card.tags,
           backgroundImage: image,
           onFollowCourseTap: _commit,
         ),
@@ -394,22 +402,26 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
     );
   }
 
+  void _openRelatedTravel(int travelId) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublicTravelDetailPage(travelId: travelId),
+      ),
+    );
+  }
+
+  ImageProvider<Object> _imageProvider(String url) {
+    final uri = Uri.tryParse(url);
+    return uri != null && (uri.scheme == 'http' || uri.scheme == 'https')
+        ? NetworkImage(url)
+        : const AssetImage(AppImages.travelMockup);
+  }
+
   @override
   Widget build(BuildContext context) {
     final range = widget.travelInfo.dateRange;
-    final previewPlaces = widget.recommendation.days
-        .expand((day) => day.places)
-        .toList();
-    final previewImageUrl = previewPlaces.isEmpty
-        ? ''
-        : previewPlaces.first.imageUrl;
-    final previewImageUri = Uri.tryParse(previewImageUrl);
-    final previewImage =
-        previewImageUri != null &&
-            (previewImageUri.scheme == 'http' ||
-                previewImageUri.scheme == 'https')
-        ? NetworkImage(previewImageUrl) as ImageProvider<Object>
-        : const AssetImage(AppImages.travelMockup);
+    final card = widget.recommendationCard;
+    final previewImage = _imageProvider(card.thumbnailImageUrl);
     final dateText =
         '${range.start.month}/${range.start.day} ~ '
         '${range.end.month}/${range.end.day}';
@@ -438,16 +450,38 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
                     const SizedBox(height: 24),
                     AppTravelCard(
                       type: AppTravelCardType.pozitPick,
-                      title:
-                          '${range.start.month}월 추천, '
-                          '${widget.travelInfo.destination} 여행은 어때요?',
-                      location: widget.travelInfo.destination,
-                      dateText: dateText,
-                      tags: widget.travelInfo.tags.toList(),
+                      title: card.cardTitle.isEmpty
+                          ? card.travelTitle
+                          : card.cardTitle,
+                      location: card.destination,
+                      dateText: card.periodText.isEmpty
+                          ? dateText
+                          : card.periodText,
+                      tags: card.tags,
                       author: 'Pozit',
                       backgroundImage: previewImage,
                       onTap: _openPreview,
                     ),
+                    for (final related in card.relatedPublicTravels) ...[
+                      const SizedBox(height: 8),
+                      AppTravelCard(
+                        type: AppTravelCardType.otherTravel,
+                        title: related.title,
+                        location: related.destination,
+                        dateText:
+                            '${related.startDate.month}/${related.startDate.day} ~ '
+                            '${related.endDate.month}/${related.endDate.day}',
+                        tags: related.tags,
+                        author: related.leaderNickname,
+                        participantCount: related.memberCount,
+                        favoriteCount: related.likeCount,
+                        isFavorite: related.isLiked,
+                        backgroundImage: _imageProvider(
+                          related.backgroundImageUrl,
+                        ),
+                        onTap: () => _openRelatedTravel(related.travelId),
+                      ),
+                    ],
                     const SizedBox(height: 10),
                     Align(
                       alignment: Alignment.centerRight,

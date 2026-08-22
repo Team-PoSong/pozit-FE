@@ -1,4 +1,64 @@
+import '../like/liked_travel_model.dart';
 import 'travel_course_model.dart';
+
+class TravelRecommendationCardModel {
+  const TravelRecommendationCardModel({
+    required this.previewId,
+    required this.travelId,
+    required this.badge,
+    required this.cardTitle,
+    required this.travelTitle,
+    required this.destination,
+    required this.startDate,
+    required this.endDate,
+    required this.periodText,
+    required this.thumbnailImageUrl,
+    required this.tags,
+    required this.memberCount,
+    required this.placeCount,
+    required this.relatedPublicTravels,
+  });
+
+  final String previewId;
+  final int travelId;
+  final String badge;
+  final String cardTitle;
+  final String travelTitle;
+  final String destination;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String periodText;
+  final String thumbnailImageUrl;
+  final List<String> tags;
+  final int memberCount;
+  final int placeCount;
+  final List<LikedTravelModel> relatedPublicTravels;
+
+  factory TravelRecommendationCardModel.fromJson(Map<String, dynamic> json) {
+    return TravelRecommendationCardModel(
+      previewId: json['previewId'] as String,
+      travelId: json['travelId'] as int,
+      badge: json['badge'] as String? ?? 'Pozit Pick!',
+      cardTitle: json['cardTitle'] as String? ?? '',
+      travelTitle: json['travelTitle'] as String? ?? '',
+      destination: json['destination'] as String,
+      startDate: DateTime.parse(json['startDate'] as String),
+      endDate: DateTime.parse(json['endDate'] as String),
+      periodText: json['periodText'] as String? ?? '',
+      thumbnailImageUrl: json['thumbnailImageUrl'] as String? ?? '',
+      tags: (json['tags'] as List<dynamic>? ?? const []).cast<String>(),
+      memberCount: json['memberCount'] as int? ?? 1,
+      placeCount: json['placeCount'] as int? ?? 0,
+      relatedPublicTravels:
+          (json['relatedPublicTravels'] as List<dynamic>? ?? const [])
+              .map(
+                (item) =>
+                    LikedTravelModel.fromJson(item as Map<String, dynamic>),
+              )
+              .toList(),
+    );
+  }
+}
 
 class RecommendedPlaceModel {
   const RecommendedPlaceModel({

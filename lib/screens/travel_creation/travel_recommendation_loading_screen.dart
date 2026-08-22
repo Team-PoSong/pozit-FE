@@ -63,6 +63,7 @@ class _TravelRecommendationLoadingScreenState
     });
     try {
       int? travelId;
+      TravelRecommendationCardModel? recommendationCard;
       TravelRecommendationModel? recommendation;
       final callback = widget.loadRecommendations;
       if (callback != null) {
@@ -76,8 +77,12 @@ class _TravelRecommendationLoadingScreenState
           travelId = created.travelId;
           _createdTravelId = travelId;
         }
-        recommendation = await widget.repository.previewRecommendations(
+        recommendationCard = await widget.repository.previewRecommendationCard(
           travelId,
+        );
+        recommendation = await widget.repository.getRecommendationPreview(
+          travelId,
+          recommendationCard.previewId,
         );
       } else {
         await Future<void>.delayed(const Duration(seconds: 2));
@@ -88,6 +93,7 @@ class _TravelRecommendationLoadingScreenState
           builder: (_) => TravelRecommendationResultScreen(
             travelInfo: widget.travelInfo,
             travelId: travelId,
+            recommendationCard: recommendationCard,
             recommendation: recommendation,
             repository: widget.repository,
           ),

@@ -2,6 +2,47 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/data/models/travel/travel_recommendation_model.dart';
 
 void main() {
+  test('추천 카드와 같은 지역 공개 여행 두 개를 파싱한다', () {
+    final card = TravelRecommendationCardModel.fromJson({
+      'previewId': 'preview-1',
+      'travelId': 31,
+      'badge': 'Pozit Pick!',
+      'cardTitle': '8월 추천, 양평은 어때요?',
+      'travelTitle': '양평 여행',
+      'destination': '경기도 양평군',
+      'startDate': '2026-08-25',
+      'endDate': '2026-08-27',
+      'periodText': '8/25 ~ 8/27 · 2박 3일',
+      'thumbnailImageUrl': 'https://example.com/recommendation.jpg',
+      'tags': ['미식', '체험'],
+      'memberCount': 1,
+      'placeCount': 6,
+      'relatedPublicTravels': [
+        for (var id = 1; id <= 2; id++)
+          {
+            'travelId': id,
+            'title': '공개 여행 $id',
+            'destination': '경기도 양평군',
+            'startDate': '2026-08-01',
+            'endDate': '2026-08-02',
+            'status': 'DONE',
+            'isPublic': true,
+            'backgroundImageUrl': '',
+            'completionRate': 100,
+            'tags': ['힐링'],
+            'leaderNickname': '사용자$id',
+            'memberCount': 2,
+            'likeCount': 10 - id,
+            'isLiked': false,
+          },
+      ],
+    });
+
+    expect(card.previewId, 'preview-1');
+    expect(card.relatedPublicTravels, hasLength(2));
+    expect(card.relatedPublicTravels.first.travelId, 1);
+  });
+
   test('추천 미리보기 응답을 화면 코스와 commit 요청으로 변환한다', () {
     final recommendation = TravelRecommendationModel.fromJson({
       'travelId': 31,
