@@ -12,6 +12,7 @@ import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_info_tag.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/models/saved_travel_model.dart';
 import '../../data/mock/mock_travel_courses.dart';
 import '../../data/models/travel/travel_course_model.dart';
@@ -22,17 +23,37 @@ import '../travel_course_map/travel_course_map_screen.dart';
 
 /// Pozit이 추천한 강릉 코스를 확인하고 저장하는 화면입니다.
 class PozitPickDetailScreen extends StatefulWidget {
-  const PozitPickDetailScreen({super.key});
+  const PozitPickDetailScreen({
+    super.key,
+    this.courses,
+    this.startDate,
+    this.endDate,
+    this.destination = '강릉',
+    this.title = '가족과 함께, 강릉은 어때요?',
+    this.tags = const ['기록', '미식'],
+    this.backgroundImage,
+    this.onFollowCourseTap,
+  });
+
+  final List<TravelCourseModel>? courses;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String destination;
+  final String title;
+  final List<String> tags;
+  final ImageProvider<Object>? backgroundImage;
+  final Future<void> Function()? onFollowCourseTap;
 
   @override
   State<PozitPickDetailScreen> createState() => _PozitPickDetailScreenState();
 }
 
 class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
-  static final DateTime _startDate = DateTime(2026, 6, 1);
-  static final DateTime _endDate = DateTime(2026, 6, 4);
-
   int _selectedDay = 1;
+  bool _isSaving = false;
+
+  DateTime get _startDate => widget.startDate ?? DateTime(2026, 6, 1);
+  DateTime get _endDate => widget.endDate ?? DateTime(2026, 6, 4);
 
   int get _dayCount => _endDate.difference(_startDate).inDays + 1;
 
@@ -46,7 +67,9 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
     return daysUntilStart == 0 ? 'D-Day' : 'D-$daysUntilStart';
   }
 
-  List<TravelCourseModel> get _courses => buildMockTravelCourses(
+  List<TravelCourseModel> get _courses => widget.courses ?? _mockCourses;
+
+  List<TravelCourseModel> get _mockCourses => buildMockTravelCourses(
     startDate: _startDate,
     dayCount: _dayCount,
     spots: const [
@@ -77,7 +100,29 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
     ],
   );
 
-  void _handlePrimaryTap() {
+  Future<void> _handlePrimaryTap() async {
+    final apiCallback = widget.onFollowCourseTap;
+    if (apiCallback != null) {
+      if (_isSaving) return;
+      setState(() => _isSaving = true);
+      try {
+        await apiCallback();
+      } catch (error) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              error is ApiException
+                  ? error.message
+                  : '추천 코스를 저장하지 못했어요. 다시 시도해주세요.',
+            ),
+          ),
+        );
+      } finally {
+        if (mounted) setState(() => _isSaving = false);
+      }
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => CourseEditScreen(
@@ -98,16 +143,16 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
             TravelStore.instance.save(
               SavedTravelModel(
                 id: 'pozit-pick-gangneung',
-                title: '6월 추천, 강릉은 어때요?',
-                location: '강원 강릉',
+                title: widget.title,
+                location: widget.destination,
                 dateText: _durationText,
                 author: '나',
                 info: TravelInfoCardModel(
-                  destination: '강릉',
+                  destination: widget.destination,
                   startDate: _startDate,
                   endDate: _endDate,
                   companionCount: 1,
-                  tags: const ['기록', '미식'],
+                  tags: widget.tags,
                   visitedPlaceCount: 0,
                   recordCount: 0,
                   completionRate: 0,
@@ -115,7 +160,7 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
                 courses: savedCourses,
                 dDay: _dDay,
                 backgroundImage: const AssetImage(AppImages.travelMockup),
-                tags: const ['기록', '미식'],
+                tags: widget.tags,
                 participantCount: 1,
               ),
             );
@@ -128,7 +173,10 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final course = _courses[_selectedDay - 1];
+    final courses = _courses;
+    final effectiveDayCount = courses.length;
+    final selectedDay = _selectedDay.clamp(1, effectiveDayCount);
+    final course = courses[selectedDay - 1];
     return Scaffold(
       backgroundColor: AppColors.white,
       body: CustomScrollView(
@@ -136,6 +184,12 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
           SliverToBoxAdapter(
             child: _Hero(
               durationText: '${_startDate.month}월 추천 · $_durationText',
+              destination: widget.destination,
+              title: widget.title,
+              tags: widget.tags,
+              backgroundImage:
+                  widget.backgroundImage ??
+                  const AssetImage(AppImages.travelMockup),
               onBack: () => Navigator.of(context).maybePop(),
             ),
           ),
@@ -151,13 +205,14 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
               child: Column(
                 children: [
                   AppDateDetailSelect(
-                    dayCount: _dayCount,
-                    selectedDay: _selectedDay,
+                    dayCount: effectiveDayCount,
+                    selectedDay: selectedDay,
                     onChanged: (day) => setState(() => _selectedDay = day),
                   ),
                   const SizedBox(height: 10),
                   _CourseCard(
                     course: course,
+                    pageCount: courses.length,
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => TravelCourseMapScreen(
@@ -183,7 +238,11 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
                     style: AppTextStyles.body.copyWith(color: AppColors.gray5),
                   ),
                   const SizedBox(height: 26),
-                  AppButton(text: '이 코스 따라하기', onPressed: _handlePrimaryTap),
+                  AppButton(
+                    text: _isSaving ? '코스를 저장하는 중...' : '이 코스 따라하기',
+                    isEnabled: !_isSaving,
+                    onPressed: _handlePrimaryTap,
+                  ),
                 ],
               ),
             ),
@@ -195,8 +254,19 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
 }
 
 class _Hero extends StatelessWidget {
-  const _Hero({required this.durationText, required this.onBack});
+  const _Hero({
+    required this.durationText,
+    required this.destination,
+    required this.title,
+    required this.tags,
+    required this.backgroundImage,
+    required this.onBack,
+  });
   final String durationText;
+  final String destination;
+  final String title;
+  final List<String> tags;
+  final ImageProvider<Object> backgroundImage;
   final VoidCallback onBack;
 
   @override
@@ -206,7 +276,7 @@ class _Hero extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(AppImages.travelMockup, fit: BoxFit.cover),
+          Image(image: backgroundImage, fit: BoxFit.cover),
           ColoredBox(color: Colors.black.withValues(alpha: 0.3)),
           Positioned(
             left: 14,
@@ -228,14 +298,14 @@ class _Hero extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '가족과 함께, 강릉은 어때요?',
+                  title,
                   style: AppTextStyles.body.copyWith(color: AppColors.gray2),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Text(
-                      '강릉',
+                      destination,
                       style: AppTextStyles.headline.copyWith(
                         color: AppColors.white,
                         letterSpacing: -0.5,
@@ -251,11 +321,10 @@ class _Hero extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Row(
+                Wrap(
+                  spacing: 4,
                   children: [
-                    AppInfoTag(label: '# 기록'),
-                    const SizedBox(width: 4),
-                    AppInfoTag(label: '# 미식'),
+                    for (final tag in tags) AppInfoTag(label: '# $tag'),
                   ],
                 ),
               ],
@@ -268,24 +337,47 @@ class _Hero extends StatelessWidget {
 }
 
 class _CourseCard extends StatelessWidget {
-  const _CourseCard({required this.course, required this.onTap});
+  const _CourseCard({
+    required this.course,
+    required this.pageCount,
+    required this.onTap,
+  });
   final TravelCourseModel course;
+  final int pageCount;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return AppMapCard(
-      title: course.firstSpotName,
-      markers: [
-        for (final spot in course.spots)
-          MapMarker(
-            position: LatLng(spot.latitude, spot.longitude),
-            label: spot.name,
+    return Stack(
+      children: [
+        AppMapCard(
+          title: course.firstSpotName,
+          markers: [
+            for (final spot in course.spots)
+              MapMarker(
+                position: LatLng(spot.latitude, spot.longitude),
+                label: spot.name,
+              ),
+          ],
+          currentPage: course.dayNumber - 1,
+          pageCount: pageCount,
+          onCourseTap: onTap,
+        ),
+        Positioned(
+          top: 0,
+          right: 0,
+          width: 120,
+          height: 48,
+          child: Semantics(
+            button: true,
+            label: '코스 보기',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap,
+            ),
           ),
+        ),
       ],
-      currentPage: course.dayNumber - 1,
-      pageCount: 4,
-      onCourseTap: onTap,
     );
   }
 }

@@ -9,6 +9,7 @@ import '../../data/models/travel/public_travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
 import '../../data/repositories/like/like_repository.dart';
 import '../../data/repositories/travel/public_travel_repository.dart';
+import '../../data/repositories/travel/travel_repository.dart';
 import '../travel_creation/travel_creation_data.dart';
 import '../travel_creation/travel_schedule_screen.dart';
 import 'travel_detail_screen.dart';
@@ -21,18 +22,23 @@ class PublicTravelDetailPage extends StatefulWidget {
   const PublicTravelDetailPage({
     super.key,
     required this.travelId,
+    this.initialIsFavorite,
     this.onFavoriteChanged,
     this.onFollowCourseTap,
     PublicTravelRepository? repository,
     LikeRepository? likeRepository,
+    TravelRepository? travelRepository,
   }) : repository = repository ?? const PublicTravelRepository(),
-       likeRepository = likeRepository ?? const LikeRepository();
+       likeRepository = likeRepository ?? const LikeRepository(),
+       travelRepository = travelRepository ?? const TravelRepository();
 
   final int travelId;
+  final bool? initialIsFavorite;
   final ValueChanged<bool>? onFavoriteChanged;
   final VoidCallback? onFollowCourseTap;
   final PublicTravelRepository repository;
   final LikeRepository likeRepository;
+  final TravelRepository travelRepository;
 
   @override
   State<PublicTravelDetailPage> createState() => _PublicTravelDetailPageState();
@@ -42,6 +48,7 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
   _PublicDetailLoadStatus _status = _PublicDetailLoadStatus.loading;
   PublicTravelDetailModel? _detail;
   String _errorMessage = '';
+  bool _isOpeningDraft = false;
 
   @override
   void initState() {
@@ -124,7 +131,7 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
       isPublic: true,
       isMyTravel: false,
       authorName: detail.leaderNickname,
-      isFavorite: detail.isLiked,
+      isFavorite: widget.initialIsFavorite ?? detail.isLiked,
       courses: detail.courses,
       members: detail.members,
       backgroundImage: _backgroundImage(detail.backgroundImageUrl),
@@ -138,17 +145,42 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
     );
   }
 
-  void _followCourse(PublicTravelDetailModel detail) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => TravelScheduleScreen(
-          destination: detail.destination,
-          creationMethod: TravelCreationMethod.wish,
-          initialCourses: detail.courses,
-          initialTags: detail.tags,
+  Future<void> _followCourse(PublicTravelDetailModel detail) async {
+    if (_isOpeningDraft) return;
+    setState(() => _isOpeningDraft = true);
+    try {
+      final draft = await widget.travelRepository.getLikeBasedTravelDraft(
+        detail.travelId,
+      );
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => TravelScheduleScreen(
+            destination: draft.destination,
+            regionCode: draft.regionCode,
+            creationMethod: TravelCreationMethod.wish,
+            initialCourses: detail.courses,
+            initialTags: detail.tags,
+            initialTagIds: draft.tagIds,
+            sourceTravelId: draft.sourceTravelId,
+            backgroundImageUrl: draft.backgroundImageUrl,
+            useApi: true,
+          ),
         ),
-      ),
-    );
+      );
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('찜 기반 여행 초안을 불러오지 못했습니다.')));
+    } finally {
+      if (mounted) setState(() => _isOpeningDraft = false);
+    }
   }
 
   Widget _buildError() {

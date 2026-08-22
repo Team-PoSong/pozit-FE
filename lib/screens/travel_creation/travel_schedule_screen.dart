@@ -17,21 +17,31 @@ class TravelScheduleScreen extends StatefulWidget {
   const TravelScheduleScreen({
     super.key,
     required this.destination,
+    this.regionCode,
     this.onNext,
     this.onBackTap,
     this.minimumDate,
     this.creationMethod = TravelCreationMethod.create,
     this.initialCourses = const [],
     this.initialTags = const [],
+    this.initialTagIds = const [],
+    this.sourceTravelId,
+    this.backgroundImageUrl,
+    this.useApi = false,
   });
 
   final String destination;
+  final String? regionCode;
   final ValueChanged<DateTimeRange>? onNext;
   final VoidCallback? onBackTap;
   final DateTime? minimumDate;
   final TravelCreationMethod creationMethod;
   final List<TravelCourseModel> initialCourses;
   final List<String> initialTags;
+  final List<int> initialTagIds;
+  final int? sourceTravelId;
+  final String? backgroundImageUrl;
+  final bool useApi;
 
   @override
   State<TravelScheduleScreen> createState() => _TravelScheduleScreenState();
@@ -116,10 +126,15 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
       MaterialPageRoute<void>(
         builder: (_) => TravelInfoScreen(
           destination: widget.destination,
+          regionCode: widget.regionCode,
           dateRange: range,
           creationMethod: widget.creationMethod,
           initialCourses: widget.initialCourses,
           initialTags: widget.initialTags,
+          initialTagIds: widget.initialTagIds,
+          sourceTravelId: widget.sourceTravelId,
+          backgroundImageUrl: widget.backgroundImageUrl,
+          useApi: widget.useApi,
         ),
       ),
     );

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_course_method_select.dart';
+import '../../data/repositories/travel/travel_repository.dart';
 import '../likes/likes_content.dart';
 import '../likes/likes_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
@@ -32,11 +35,24 @@ class TravelCreationScreen extends StatelessWidget {
       return;
     }
 
+    unawaited(_prefetchTags());
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => TravelDestinationScreen(creationMethod: creationMethod),
+        builder: (_) => TravelDestinationScreen(
+          creationMethod: creationMethod,
+          useApi: true,
+        ),
       ),
     );
+  }
+
+  Future<void> _prefetchTags() async {
+    try {
+      await const TravelRepository().getTags();
+    } catch (_) {
+      // 실제 태그 선택 화면에서 오류 UI와 재시도를 제공합니다.
+    }
   }
 
   void _openLikedCourses(BuildContext context) {

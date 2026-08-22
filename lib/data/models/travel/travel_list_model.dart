@@ -1,7 +1,7 @@
 import '../../../core/design_system/app_travel_status.dart';
 
-class LikedTravelModel {
-  const LikedTravelModel({
+class TravelListModel {
+  const TravelListModel({
     required this.travelId,
     required this.title,
     required this.destination,
@@ -15,7 +15,6 @@ class LikedTravelModel {
     required this.leaderNickname,
     required this.memberCount,
     required this.likeCount,
-    required this.isLiked,
   });
 
   final int travelId;
@@ -31,31 +30,33 @@ class LikedTravelModel {
   final String leaderNickname;
   final int memberCount;
   final int likeCount;
-  final bool isLiked;
 
-  factory LikedTravelModel.fromJson(Map<String, dynamic> json) {
-    return LikedTravelModel(
+  factory TravelListModel.fromJson(Map<String, dynamic> json) {
+    return TravelListModel(
       travelId: json['travelId'] as int,
       title: json['title'] as String,
       destination: json['destination'] as String,
       startDate: DateTime.parse(json['startDate'] as String),
       endDate: DateTime.parse(json['endDate'] as String),
       status: _parseStatus(json['status'] as String),
-      isPublic: json['isPublic'] as bool,
+      isPublic: json['isPublic'] as bool? ?? false,
       backgroundImageUrl: json['backgroundImageUrl'] as String? ?? '',
-      completionRate: json['completionRate'] as int,
+      completionRate: json['completionRate'] as int? ?? 0,
       tags: (json['tags'] as List<dynamic>? ?? const []).cast<String>(),
       leaderNickname: json['leaderNickname'] as String? ?? '',
-      memberCount: json['memberCount'] as int,
-      likeCount: json['likeCount'] as int,
-      isLiked: json['isLiked'] as bool,
+      memberCount: json['memberCount'] as int? ?? 1,
+      likeCount: json['likeCount'] as int? ?? 0,
     );
   }
 }
 
-AppTravelStatus _parseStatus(String status) {
-  if (status != 'DONE' && status != 'COMPLETED') {
-    throw FormatException('찜할 수 없는 여행 상태입니다: $status');
-  }
-  return AppTravelStatus.completed;
+AppTravelStatus _parseStatus(String value) {
+  return switch (value.toUpperCase()) {
+    'IN_PROGRESS' ||
+    'INPROGRESS' ||
+    'ONGOING' ||
+    'TRAVELING' => AppTravelStatus.inProgress,
+    'DONE' || 'COMPLETED' || 'FINISHED' => AppTravelStatus.completed,
+    _ => AppTravelStatus.upcoming,
+  };
 }

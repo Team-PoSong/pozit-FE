@@ -138,6 +138,7 @@ class _LikesScreenState extends State<LikesScreen> {
       MaterialPageRoute(
         builder: (_) => PublicTravelDetailPage(
           travelId: travelId,
+          initialIsFavorite: travel.isLiked,
           likeRepository: widget.repository,
           onFavoriteChanged: (isFavorite) => currentFavorite = isFavorite,
           onFollowCourseTap: widget.onFollowCourseTap == null

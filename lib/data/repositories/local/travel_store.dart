@@ -18,4 +18,8 @@ class TravelStore {
       ..insert(0, travel);
     travels.value = List.unmodifiable(current);
   }
+
+  void replaceAll(List<SavedTravelModel> items) {
+    travels.value = List.unmodifiable(items);
+  }
 }

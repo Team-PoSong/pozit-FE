@@ -28,6 +28,7 @@ class ExploreTravelItem {
     required this.endDate,
     required this.favoriteCount,
     this.isFavorite = false,
+    this.backgroundImageUrl = '',
   });
 
   final int id;
@@ -42,6 +43,7 @@ class ExploreTravelItem {
   final DateTime endDate;
   final int favoriteCount;
   final bool isFavorite;
+  final String backgroundImageUrl;
 }
 
 class ExploreContent extends StatefulWidget {
@@ -55,6 +57,8 @@ class ExploreContent extends StatefulWidget {
     this.onDateFilterTap,
     this.onCategoryFilterTap,
     this.onFilterResetTap,
+    this.onTravelTap,
+    this.onFavoriteToggle,
     this.assetPackage,
   });
 
@@ -66,6 +70,8 @@ class ExploreContent extends StatefulWidget {
   final VoidCallback? onDateFilterTap;
   final VoidCallback? onCategoryFilterTap;
   final VoidCallback? onFilterResetTap;
+  final ValueChanged<int>? onTravelTap;
+  final Future<void> Function(int travelId, bool isFavorite)? onFavoriteToggle;
   final String? assetPackage;
 
   @override
@@ -80,6 +86,7 @@ class _ExploreContentState extends State<ExploreContent> {
   DateTimeRange? _selectedDateRange;
   Set<String> _selectedCategories = {};
   late Set<int> _favoriteIds;
+  final Set<int> _pendingFavoriteIds = {};
 
   List<ExploreTravelItem> get _travels => widget.travels;
 
@@ -172,6 +179,26 @@ class _ExploreContentState extends State<ExploreContent> {
       _selectedCategories = {};
     });
     widget.onFilterResetTap?.call();
+  }
+
+  Future<void> _toggleFavorite(ExploreTravelItem travel) async {
+    if (_pendingFavoriteIds.contains(travel.id)) return;
+    final next = !_favoriteIds.contains(travel.id);
+    setState(() => _pendingFavoriteIds.add(travel.id));
+    try {
+      await widget.onFavoriteToggle?.call(travel.id, next);
+      if (!mounted) return;
+      setState(() {
+        next ? _favoriteIds.add(travel.id) : _favoriteIds.remove(travel.id);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('찜 상태를 변경하지 못했습니다.')));
+    } finally {
+      if (mounted) setState(() => _pendingFavoriteIds.remove(travel.id));
+    }
   }
 
   Future<void> _selectRegion() async {
@@ -301,17 +328,16 @@ class _ExploreContentState extends State<ExploreContent> {
                   author: travel.author,
                   participantCount: travel.participantCount,
                   tags: travel.tags,
-                  backgroundImage: const AssetImage(AppImages.travelMockup),
+                  backgroundImage: _backgroundImage(travel.backgroundImageUrl),
                   isFavorite: isFavorite,
                   favoriteCount:
                       travel.favoriteCount +
                       (isFavorite ? 1 : 0) -
                       (travel.isFavorite ? 1 : 0),
-                  onFavoriteTap: () => setState(() {
-                    isFavorite
-                        ? _favoriteIds.remove(travel.id)
-                        : _favoriteIds.add(travel.id);
-                  }),
+                  onTap: () => widget.onTravelTap?.call(travel.id),
+                  onFavoriteTap: _pendingFavoriteIds.contains(travel.id)
+                      ? null
+                      : () => _toggleFavorite(travel),
                 );
               },
             ),
@@ -320,6 +346,14 @@ class _ExploreContentState extends State<ExploreContent> {
       ),
     );
   }
+}
+
+ImageProvider<Object> _backgroundImage(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
+    return NetworkImage(url);
+  }
+  return const AssetImage(AppImages.travelMockup);
 }
 
 final List<ExploreTravelItem> explorePreviewTravels = [

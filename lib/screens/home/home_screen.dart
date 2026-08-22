@@ -12,11 +12,15 @@ import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
 import '../../data/models/saved_travel_model.dart';
+import '../../data/models/travel/travel_info_card_model.dart';
+import '../../data/models/travel/travel_list_model.dart';
 import '../../data/repositories/local/travel_store.dart';
+import '../../data/repositories/travel/travel_repository.dart';
 import '../explore/explore_content.dart';
 import '../travel_creation/travel_creation_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 import '../travel_detail/travel_detail_screen.dart';
+import '../travel_detail/travel_detail_page.dart';
 import '../invite_code/invite_code_screen.dart';
 import '../likes/likes_screen.dart';
 import 'widgets/travel_completion_toggle.dart';
@@ -67,12 +71,14 @@ class _HomeScreenState extends State<HomeScreen> {
   late final PageController _pageController;
   late AppNavigationTab _selectedTab;
   bool _isTravelMenuOpen = false;
+  final TravelRepository _travelRepository = const TravelRepository();
 
   @override
   void initState() {
     super.initState();
     _selectedTab = widget.initialTab;
     _pageController = PageController(initialPage: _selectedTab.index);
+    _loadTravels();
   }
 
   @override
@@ -99,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _handleCreateTravel() {
+  Future<void> _handleCreateTravel() async {
     _toggleTravelMenu();
     final onCreateTravelTap = widget.onCreateTravelTap;
     if (onCreateTravelTap != null) {
@@ -107,8 +113,64 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    Navigator.of(context).push(
+    await Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const TravelCreationScreen()),
+    );
+    if (mounted) await _loadTravels();
+  }
+
+  Future<void> _loadTravels() async {
+    try {
+      final results = await Future.wait([
+        _travelRepository.getTravels(isDone: false),
+        _travelRepository.getTravels(isDone: true),
+      ]);
+      if (!mounted) return;
+      final travels = [...results[0], ...results[1]];
+      TravelStore.instance.replaceAll(travels.map(_toSavedTravel).toList());
+    } catch (_) {
+      // 네트워크 오류 시 현재 화면에 있던 여행 목록은 유지합니다.
+    }
+  }
+
+  SavedTravelModel _toSavedTravel(TravelListModel travel) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final daysUntilStart = travel.startDate.difference(today).inDays;
+    final imageUri = Uri.tryParse(travel.backgroundImageUrl);
+    final hasNetworkImage =
+        imageUri != null &&
+        (imageUri.scheme == 'http' || imageUri.scheme == 'https');
+    return SavedTravelModel(
+      id: 'server-${travel.travelId}',
+      title: travel.title,
+      location: travel.destination,
+      dateText:
+          '${travel.startDate.month}/${travel.startDate.day} ~ '
+          '${travel.endDate.month}/${travel.endDate.day}',
+      author: travel.leaderNickname,
+      info: TravelInfoCardModel(
+        destination: travel.destination,
+        startDate: travel.startDate,
+        endDate: travel.endDate,
+        companionCount: travel.memberCount,
+        tags: travel.tags,
+        visitedPlaceCount: 0,
+        recordCount: 0,
+        completionRate: travel.completionRate / 100,
+      ),
+      courses: const [],
+      status: travel.status,
+      dDay: daysUntilStart < 0
+          ? null
+          : daysUntilStart == 0
+          ? 'D-Day'
+          : 'D-$daysUntilStart',
+      backgroundImage: hasNetworkImage
+          ? NetworkImage(travel.backgroundImageUrl)
+          : null,
+      tags: travel.tags,
+      participantCount: travel.memberCount,
     );
   }
 
@@ -123,8 +185,19 @@ class _HomeScreenState extends State<HomeScreen> {
     ).push(MaterialPageRoute<void>(builder: (_) => const InviteCodeScreen()));
   }
 
-  void _openSavedTravel(SavedTravelModel travel) {
-    Navigator.of(context).push(
+  Future<void> _openSavedTravel(SavedTravelModel travel) async {
+    if (travel.id.startsWith('server-')) {
+      final travelId = int.tryParse(travel.id.substring('server-'.length));
+      if (travelId == null) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => TravelDetailPage(travelId: travelId),
+        ),
+      );
+      if (mounted) await _loadTravels();
+      return;
+    }
+    await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => TravelDetailScreen(
           title: travel.title,
