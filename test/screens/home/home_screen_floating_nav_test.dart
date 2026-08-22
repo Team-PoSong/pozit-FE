@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pozit/core/design_system/app_dimensions.dart';
 import 'package:pozit/core/design_system/app_travel_status.dart';
 import 'package:pozit/core/design_system/widgets/app_navigationbar.dart';
 import 'package:pozit/data/models/saved_travel_model.dart';
@@ -78,8 +79,12 @@ void main() {
     final listView = tester.widget<ListView>(tripList);
     final padding = listView.padding as EdgeInsets?;
 
-    final context = tester.element(tripList);
-    final expectedClearance = AppNavigationBar.clearance(context);
+    // AppNavigationBar.clearance를 다시 호출하면 그 helper가 잘못된 값을
+    // 반환해도 테스트가 통과하므로, 기대값은 helper와 별개로 직접 계산합니다.
+    final expectedClearance =
+        tester.view.padding.bottom / tester.view.devicePixelRatio +
+        AppDimensions.bottomNavigationSpacing +
+        AppNavigationBar.height;
 
     expect(
       padding?.bottom,
