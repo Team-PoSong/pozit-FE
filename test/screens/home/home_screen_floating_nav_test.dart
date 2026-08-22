@@ -125,4 +125,55 @@ void main() {
       reason: '마지막 여행 카드가 플로팅 바텀 네비게이션 바에 가려지면 안 됩니다.',
     );
   });
+
+  testWidgets('미완료/완료 토글과 + 버튼은 목록 레이아웃 공간을 차지하는 형제 위젯이며, 목록과의 사이에 고정 여백이 있다', (
+    tester,
+  ) async {
+    await _pumpHomeScreen(tester);
+
+    final tripList = find.byWidgetPredicate(
+      (widget) => widget is ListView && widget.scrollDirection == Axis.vertical,
+    );
+    final menuButtonFinder = find.bySemanticsLabel('여행 메뉴 열기');
+
+    // 토글/버튼이 목록 레이아웃을 밀어내는 형제 위젯이라면 목록 뷰포트는
+    // 토글/버튼 아래, 즉 화면 상단보다 아래에서 시작합니다.
+    final listViewportTop = tester.getTopLeft(tripList).dy;
+    final menuButtonTop = tester.getTopLeft(menuButtonFinder).dy;
+
+    expect(
+      listViewportTop,
+      greaterThan(menuButtonTop),
+      reason:
+          '토글/버튼이 목록 레이아웃 공간을 차지하는 형제 위젯이라면 목록 뷰포트는 '
+          '토글/버튼보다 아래에서 시작해야 합니다.',
+    );
+
+    final gapBeforeScroll =
+        listViewportTop - tester.getBottomLeft(menuButtonFinder).dy;
+    expect(
+      gapBeforeScroll,
+      greaterThan(0),
+      reason:
+          '목록 첫 카드가 토글/+ 버튼 바로 아래에 붙지 않도록 고정 여백이 있어야 합니다.',
+    );
+
+    // 목록을 스크롤해도 토글/버튼과 목록 사이의 고정 여백은 그대로 유지되어야 합니다
+    // (여백이 스크롤되는 ListView 패딩이 아니라 레이아웃에 고정된 위젯이기 때문입니다).
+    final scrollable = find.descendant(
+      of: tripList,
+      matching: find.byType(Scrollable),
+    );
+    final scrollableState = tester.state<ScrollableState>(scrollable.first);
+
+    scrollableState.position.jumpTo(300);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getTopLeft(tripList).dy,
+      listViewportTop,
+      reason: '목록을 스크롤해도 토글/버튼과 목록 뷰포트 사이의 고정 여백은 그대로 유지되어야 합니다.',
+    );
+  });
 }

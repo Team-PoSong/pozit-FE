@@ -76,6 +76,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const double _travelListTopGap = 20;
+
   final _travelMenuController = OverlayPortalController();
   final _travelMenuButtonKey = GlobalKey();
 
@@ -138,11 +140,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       if (mounted) {
         setState(
-          () => _currentLocation = LatLng(position.latitude, position.longitude),
+          () =>
+              _currentLocation = LatLng(position.latitude, position.longitude),
         );
       }
     } catch (_) {}
@@ -150,24 +155,27 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
 
     _positionSubscription?.cancel();
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 5,
-      ),
-    ).listen(
-      (position) {
-        if (!mounted) return;
-        setState(
-          () =>
-              _currentLocation = LatLng(position.latitude, position.longitude),
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 5,
+          ),
+        ).listen(
+          (position) {
+            if (!mounted) return;
+            setState(
+              () => _currentLocation = LatLng(
+                position.latitude,
+                position.longitude,
+              ),
+            );
+          },
+          onError: (_) {
+            if (!mounted) return;
+            setState(() => _currentLocation = null);
+          },
         );
-      },
-      onError: (_) {
-        if (!mounted) return;
-        setState(() => _currentLocation = null);
-      },
-    );
   }
 
   ActiveCourseSpotModel? get _nearbyActiveSpot =>
@@ -473,6 +481,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
+                      // 토글/버튼이 스크롤에 밀려도 목록 첫 카드가 바로 붙지 않도록
+                      // 고정 여백을 둔다. (스크롤되는 ListView 패딩이 아니라 별도 위젯)
+                      const SizedBox(height: _travelListTopGap),
                       Expanded(
                         child: ValueListenableBuilder<List<SavedTravelModel>>(
                           valueListenable: TravelStore.instance.travels,
@@ -516,7 +527,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             return ListView.separated(
                               padding: EdgeInsets.fromLTRB(
                                 24,
-                                20,
+                                0,
                                 24,
                                 AppNavigationBar.clearance(context),
                               ),
