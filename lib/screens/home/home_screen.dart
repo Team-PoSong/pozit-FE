@@ -23,7 +23,7 @@ import '../../data/models/travel/travel_list_model.dart';
 import '../../data/repositories/local/travel_store.dart';
 import '../../data/repositories/pozing/pozing_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
-import '../explore/explore_content.dart';
+import '../explore/popular_travel_explore_content.dart';
 import '../invite_code/invite_code_screen.dart';
 import '../likes/likes_screen.dart';
 import '../pozing_camera/pozing_camera_screen.dart';
@@ -46,7 +46,7 @@ class HomeScreen extends StatefulWidget {
     this.onJoinWithInviteCodeTap,
     this.onNavigationChanged,
     this.onPosongTap,
-    this.exploreContent = const ExploreContent(),
+    this.exploreContent = const PopularTravelExploreContent(),
     this.initialTab = AppNavigationTab.travel,
     this.isCameraReady = false,
     this.assetPackage,

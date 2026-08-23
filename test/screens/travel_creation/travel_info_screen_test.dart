@@ -5,6 +5,22 @@ import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_info_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_preferences_screen.dart';
+import 'package:pozit/data/models/travel/travel_tag_model.dart';
+import 'package:pozit/data/repositories/travel/travel_repository.dart';
+
+class _TagRepository extends TravelRepository {
+  const _TagRepository();
+
+  @override
+  Future<List<TravelTagModel>> getTags() async => const [
+    TravelTagModel(id: 1, name: '미식'),
+    TravelTagModel(id: 2, name: '문화'),
+    TravelTagModel(id: 3, name: '힐링'),
+    TravelTagModel(id: 4, name: '탐험'),
+    TravelTagModel(id: 5, name: '기록'),
+    TravelTagModel(id: 6, name: '체험'),
+  ];
+}
 
 void main() {
   testWidgets('찜한 코스의 태그는 미리 선택되어 있다', (tester) async {
@@ -16,6 +32,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelInfoScreen(
+          repository: const _TagRepository(),
           destination: '경주',
           dateRange: DateTimeRange(
             start: DateTime(2026, 7, 3),
@@ -26,6 +43,7 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
 
     final selectedLabels = tester
         .widgetList<AppTagChip>(find.byType(AppTagChip))
@@ -44,6 +62,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelInfoScreen(
+          repository: const _TagRepository(),
           destination: '경상북도 경주시',
           dateRange: DateTimeRange(
             start: DateTime(2026, 7, 3),
@@ -82,6 +101,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelInfoScreen(
+          repository: const _TagRepository(),
           destination: '경주',
           dateRange: DateTimeRange(
             start: DateTime(2026, 7, 3),
@@ -110,6 +130,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelInfoScreen(
+          repository: const _TagRepository(),
           destination: '경주',
           dateRange: DateTimeRange(
             start: DateTime(2026, 7, 3),

@@ -12,6 +12,18 @@ import 'travel_creation_data.dart';
 import 'travel_recommendation_result_screen.dart';
 import 'widgets/travel_creation_header.dart';
 
+class TravelRecommendationLoadResult {
+  const TravelRecommendationLoadResult({
+    required this.travelId,
+    required this.card,
+    required this.recommendation,
+  });
+
+  final int travelId;
+  final TravelRecommendationCardModel card;
+  final TravelRecommendationModel recommendation;
+}
+
 class TravelRecommendationLoadingScreen extends StatefulWidget {
   const TravelRecommendationLoadingScreen({
     super.key,
@@ -22,7 +34,7 @@ class TravelRecommendationLoadingScreen extends StatefulWidget {
   });
 
   final TravelInfoResult travelInfo;
-  final Future<void> Function()? loadRecommendations;
+  final Future<TravelRecommendationLoadResult> Function()? loadRecommendations;
   final VoidCallback? onBackTap;
   final TravelRepository repository;
 
@@ -67,7 +79,10 @@ class _TravelRecommendationLoadingScreenState
       TravelRecommendationModel? recommendation;
       final callback = widget.loadRecommendations;
       if (callback != null) {
-        await callback();
+        final result = await callback();
+        travelId = result.travelId;
+        recommendationCard = result.card;
+        recommendation = result.recommendation;
       } else if (_usesApi) {
         travelId = _createdTravelId;
         if (travelId == null) {
@@ -84,17 +99,23 @@ class _TravelRecommendationLoadingScreenState
           travelId,
           recommendationCard.previewId,
         );
-      } else {
-        await Future<void>.delayed(const Duration(seconds: 2));
       }
+      if (travelId == null ||
+          recommendationCard == null ||
+          recommendation == null) {
+        throw const ApiException('추천 코스 응답을 받지 못했어요.');
+      }
+      final resultTravelId = travelId;
+      final resultCard = recommendationCard;
+      final resultRecommendation = recommendation;
       if (!mounted) return;
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
           builder: (_) => TravelRecommendationResultScreen(
             travelInfo: widget.travelInfo,
-            travelId: travelId,
-            recommendationCard: recommendationCard,
-            recommendation: recommendation,
+            travelId: resultTravelId,
+            recommendationCard: resultCard,
+            recommendation: resultRecommendation,
             repository: widget.repository,
           ),
         ),

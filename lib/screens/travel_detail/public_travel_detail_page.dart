@@ -12,6 +12,7 @@ import '../../data/repositories/travel/public_travel_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
 import '../travel_creation/travel_creation_data.dart';
 import '../travel_creation/travel_schedule_screen.dart';
+import '../travel_course_map/travel_course_map_screen.dart';
 import 'travel_detail_screen.dart';
 
 const double _kTopOffset = 4.0;
@@ -140,8 +141,32 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
           ? widget.likeRepository.likeTravel(detail.travelId)
           : widget.likeRepository.unlikeTravel(detail.travelId),
       onFavoriteChanged: widget.onFavoriteChanged,
+      onCourseTap: (day) => _openCourseMap(detail, day),
       onFollowCourseTap:
           widget.onFollowCourseTap ?? () => _followCourse(detail),
+    );
+  }
+
+  Future<void> _openCourseMap(PublicTravelDetailModel detail, int day) async {
+    final courses = await Future.wait(
+      detail.courses.map((course) async {
+        try {
+          return await widget.repository.getCourseDetail(course.courseId);
+        } catch (_) {
+          return course;
+        }
+      }),
+    );
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => TravelCourseMapScreen(
+          courses: courses,
+          status: detail.status,
+          totalDays: detail.endDate.difference(detail.startDate).inDays + 1,
+          initialDay: day,
+        ),
+      ),
     );
   }
 
@@ -164,7 +189,6 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
             initialTagIds: draft.tagIds,
             sourceTravelId: draft.sourceTravelId,
             backgroundImageUrl: draft.backgroundImageUrl,
-            useApi: true,
           ),
         ),
       );

@@ -23,7 +23,6 @@ class TravelDestinationScreen extends StatefulWidget {
     this.onSave,
     this.onBackTap,
     this.creationMethod = TravelCreationMethod.create,
-    this.useApi = false,
     this.repository = const TravelRepository(),
   });
 
@@ -31,7 +30,6 @@ class TravelDestinationScreen extends StatefulWidget {
   final ValueChanged<String>? onSave;
   final VoidCallback? onBackTap;
   final TravelCreationMethod creationMethod;
-  final bool useApi;
   final TravelRepository repository;
 
   @override
@@ -41,8 +39,6 @@ class TravelDestinationScreen extends StatefulWidget {
 
 class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
   static const int _minimumQueryLength = 2;
-  static const List<String> _sampleDestinations = ['경상북도 경주시', '경상남도 경주시'];
-
   final TextEditingController _searchController = TextEditingController();
   List<TravelRegionModel> _results = const [];
   TravelRegionModel? _selectedDestination;
@@ -94,15 +90,10 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
         results = (await widget.onSearch!(
           query,
         )).map((name) => TravelRegionModel(code: name, name: name)).toList();
-      } else if (widget.useApi) {
+      } else {
         results = (await widget.repository.searchRegions(
           keyword: query,
         )).regions;
-      } else {
-        results = _sampleDestinations
-            .where((item) => item.contains(query))
-            .map((name) => TravelRegionModel(code: name, name: name))
-            .toList();
       }
     } catch (_) {
       if (!mounted || requestId != _requestId) return;
@@ -158,7 +149,6 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
           destination: selectedRegion.name,
           regionCode: selectedRegion.code,
           creationMethod: widget.creationMethod,
-          useApi: widget.useApi,
         ),
       ),
     );

@@ -7,6 +7,7 @@ class AuthTokenStorage {
       _uuid = uuid ?? const Uuid();
 
   static const String _accessTokenKey = 'pozit_access_token';
+  static const String _refreshTokenKey = 'pozit_refresh_token';
   static const String _tokenTypeKey = 'pozit_token_type';
   static const String _userIdKey = 'pozit_user_id';
   static const String _deviceIdKey = 'pozit_device_id';
@@ -16,11 +17,14 @@ class AuthTokenStorage {
 
   Future<void> save({
     required String accessToken,
+    String? refreshToken,
     required String tokenType,
     required int userId,
   }) async {
     await Future.wait([
       _storage.write(key: _accessTokenKey, value: accessToken),
+      if (refreshToken != null)
+        _storage.write(key: _refreshTokenKey, value: refreshToken),
       _storage.write(key: _tokenTypeKey, value: tokenType),
       _storage.write(key: _userIdKey, value: userId.toString()),
     ]);
@@ -28,6 +32,20 @@ class AuthTokenStorage {
 
   Future<String?> readAccessToken() {
     return _storage.read(key: _accessTokenKey);
+  }
+
+  Future<String?> readRefreshToken() {
+    return _storage.read(key: _refreshTokenKey);
+  }
+
+  Future<void> saveReissuedTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await Future.wait([
+      _storage.write(key: _accessTokenKey, value: accessToken),
+      _storage.write(key: _refreshTokenKey, value: refreshToken),
+    ]);
   }
 
   Future<int?> readUserId() async {
@@ -48,6 +66,7 @@ class AuthTokenStorage {
   Future<void> clear() async {
     await Future.wait([
       _storage.delete(key: _accessTokenKey),
+      _storage.delete(key: _refreshTokenKey),
       _storage.delete(key: _tokenTypeKey),
       _storage.delete(key: _userIdKey),
     ]);

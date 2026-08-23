@@ -27,7 +27,6 @@ class TravelScheduleScreen extends StatefulWidget {
     this.initialTagIds = const [],
     this.sourceTravelId,
     this.backgroundImageUrl,
-    this.useApi = false,
   });
 
   final String destination;
@@ -41,7 +40,6 @@ class TravelScheduleScreen extends StatefulWidget {
   final List<int> initialTagIds;
   final int? sourceTravelId;
   final String? backgroundImageUrl;
-  final bool useApi;
 
   @override
   State<TravelScheduleScreen> createState() => _TravelScheduleScreenState();
@@ -134,7 +132,6 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
           initialTagIds: widget.initialTagIds,
           sourceTravelId: widget.sourceTravelId,
           backgroundImageUrl: widget.backgroundImageUrl,
-          useApi: widget.useApi,
         ),
       ),
     );

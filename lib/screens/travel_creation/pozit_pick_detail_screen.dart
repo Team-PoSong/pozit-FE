@@ -13,36 +13,31 @@ import '../../core/design_system/widgets/app_info_tag.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/network/api_exception.dart';
-import '../../data/models/saved_travel_model.dart';
-import '../../data/mock/mock_travel_courses.dart';
 import '../../data/models/travel/travel_course_model.dart';
-import '../../data/models/travel/travel_info_card_model.dart';
-import '../../data/repositories/local/travel_store.dart';
-import '../course_edit/course_edit_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
 
 /// Pozit이 추천한 강릉 코스를 확인하고 저장하는 화면입니다.
 class PozitPickDetailScreen extends StatefulWidget {
   const PozitPickDetailScreen({
     super.key,
-    this.courses,
-    this.startDate,
-    this.endDate,
-    this.destination = '강릉',
-    this.title = '가족과 함께, 강릉은 어때요?',
-    this.tags = const ['기록', '미식'],
+    required this.courses,
+    required this.startDate,
+    required this.endDate,
+    required this.destination,
+    required this.title,
+    required this.tags,
     this.backgroundImage,
-    this.onFollowCourseTap,
+    required this.onFollowCourseTap,
   });
 
-  final List<TravelCourseModel>? courses;
-  final DateTime? startDate;
-  final DateTime? endDate;
+  final List<TravelCourseModel> courses;
+  final DateTime startDate;
+  final DateTime endDate;
   final String destination;
   final String title;
   final List<String> tags;
   final ImageProvider<Object>? backgroundImage;
-  final Future<void> Function()? onFollowCourseTap;
+  final Future<void> Function() onFollowCourseTap;
 
   @override
   State<PozitPickDetailScreen> createState() => _PozitPickDetailScreenState();
@@ -52,123 +47,34 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
   int _selectedDay = 1;
   bool _isSaving = false;
 
-  DateTime get _startDate => widget.startDate ?? DateTime(2026, 6, 1);
-  DateTime get _endDate => widget.endDate ?? DateTime(2026, 6, 4);
+  DateTime get _startDate => widget.startDate;
+  DateTime get _endDate => widget.endDate;
 
   int get _dayCount => _endDate.difference(_startDate).inDays + 1;
 
   String get _durationText => '${_dayCount - 1}박 $_dayCount일';
 
-  String? get _dDay {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final daysUntilStart = _startDate.difference(today).inDays;
-    if (daysUntilStart < 0) return null;
-    return daysUntilStart == 0 ? 'D-Day' : 'D-$daysUntilStart';
-  }
-
-  List<TravelCourseModel> get _courses => widget.courses ?? _mockCourses;
-
-  List<TravelCourseModel> get _mockCourses => buildMockTravelCourses(
-    startDate: _startDate,
-    dayCount: _dayCount,
-    spots: const [
-      MockCourseSpot(
-        name: '경포생태습지공원',
-        address: '강원특별자치도 강릉시',
-        latitude: 37.79,
-        longitude: 128.90,
-      ),
-      MockCourseSpot(
-        name: '초당순두부',
-        address: '강원특별자치도 강릉시',
-        latitude: 37.80,
-        longitude: 128.91,
-      ),
-      MockCourseSpot(
-        name: '강문 해변',
-        address: '강원특별자치도 강릉시',
-        latitude: 37.81,
-        longitude: 128.92,
-      ),
-      MockCourseSpot(
-        name: '정동진 해변',
-        address: '강원특별자치도 강릉시',
-        latitude: 37.82,
-        longitude: 128.93,
-      ),
-    ],
-  );
+  List<TravelCourseModel> get _courses => widget.courses;
 
   Future<void> _handlePrimaryTap() async {
-    final apiCallback = widget.onFollowCourseTap;
-    if (apiCallback != null) {
-      if (_isSaving) return;
-      setState(() => _isSaving = true);
-      try {
-        await apiCallback();
-      } catch (error) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              error is ApiException
-                  ? error.message
-                  : '추천 코스를 저장하지 못했어요. 다시 시도해주세요.',
-            ),
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    try {
+      await widget.onFollowCourseTap();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error is ApiException
+                ? error.message
+                : '추천 코스를 저장하지 못했어요. 다시 시도해주세요.',
           ),
-        );
-      } finally {
-        if (mounted) setState(() => _isSaving = false);
-      }
-      return;
-    }
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => CourseEditScreen(
-          courses: _courses,
-          initialDay: _selectedDay,
-          isCreationFlow: true,
-          onSave: (spotsByDay) {
-            final savedCourses = _courses
-                .map(
-                  (course) => TravelCourseModel(
-                    courseId: course.courseId,
-                    dayNumber: course.dayNumber,
-                    date: course.date,
-                    spots: spotsByDay[course.dayNumber] ?? course.spots,
-                  ),
-                )
-                .toList();
-            TravelStore.instance.save(
-              SavedTravelModel(
-                id: 'pozit-pick-gangneung',
-                title: widget.title,
-                location: widget.destination,
-                dateText: _durationText,
-                author: '나',
-                info: TravelInfoCardModel(
-                  destination: widget.destination,
-                  startDate: _startDate,
-                  endDate: _endDate,
-                  companionCount: 1,
-                  tags: widget.tags,
-                  visitedPlaceCount: 0,
-                  recordCount: 0,
-                  completionRate: 0,
-                ),
-                courses: savedCourses,
-                dDay: _dDay,
-                backgroundImage: const AssetImage(AppImages.travelMockup),
-                tags: widget.tags,
-                participantCount: 1,
-              ),
-            );
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          },
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override

@@ -19,7 +19,6 @@ class AppImages {
   static const String pin = '$_basePath/img_pin.png';
   static const String ticket = '$_basePath/img_ticket.png';
   static const String travelMockup = '$_basePath/img_travel_mockup.png';
-  static const String mapMiniMock = '$_basePath/img_map_mini_mock.png';
   static const String apple = '$_basePath/img_apple.png';
   static const String kakao = '$_basePath/img_kakao.png';
 

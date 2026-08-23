@@ -30,7 +30,6 @@ class TravelInfoScreen extends StatefulWidget {
     this.initialTagIds = const [],
     this.sourceTravelId,
     this.backgroundImageUrl,
-    this.useApi = false,
     this.repository = const TravelRepository(),
   });
 
@@ -45,7 +44,6 @@ class TravelInfoScreen extends StatefulWidget {
   final List<int> initialTagIds;
   final int? sourceTravelId;
   final String? backgroundImageUrl;
-  final bool useApi;
   final TravelRepository repository;
 
   @override
@@ -64,7 +62,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
   void initState() {
     super.initState();
     _selectedTags = widget.initialTags.take(_maximumTagCount).toSet();
-    if (widget.useApi) _loadTags();
+    _loadTags();
   }
 
   Future<void> _loadTags() async {
@@ -206,9 +204,9 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
                     else
                       AppTravelTagGrid(
                         selectedTags: _selectedTags,
-                        availableTags: widget.useApi
-                            ? _availableTags.map((tag) => tag.name).toList()
-                            : AppTravelTagGrid.options,
+                        availableTags: _availableTags
+                            .map((tag) => tag.name)
+                            .toList(),
                         onToggle: _handleTagTap,
                       ),
                   ],

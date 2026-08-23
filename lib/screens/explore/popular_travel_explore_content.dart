@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_retry_error_view.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/like/liked_travel_model.dart';
@@ -9,10 +8,9 @@ import '../../data/repositories/like/like_repository.dart';
 import '../../data/repositories/travel/public_travel_repository.dart';
 import '../travel_detail/public_travel_detail_page.dart';
 import 'explore_content.dart';
-import 'explore_screen.dart';
 
-class TravelCreationExplorePage extends StatefulWidget {
-  const TravelCreationExplorePage({
+class PopularTravelExploreContent extends StatefulWidget {
+  const PopularTravelExploreContent({
     super.key,
     this.repository = const PublicTravelRepository(),
     this.likeRepository = const LikeRepository(),
@@ -22,13 +20,14 @@ class TravelCreationExplorePage extends StatefulWidget {
   final LikeRepository likeRepository;
 
   @override
-  State<TravelCreationExplorePage> createState() =>
-      _TravelCreationExplorePageState();
+  State<PopularTravelExploreContent> createState() =>
+      _PopularTravelExploreContentState();
 }
 
-class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
+class _PopularTravelExploreContentState
+    extends State<PopularTravelExploreContent> {
   List<LikedTravelModel>? _travels;
-  Set<int> _likedTravelIds = const <int>{};
+  Set<int> _likedTravelIds = const {};
   Object? _error;
 
   @override
@@ -44,12 +43,10 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
         widget.repository.getPopularTravelCards(),
         widget.likeRepository.getLikes(),
       ]);
-      final travels = results[0];
-      final likedTravels = results[1];
       if (!mounted) return;
       setState(() {
-        _travels = travels;
-        _likedTravelIds = likedTravels.map((travel) => travel.travelId).toSet();
+        _travels = results[0];
+        _likedTravelIds = results[1].map((travel) => travel.travelId).toSet();
       });
     } catch (error) {
       if (!mounted) return;
@@ -62,6 +59,7 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
       MaterialPageRoute<void>(
         builder: (_) => PublicTravelDetailPage(
           travelId: travelId,
+          initialIsFavorite: _likedTravelIds.contains(travelId),
           likeRepository: widget.likeRepository,
         ),
       ),
@@ -89,26 +87,19 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
   Widget build(BuildContext context) {
     final error = _error;
     if (error != null) {
-      return _StatusScaffold(
-        child: AppRetryErrorView(
-          message: error is ApiException
-              ? error.message
-              : '공개 여행 목록을 불러오지 못했습니다.',
-          onRetry: _load,
-          retrySemanticLabel: '공개 여행 목록 다시 불러오기',
-        ),
+      return AppRetryErrorView(
+        message: error is ApiException ? error.message : '인기 여행을 불러오지 못했습니다.',
+        onRetry: _load,
+        retrySemanticLabel: '인기 여행 다시 불러오기',
       );
     }
     final travels = _travels;
     if (travels == null) {
-      return const _StatusScaffold(
-        child: Center(
-          child: CircularProgressIndicator(color: AppColors.purple3),
-        ),
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.purple3),
       );
     }
-    return ExploreScreen(
-      isTravelCreationMode: true,
+    return ExploreContent(
       travels: travels.map(_toExploreItem).toList(),
       onTravelTap: _openTravel,
       onFavoriteToggle: _toggleFavorite,
@@ -132,30 +123,6 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
       favoriteCount: travel.likeCount,
       isFavorite: _likedTravelIds.contains(travel.travelId),
       backgroundImageUrl: travel.backgroundImageUrl,
-    );
-  }
-}
-
-class _StatusScaffold extends StatelessWidget {
-  const _StatusScaffold({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppDetailHeader(
-              title: '탐색',
-              onBack: () => Navigator.of(context).maybePop(),
-            ),
-            Expanded(child: child),
-          ],
-        ),
-      ),
     );
   }
 }

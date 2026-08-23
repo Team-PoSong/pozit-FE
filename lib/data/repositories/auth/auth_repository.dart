@@ -48,6 +48,7 @@ class AuthRepository {
       final token = LoginTokenModel.fromJson(result);
       await _tokenStorage.save(
         accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
         tokenType: token.tokenType,
         userId: token.userId,
       );

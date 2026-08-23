@@ -29,8 +29,12 @@ Future<void> main() async {
     );
   }
 
-  DioClient.instance.attachAccessTokenProvider(
-    () => const AuthTokenStorage().readAccessToken(),
+  const tokenStorage = AuthTokenStorage();
+  DioClient.instance.attachTokenHandlers(
+    accessTokenProvider: tokenStorage.readAccessToken,
+    refreshTokenProvider: tokenStorage.readRefreshToken,
+    onTokensReissued: tokenStorage.saveReissuedTokens,
+    onRefreshFailed: tokenStorage.clear,
   );
 
   runApp(const MyApp());

@@ -7,7 +7,6 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_course_method_select.dart';
 import '../../data/repositories/travel/travel_repository.dart';
-import '../likes/likes_content.dart';
 import '../likes/likes_screen.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'travel_creation_data.dart';
@@ -39,10 +38,7 @@ class TravelCreationScreen extends StatelessWidget {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => TravelDestinationScreen(
-          creationMethod: creationMethod,
-          useApi: true,
-        ),
+        builder: (_) => TravelDestinationScreen(creationMethod: creationMethod),
       ),
     );
   }
@@ -60,11 +56,9 @@ class TravelCreationScreen extends StatelessWidget {
       callback();
       return;
     }
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => LikesScreen(initialTravels: likesPreviewTravels()),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const LikesScreen()));
   }
 
   @override
