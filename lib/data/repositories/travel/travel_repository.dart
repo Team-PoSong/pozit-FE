@@ -110,7 +110,7 @@ class TravelRepository {
         throw const ApiException('추천 코스 응답 형식이 올바르지 않습니다.');
       }
       final recommendation = TravelRecommendationModel.fromJson(result);
-      if (!recommendation.days.any((day) => day.places.isNotEmpty)) {
+      if (!recommendation.days.any((day) => day.validCommitPlaces.isNotEmpty)) {
         throw const ApiException('추천 가능한 장소를 찾지 못했어요. 다시 추천해주세요.');
       }
       return recommendation;

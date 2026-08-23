@@ -23,8 +23,9 @@ class AuthTokenStorage {
   }) async {
     await Future.wait([
       _storage.write(key: _accessTokenKey, value: accessToken),
-      if (refreshToken != null)
-        _storage.write(key: _refreshTokenKey, value: refreshToken),
+      refreshToken == null
+          ? _storage.delete(key: _refreshTokenKey)
+          : _storage.write(key: _refreshTokenKey, value: refreshToken),
       _storage.write(key: _tokenTypeKey, value: tokenType),
       _storage.write(key: _userIdKey, value: userId.toString()),
     ]);

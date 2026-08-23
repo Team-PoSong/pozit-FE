@@ -42,8 +42,12 @@ class DioClient {
             return;
           }
           try {
-            final refreshed = await _refreshAccessToken();
-            if (!refreshed) {
+            final refreshResult = await _refreshAccessToken();
+            if (refreshResult == _TokenRefreshResult.sessionChanged) {
+              handler.next(error);
+              return;
+            }
+            if (refreshResult == _TokenRefreshResult.failed) {
               await _onRefreshFailed?.call();
               handler.next(error);
               return;
@@ -54,7 +58,6 @@ class DioClient {
             request.headers['Authorization'] = 'Bearer $accessToken';
             handler.resolve(await _dio.fetch<dynamic>(request));
           } catch (_) {
-            await _onRefreshFailed?.call();
             handler.next(error);
           }
         },
@@ -101,7 +104,7 @@ class DioClient {
   })?
   _onTokensReissued;
   Future<void> Function()? _onRefreshFailed;
-  Future<bool>? _refreshInFlight;
+  Future<_TokenRefreshResult>? _refreshInFlight;
 
   void attachAccessTokenProvider(Future<String?> Function() provider) {
     _accessTokenProvider = provider;
@@ -131,7 +134,7 @@ class DioClient {
         _onTokensReissued != null;
   }
 
-  Future<bool> _refreshAccessToken() {
+  Future<_TokenRefreshResult> _refreshAccessToken() {
     final existing = _refreshInFlight;
     if (existing != null) return existing;
     final refresh = _performTokenRefresh();
@@ -139,9 +142,11 @@ class DioClient {
     return refresh.whenComplete(() => _refreshInFlight = null);
   }
 
-  Future<bool> _performTokenRefresh() async {
+  Future<_TokenRefreshResult> _performTokenRefresh() async {
     final refreshToken = await _refreshTokenProvider?.call();
-    if (refreshToken == null || refreshToken.isEmpty) return false;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      return _TokenRefreshResult.failed;
+    }
 
     final refreshDio = Dio(
       BaseOptions(
@@ -152,24 +157,35 @@ class DioClient {
         receiveTimeout: const Duration(seconds: 15),
       ),
     );
-    final response = await refreshDio.post<dynamic>(
-      '/api/auth/reissue',
-      data: {'refreshToken': refreshToken},
-    );
-    final body = response.data;
-    if (body is! Map<String, dynamic> || body['isSuccess'] != true) {
-      return false;
+    try {
+      final response = await refreshDio.post<dynamic>(
+        '/api/auth/reissue',
+        data: {'refreshToken': refreshToken},
+      );
+      if (await _refreshTokenProvider?.call() != refreshToken) {
+        return _TokenRefreshResult.sessionChanged;
+      }
+      final body = response.data;
+      if (body is! Map<String, dynamic> || body['isSuccess'] != true) {
+        return _TokenRefreshResult.failed;
+      }
+      final result = body['result'];
+      if (result is! Map<String, dynamic>) return _TokenRefreshResult.failed;
+      final newAccessToken = result['accessToken'] as String?;
+      final newRefreshToken = result['refreshToken'] as String?;
+      if (newAccessToken == null || newRefreshToken == null) {
+        return _TokenRefreshResult.failed;
+      }
+      await _onTokensReissued!(
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      );
+      return _TokenRefreshResult.refreshed;
+    } catch (_) {
+      return await _refreshTokenProvider?.call() == refreshToken
+          ? _TokenRefreshResult.failed
+          : _TokenRefreshResult.sessionChanged;
     }
-    final result = body['result'];
-    if (result is! Map<String, dynamic>) return false;
-    final newAccessToken = result['accessToken'] as String?;
-    final newRefreshToken = result['refreshToken'] as String?;
-    if (newAccessToken == null || newRefreshToken == null) return false;
-    await _onTokensReissued!(
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    );
-    return true;
   }
 
   Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters}) {
@@ -217,3 +233,5 @@ class DioClient {
     return body['result'];
   }
 }
+
+enum _TokenRefreshResult { refreshed, failed, sessionChanged }

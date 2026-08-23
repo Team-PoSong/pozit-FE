@@ -116,4 +116,42 @@ void main() {
     final places = (days.single as Map<String, dynamic>)['places'] as List;
     expect((places.single as Map<String, dynamic>)['contentId'], '126508');
   });
+
+  test('저장할 수 없는 장소는 미리보기와 commit 요청에서 모두 제외한다', () {
+    final recommendation = TravelRecommendationModel.fromJson({
+      'travelId': 31,
+      'dayCount': 1,
+      'days': [
+        {
+          'dayNumber': 1,
+          'date': '2026-08-22',
+          'places': [
+            {
+              'orderIndex': 0,
+              'contentId': '',
+              'title': '저장 불가 장소',
+              'latitude': 0,
+              'longitude': 0,
+            },
+            {
+              'orderIndex': 1,
+              'contentId': '126508',
+              'title': '경복궁',
+              'latitude': 37.579617,
+              'longitude': 126.976889,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(
+      recommendation.toPreviewCourses().single.spots.map((spot) => spot.name),
+      ['경복궁'],
+    );
+    final days = recommendation.toCommitJson()['days'] as List<dynamic>;
+    final places = (days.single as Map<String, dynamic>)['places'] as List;
+    expect(places, hasLength(1));
+    expect((places.single as Map<String, dynamic>)['title'], '경복궁');
+  });
 }

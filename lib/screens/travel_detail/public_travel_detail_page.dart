@@ -50,6 +50,7 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
   PublicTravelDetailModel? _detail;
   String _errorMessage = '';
   bool _isOpeningDraft = false;
+  bool _isOpeningCourseMap = false;
 
   @override
   void initState() {
@@ -113,61 +114,80 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
   }
 
   Widget _buildDetail(PublicTravelDetailModel detail) {
-    return TravelDetailScreen(
-      title: detail.title,
-      info: TravelInfoCardModel(
-        destination: detail.destination,
-        startDate: detail.startDate,
-        endDate: detail.endDate,
-        companionCount: detail.memberCount,
-        tags: detail.tags,
-        visitedPlaceCount: _visitedPlaceCount(detail),
-        recordCount: detail.totalPozingCount,
-        completionRate: (detail.completionRate / 100.0)
-            .clamp(0.0, 1.0)
-            .toDouble(),
-      ),
-      status: detail.status,
-      isLeader: false,
-      isPublic: true,
-      isMyTravel: false,
-      authorName: detail.leaderNickname,
-      isFavorite: widget.initialIsFavorite ?? detail.isLiked,
-      courses: detail.courses,
-      members: detail.members,
-      backgroundImage: _backgroundImage(detail.backgroundImageUrl),
-      onBackTap: () => Navigator.of(context).maybePop(),
-      onFavoriteToggle: (isFavorite) => isFavorite
-          ? widget.likeRepository.likeTravel(detail.travelId)
-          : widget.likeRepository.unlikeTravel(detail.travelId),
-      onFavoriteChanged: widget.onFavoriteChanged,
-      onCourseTap: (day) => _openCourseMap(detail, day),
-      onFollowCourseTap:
-          widget.onFollowCourseTap ?? () => _followCourse(detail),
+    return Stack(
+      children: [
+        TravelDetailScreen(
+          title: detail.title,
+          info: TravelInfoCardModel(
+            destination: detail.destination,
+            startDate: detail.startDate,
+            endDate: detail.endDate,
+            companionCount: detail.memberCount,
+            tags: detail.tags,
+            visitedPlaceCount: _visitedPlaceCount(detail),
+            recordCount: detail.totalPozingCount,
+            completionRate: (detail.completionRate / 100.0)
+                .clamp(0.0, 1.0)
+                .toDouble(),
+          ),
+          status: detail.status,
+          isLeader: false,
+          isPublic: true,
+          isMyTravel: false,
+          authorName: detail.leaderNickname,
+          isFavorite: widget.initialIsFavorite ?? detail.isLiked,
+          courses: detail.courses,
+          members: detail.members,
+          backgroundImage: _backgroundImage(detail.backgroundImageUrl),
+          onBackTap: () => Navigator.of(context).maybePop(),
+          onFavoriteToggle: (isFavorite) => isFavorite
+              ? widget.likeRepository.likeTravel(detail.travelId)
+              : widget.likeRepository.unlikeTravel(detail.travelId),
+          onFavoriteChanged: widget.onFavoriteChanged,
+          onCourseTap: (day) => _openCourseMap(detail, day),
+          onFollowCourseTap:
+              widget.onFollowCourseTap ?? () => _followCourse(detail),
+        ),
+        if (_isOpeningCourseMap)
+          const Positioned.fill(
+            child: ColoredBox(
+              color: Color(0x33000000),
+              child: Center(
+                child: CircularProgressIndicator(color: AppColors.purple3),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
   Future<void> _openCourseMap(PublicTravelDetailModel detail, int day) async {
-    final courses = await Future.wait(
-      detail.courses.map((course) async {
-        try {
-          return await widget.repository.getCourseDetail(course.courseId);
-        } catch (_) {
-          return course;
-        }
-      }),
-    );
-    if (!mounted) return;
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => TravelCourseMapScreen(
-          courses: courses,
-          status: detail.status,
-          totalDays: detail.endDate.difference(detail.startDate).inDays + 1,
-          initialDay: day,
+    if (_isOpeningCourseMap) return;
+    setState(() => _isOpeningCourseMap = true);
+    try {
+      final courses = await Future.wait(
+        detail.courses.map((course) async {
+          try {
+            return await widget.repository.getCourseDetail(course.courseId);
+          } catch (_) {
+            return course;
+          }
+        }),
+      );
+      if (!mounted) return;
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => TravelCourseMapScreen(
+            courses: courses,
+            status: detail.status,
+            totalDays: detail.endDate.difference(detail.startDate).inDays + 1,
+            initialDay: day,
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      if (mounted) setState(() => _isOpeningCourseMap = false);
+    }
   }
 
   Future<void> _followCourse(PublicTravelDetailModel detail) async {

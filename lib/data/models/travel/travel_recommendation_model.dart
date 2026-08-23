@@ -206,7 +206,7 @@ class TravelRecommendationModel {
           dayNumber: index + 1,
           date: sortedDays[index].date,
           spots: [
-            for (final place in sortedDays[index].places)
+            for (final place in sortedDays[index].validCommitPlaces)
               CourseSpotModel(
                 courseSpotId: syntheticSpotId,
                 touristSpotId: syntheticSpotId--,

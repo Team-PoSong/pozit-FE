@@ -97,21 +97,28 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
       }
     } catch (_) {}
 
+    if (!mounted) return;
+
     _positionSubscription =
         Geolocator.getPositionStream(
           locationSettings: const LocationSettings(
             accuracy: LocationAccuracy.high,
             distanceFilter: 5,
           ),
-        ).listen((position) {
-          if (!mounted) return;
-          setState(
-            () => _currentLocation = LatLng(
-              position.latitude,
-              position.longitude,
-            ),
-          );
-        });
+        ).listen(
+          (position) {
+            if (!mounted) return;
+            setState(
+              () => _currentLocation = LatLng(
+                position.latitude,
+                position.longitude,
+              ),
+            );
+          },
+          onError: (_) {
+            if (mounted) setState(() => _currentLocation = null);
+          },
+        );
   }
 
   Future<void> _refreshLocation() async {

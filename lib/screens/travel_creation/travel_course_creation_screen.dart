@@ -11,7 +11,9 @@ import '../../core/design_system/widgets/app_location.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_chatbot_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/models/tourist_spot_model.dart';
+import '../../data/models/travel/travel_create_model.dart';
 import '../../data/repositories/tourist_spot/tourist_spot_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
 import '../location_search/location_search_screen.dart';
@@ -50,6 +52,7 @@ class _TravelCourseCreationScreenState
   int _selectedDay = 1;
   final Map<int, List<TouristSpotModel>> _spotsByDay = {};
   bool _isSaving = false;
+  TravelCreateResult? _createdTravel;
 
   @override
   void initState() {
@@ -151,18 +154,24 @@ class _TravelCourseCreationScreenState
     if (_isSaving) return;
     setState(() => _isSaving = true);
     try {
-      final created =
-          widget.travelInfo.creationMethod == TravelCreationMethod.wish
-          ? await widget.travelRepository.createLikeBasedTravel(
-              TravelCreationPipeline.buildLikeBasedCreateRequest(
-                widget.travelInfo,
-                _spotsByDay,
-              ),
-            )
-          : await widget.travelRepository.createTravel(
+      final isWish =
+          widget.travelInfo.creationMethod == TravelCreationMethod.wish;
+      final TravelCreateResult created;
+      if (isWish) {
+        created = await widget.travelRepository.createLikeBasedTravel(
+          TravelCreationPipeline.buildLikeBasedCreateRequest(
+            widget.travelInfo,
+            _spotsByDay,
+          ),
+        );
+      } else {
+        created =
+            _createdTravel ??
+            await widget.travelRepository.createTravel(
               TravelCreationPipeline.buildCreateRequest(widget.travelInfo),
             );
-      if (widget.travelInfo.creationMethod != TravelCreationMethod.wish) {
+        _createdTravel = created;
+        _validateCreatedCourses(created);
         for (final course in created.courses) {
           final spotIds = (_spotsByDay[course.dayNumber] ?? const [])
               .map((spot) => spot.touristSpotId)
@@ -182,13 +191,29 @@ class _TravelCourseCreationScreenState
         ),
         (route) => route.isFirst,
       );
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('여행을 생성하지 못했어요. 다시 시도해주세요.')),
+        SnackBar(
+          content: Text(
+            error is ApiException ? error.message : '여행을 생성하지 못했어요. 다시 시도해주세요.',
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  void _validateCreatedCourses(TravelCreateResult created) {
+    final expectedDays = {for (var day = 1; day <= _dayCount; day++) day};
+    final actualDays = created.courses
+        .map((course) => course.dayNumber)
+        .toSet();
+    if (created.courses.length != _dayCount ||
+        actualDays.length != _dayCount ||
+        !actualDays.containsAll(expectedDays)) {
+      throw const ApiException('생성된 여행의 코스 정보가 올바르지 않습니다.');
     }
   }
 

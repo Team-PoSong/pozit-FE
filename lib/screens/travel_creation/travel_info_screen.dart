@@ -54,6 +54,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
   static const int _maximumTagCount = 2;
   final TextEditingController _nameController = TextEditingController();
   late final Set<String> _selectedTags;
+  late final Set<int> _selectedTagIds;
   List<TravelTagModel> _availableTags = const [];
   bool _isLoadingTags = false;
   bool _hasTagLoadError = false;
@@ -62,6 +63,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
   void initState() {
     super.initState();
     _selectedTags = widget.initialTags.take(_maximumTagCount).toSet();
+    _selectedTagIds = widget.initialTagIds.take(_maximumTagCount).toSet();
     _loadTags();
   }
 
@@ -73,7 +75,19 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
     try {
       final tags = await widget.repository.getTags();
       if (!mounted) return;
-      setState(() => _availableTags = tags);
+      setState(() {
+        _availableTags = tags;
+        if (_selectedTagIds.isNotEmpty) {
+          _selectedTags
+            ..clear()
+            ..addAll(
+              tags
+                  .where((tag) => _selectedTagIds.contains(tag.id))
+                  .map((tag) => tag.name)
+                  .take(_maximumTagCount),
+            );
+        }
+      });
     } catch (_) {
       if (mounted) setState(() => _hasTagLoadError = true);
     } finally {
@@ -92,10 +106,16 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
 
   void _handleTagTap(String tag) {
     setState(() {
+      final tagId = _availableTags
+          .where((item) => item.name == tag)
+          .map((item) => item.id)
+          .firstOrNull;
       if (_selectedTags.contains(tag)) {
         _selectedTags.remove(tag);
+        if (tagId != null) _selectedTagIds.remove(tagId);
       } else if (_selectedTags.length < _maximumTagCount) {
         _selectedTags.add(tag);
+        if (tagId != null) _selectedTagIds.add(tagId);
       }
     });
   }
@@ -117,12 +137,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
       dateRange: widget.dateRange,
       name: _nameController.text.trim(),
       tags: Set.unmodifiable(_selectedTags),
-      tagIds: _availableTags.isEmpty
-          ? widget.initialTagIds
-          : [
-              for (final tag in _availableTags)
-                if (_selectedTags.contains(tag.name)) tag.id,
-            ],
+      tagIds: _selectedTagIds.toList(),
       creationMethod: widget.creationMethod,
       initialCourses: widget.initialCourses,
       sourceTravelId: widget.sourceTravelId,
