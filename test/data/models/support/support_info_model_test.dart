@@ -20,10 +20,19 @@ void main() {
           {'title': '제1조', 'content': '개인정보는...'},
         ],
       },
+      'locationTerm': {
+        'title': '위치기반서비스 이용약관',
+        'version': '1.0',
+        'effectiveDate': '2026-07-01',
+        'sections': [
+          {'title': '제1조 (목적)', 'content': '위치 기반 서비스...'},
+        ],
+      },
     });
 
     expect(info.serviceTerm.effectiveDate, DateTime(2026, 7, 1));
     expect(info.serviceTerm.sections.single.title, '제1조 (목적)');
     expect(info.privacyPolicy.sections.single.content, '개인정보는...');
+    expect(info.locationTerm.sections.single.title, '제1조 (목적)');
   });
 }

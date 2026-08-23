@@ -24,6 +24,7 @@ import '../../data/repositories/travel/travel_repository.dart';
 import '../explore/explore_content.dart';
 import '../invite_code/invite_code_screen.dart';
 import '../likes/likes_screen.dart';
+import '../notification/notification_screen.dart';
 import '../pozing_camera/pozing_camera_screen.dart';
 import '../travel_creation/travel_creation_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
@@ -275,6 +276,16 @@ class _HomeScreenState extends State<HomeScreen> {
     ).push<void>(MaterialPageRoute(builder: (_) => const LikesScreen()));
   }
 
+  void _handleNotificationTap() {
+    if (widget.onNotificationTap case final callback?) {
+      callback();
+      return;
+    }
+    Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => const NotificationScreen()));
+  }
+
   void _moveToTab(AppNavigationTab tab) {
     if (_selectedTab == tab) return;
 
@@ -326,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             AppMainHeader(
               hasNotification: widget.hasNotification,
-              onNotificationTap: widget.onNotificationTap,
+              onNotificationTap: _handleNotificationTap,
               onWishTap: _handleWishTap,
               onMyPageTap: widget.onMyPageTap,
               assetPackage: widget.assetPackage,

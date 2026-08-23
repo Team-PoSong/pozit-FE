@@ -2,10 +2,12 @@ class SupportInfoModel {
   const SupportInfoModel({
     required this.serviceTerm,
     required this.privacyPolicy,
+    required this.locationTerm,
   });
 
   final TermModel serviceTerm;
   final TermModel privacyPolicy;
+  final TermModel locationTerm;
 
   factory SupportInfoModel.fromJson(Map<String, dynamic> json) {
     return SupportInfoModel(
@@ -14,6 +16,9 @@ class SupportInfoModel {
       ),
       privacyPolicy: TermModel.fromJson(
         json['privacyPolicy'] as Map<String, dynamic>,
+      ),
+      locationTerm: TermModel.fromJson(
+        json['locationTerm'] as Map<String, dynamic>,
       ),
     );
   }
