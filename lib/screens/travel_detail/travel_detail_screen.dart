@@ -11,6 +11,7 @@ import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/location/course_visiting.dart';
+import '../../core/location/location_permission.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/datasources/local/travel_detail_guide_storage.dart';
 import '../../data/models/travel/travel_course_model.dart';
@@ -177,16 +178,6 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     setState(() => _showGuide = true);
   }
 
-  Future<bool> _ensureLocationPermission() async {
-    if (!await Geolocator.isLocationServiceEnabled()) return false;
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    return permission == LocationPermission.always ||
-        permission == LocationPermission.whileInUse;
-  }
-
   bool get _shouldTrackLocation =>
       mounted &&
       widget.isMyTravel &&
@@ -194,7 +185,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
 
   Future<void> _startLocationTracking() async {
     if (!_shouldTrackLocation) return;
-    final hasPermission = await _ensureLocationPermission();
+    final hasPermission = await ensureLocationPermission();
     if (!hasPermission || !_shouldTrackLocation) return;
 
     try {

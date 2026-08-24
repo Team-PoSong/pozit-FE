@@ -9,6 +9,7 @@ import 'explore_content.dart';
 
 const double _detailHeaderToContentGap = 20.0;
 const double _detailHeaderTopOffset = 4.0;
+const double _travelCreationBottomGap = 20.0;
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({
@@ -118,6 +119,7 @@ class ExploreScreen extends StatelessWidget {
       onDateFilterTap: onDateFilterTap,
       onCategoryFilterTap: onCategoryFilterTap,
       onFilterResetTap: onFilterResetTap,
+      extraBottomGap: isTravelCreationMode ? _travelCreationBottomGap : 0,
       assetPackage: assetPackage,
     );
   }

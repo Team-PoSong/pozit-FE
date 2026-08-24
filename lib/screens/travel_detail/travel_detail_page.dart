@@ -6,6 +6,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_travel_status.dart';
 import '../../core/location/course_visiting.dart';
+import '../../core/location/location_permission.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/travel/course_focus.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
@@ -163,15 +164,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
 
   Future<LatLng?> _tryGetCurrentLocation() async {
     try {
-      if (!await Geolocator.isLocationServiceEnabled()) return null;
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission != LocationPermission.always &&
-          permission != LocationPermission.whileInUse) {
-        return null;
-      }
+      if (!await ensureLocationPermission()) return null;
 
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),

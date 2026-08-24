@@ -33,6 +33,7 @@ class _PozingCameraScreenState extends State<PozingCameraScreen> {
 
   _CaptureStatus _status = _CaptureStatus.capturing;
   String _errorMessage = '';
+  bool _isCapturing = false;
 
   @override
   void initState() {
@@ -41,6 +42,9 @@ class _PozingCameraScreenState extends State<PozingCameraScreen> {
   }
 
   Future<void> _capture() async {
+    if (_isCapturing) return;
+    _isCapturing = true;
+
     if (mounted) {
       setState(() {
         _status = _CaptureStatus.capturing;
@@ -56,6 +60,7 @@ class _PozingCameraScreenState extends State<PozingCameraScreen> {
         maxDuration: _kMaxRecordingDuration,
       );
     } catch (_) {
+      _isCapturing = false;
       if (!mounted) return;
       setState(() {
         _status = _CaptureStatus.error;
@@ -63,6 +68,7 @@ class _PozingCameraScreenState extends State<PozingCameraScreen> {
       });
       return;
     }
+    _isCapturing = false;
 
     if (!mounted) return;
 

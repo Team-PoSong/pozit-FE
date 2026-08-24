@@ -16,6 +16,7 @@ import '../../core/design_system/widgets/app_make_travel.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
 import '../../core/location/course_visiting.dart';
+import '../../core/location/location_permission.dart';
 import '../../data/models/saved_travel_model.dart';
 import '../../data/models/travel/active_course_spot_model.dart';
 import '../../data/repositories/local/travel_store.dart';
@@ -89,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<ActiveCourseSpotModel> _activeSpots = const [];
   LatLng? _currentLocation;
   StreamSubscription<Position>? _positionSubscription;
+  bool _isOpeningCamera = false;
 
   @override
   void initState() {
@@ -141,18 +143,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<bool> _ensureLocationPermission() async {
-    if (!await Geolocator.isLocationServiceEnabled()) return false;
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    return permission == LocationPermission.always ||
-        permission == LocationPermission.whileInUse;
-  }
-
   Future<void> _startLocationTracking() async {
-    final hasPermission = await _ensureLocationPermission();
+    final hasPermission = await ensureLocationPermission();
     if (!hasPermission || !mounted) return;
 
     try {
@@ -208,14 +200,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openPozingCameraScreen(ActiveCourseSpotModel spot) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => PozingCameraScreen(
-          courseSpotId: spot.courseSpotId,
-          repository: widget.pozingRepository,
+    if (_isOpeningCamera) return;
+    _isOpeningCamera = true;
+    try {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => PozingCameraScreen(
+            courseSpotId: spot.courseSpotId,
+            repository: widget.pozingRepository,
+          ),
         ),
-      ),
-    );
+      );
+    } finally {
+      _isOpeningCamera = false;
+    }
   }
 
   void _toggleTravelMenu() {

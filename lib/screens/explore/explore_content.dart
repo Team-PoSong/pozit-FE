@@ -56,6 +56,7 @@ class ExploreContent extends StatefulWidget {
     this.onDateFilterTap,
     this.onCategoryFilterTap,
     this.onFilterResetTap,
+    this.extraBottomGap = 0,
     this.assetPackage,
   });
 
@@ -67,6 +68,7 @@ class ExploreContent extends StatefulWidget {
   final VoidCallback? onDateFilterTap;
   final VoidCallback? onCategoryFilterTap;
   final VoidCallback? onFilterResetTap;
+  final double extraBottomGap;
   final String? assetPackage;
 
   @override
@@ -288,7 +290,10 @@ class _ExploreContentState extends State<ExploreContent> {
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.only(
-                bottom: AppNavigationBar.clearance(context),
+                bottom: AppNavigationBar.clearance(
+                  context,
+                  extraGap: widget.extraBottomGap,
+                ),
               ),
               itemCount: visibleTravels.length,
               separatorBuilder: (_, _) =>
