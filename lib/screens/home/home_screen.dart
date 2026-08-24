@@ -24,6 +24,7 @@ import '../../data/repositories/travel/travel_repository.dart';
 import '../explore/explore_content.dart';
 import '../invite_code/invite_code_screen.dart';
 import '../likes/likes_screen.dart';
+import '../notification/notification_screen.dart';
 import '../pozing_camera/pozing_camera_screen.dart';
 import '../travel_creation/travel_creation_screen.dart';
 import '../travel_course_map/travel_course_map_screen.dart';
@@ -74,6 +75,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   static const double _travelListTopGap = 20;
+  static const int _activeSpotsMaxRetryCount = 2;
+  static const Duration _activeSpotsRetryDelay = Duration(milliseconds: 500);
 
   final _travelMenuController = OverlayPortalController();
   final _travelMenuButtonKey = GlobalKey();
@@ -111,12 +114,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadActiveSpots() async {
-    try {
-      final spots = await widget.travelRepository.getActiveCourseSpots();
-      if (!mounted) return;
-      setState(() => _activeSpots = spots);
-      if (spots.isNotEmpty) _startLocationTracking();
-    } catch (_) {}
+    for (var attempt = 0; attempt <= _activeSpotsMaxRetryCount; attempt++) {
+      try {
+        final spots = await widget.travelRepository.getActiveCourseSpots();
+        if (!mounted) return;
+        setState(() => _activeSpots = spots);
+        if (spots.isNotEmpty) unawaited(_startLocationTracking());
+        return;
+      } catch (error, stackTrace) {
+        if (attempt >= _activeSpotsMaxRetryCount) {
+          FlutterError.reportError(
+            FlutterErrorDetails(
+              exception: error,
+              stack: stackTrace,
+              library: 'HomeScreen',
+              context: ErrorDescription('진행 중인 코스 정보를 불러오는 중'),
+            ),
+          );
+          return;
+        }
+        await Future<void>.delayed(
+          _activeSpotsRetryDelay * (attempt + 1),
+        );
+        if (!mounted) return;
+      }
+    }
   }
 
   Future<bool> _ensureLocationPermission() async {
@@ -275,6 +297,16 @@ class _HomeScreenState extends State<HomeScreen> {
     ).push<void>(MaterialPageRoute(builder: (_) => const LikesScreen()));
   }
 
+  void _handleNotificationTap() {
+    if (widget.onNotificationTap case final callback?) {
+      callback();
+      return;
+    }
+    Navigator.of(
+      context,
+    ).push<void>(MaterialPageRoute(builder: (_) => const NotificationScreen()));
+  }
+
   void _moveToTab(AppNavigationTab tab) {
     if (_selectedTab == tab) return;
 
@@ -326,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             AppMainHeader(
               hasNotification: widget.hasNotification,
-              onNotificationTap: widget.onNotificationTap,
+              onNotificationTap: _handleNotificationTap,
               onWishTap: _handleWishTap,
               onMyPageTap: widget.onMyPageTap,
               assetPackage: widget.assetPackage,

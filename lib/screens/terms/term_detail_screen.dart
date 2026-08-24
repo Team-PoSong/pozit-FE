@@ -36,7 +36,7 @@ class TermDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Pozit ${term.title}',
+                        term.title,
                         style: AppTextStyles.headline.copyWith(
                           color: AppColors.text,
                           fontSize: 22,
