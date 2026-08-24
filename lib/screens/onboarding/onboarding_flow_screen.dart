@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
+import '../../core/design_system/app_colors.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/support/support_info_model.dart';
 import '../../data/repositories/support/support_repository.dart';
@@ -46,7 +47,7 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
 
   Future<void> _openTerm(_OnboardingTerm type) async {
     if (_isOpeningTerm) return;
-    _isOpeningTerm = true;
+    setState(() => _isOpeningTerm = true);
 
     try {
       final info = _supportInfo ?? await _supportRepository.getInfo();
@@ -58,6 +59,9 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
         _OnboardingTerm.privacy => info.privacyPolicy,
         _OnboardingTerm.location => info.locationTerm,
       };
+      if (term == null) {
+        throw const ApiException('위치기반서비스 이용약관을 찾을 수 없습니다.');
+      }
       await Navigator.of(context).push<void>(
         MaterialPageRoute(builder: (_) => TermDetailScreen(term: term)),
       );
@@ -70,27 +74,41 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
     } finally {
-      _isOpeningTerm = false;
+      if (mounted) setState(() => _isOpeningTerm = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 220),
-      child: switch (_step) {
-        _OnboardingStep.nickname => NicknameScreen(
-          key: const ValueKey('nickname-step'),
-          onNext: _showTermsAgreement,
+    return Stack(
+      children: [
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          child: switch (_step) {
+            _OnboardingStep.nickname => NicknameScreen(
+              key: const ValueKey('nickname-step'),
+              onNext: _showTermsAgreement,
+            ),
+            _OnboardingStep.terms => TermsAgreementScreen(
+              key: const ValueKey('terms-step'),
+              onNext: _completeOnboarding,
+              onServiceTermsTap: () => _openTerm(_OnboardingTerm.service),
+              onPrivacyTermsTap: () => _openTerm(_OnboardingTerm.privacy),
+              onLocationTermsTap: () => _openTerm(_OnboardingTerm.location),
+            ),
+          },
         ),
-        _OnboardingStep.terms => TermsAgreementScreen(
-          key: const ValueKey('terms-step'),
-          onNext: _completeOnboarding,
-          onServiceTermsTap: () => _openTerm(_OnboardingTerm.service),
-          onPrivacyTermsTap: () => _openTerm(_OnboardingTerm.privacy),
-          onLocationTermsTap: () => _openTerm(_OnboardingTerm.location),
-        ),
-      },
+        if (_isOpeningTerm) ...[
+          const ModalBarrier(
+            dismissible: false,
+            color: Colors.transparent,
+            semanticsLabel: '약관 불러오는 중',
+          ),
+          const Center(
+            child: CircularProgressIndicator(color: AppColors.purple3),
+          ),
+        ],
+      ],
     );
   }
 }

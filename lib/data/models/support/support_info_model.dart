@@ -7,7 +7,7 @@ class SupportInfoModel {
 
   final TermModel serviceTerm;
   final TermModel privacyPolicy;
-  final TermModel locationTerm;
+  final TermModel? locationTerm;
 
   factory SupportInfoModel.fromJson(Map<String, dynamic> json) {
     return SupportInfoModel(
@@ -17,9 +17,11 @@ class SupportInfoModel {
       privacyPolicy: TermModel.fromJson(
         json['privacyPolicy'] as Map<String, dynamic>,
       ),
-      locationTerm: TermModel.fromJson(
-        json['locationTerm'] as Map<String, dynamic>,
-      ),
+      locationTerm: switch (json['locationTerm']) {
+        final Map<String, dynamic> locationTerm =>
+          TermModel.fromJson(locationTerm),
+        _ => null,
+      },
     );
   }
 }
