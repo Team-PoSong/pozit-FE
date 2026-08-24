@@ -68,10 +68,6 @@ class ExploreContent extends StatefulWidget {
   final VoidCallback? onDateFilterTap;
   final VoidCallback? onCategoryFilterTap;
   final VoidCallback? onFilterResetTap;
-
-  // bottomNavigationBar가 없는 화면(예: 여행 생성 흐름의 탐색 화면)에서는
-  // AppNavigationBar.clearance()가 0을 반환하므로, 그 경우 이 값으로 하단
-  // 여백을 보정한다.
   final double extraBottomGap;
   final String? assetPackage;
 
