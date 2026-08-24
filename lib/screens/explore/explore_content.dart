@@ -56,6 +56,7 @@ class ExploreContent extends StatefulWidget {
     this.onDateFilterTap,
     this.onCategoryFilterTap,
     this.onFilterResetTap,
+    this.extraBottomGap = 0,
     this.assetPackage,
   });
 
@@ -67,6 +68,11 @@ class ExploreContent extends StatefulWidget {
   final VoidCallback? onDateFilterTap;
   final VoidCallback? onCategoryFilterTap;
   final VoidCallback? onFilterResetTap;
+
+  // bottomNavigationBar가 없는 화면(예: 여행 생성 흐름의 탐색 화면)에서는
+  // AppNavigationBar.clearance()가 0을 반환하므로, 그 경우 이 값으로 하단
+  // 여백을 보정한다.
+  final double extraBottomGap;
   final String? assetPackage;
 
   @override
@@ -288,7 +294,10 @@ class _ExploreContentState extends State<ExploreContent> {
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.only(
-                bottom: AppNavigationBar.clearance(context),
+                bottom: AppNavigationBar.clearance(
+                  context,
+                  extraGap: widget.extraBottomGap,
+                ),
               ),
               itemCount: visibleTravels.length,
               separatorBuilder: (_, _) =>
