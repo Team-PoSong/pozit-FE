@@ -11,6 +11,7 @@ import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
 import '../../core/location/course_visiting.dart';
+import '../../core/location/location_permission.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import '../travel_detail/widgets/travel_status.dart';
@@ -69,18 +70,8 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
     super.dispose();
   }
 
-  Future<bool> _ensureLocationPermission() async {
-    if (!await Geolocator.isLocationServiceEnabled()) return false;
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    return permission == LocationPermission.always ||
-        permission == LocationPermission.whileInUse;
-  }
-
   Future<void> _startLocationTracking() async {
-    final hasPermission = await _ensureLocationPermission();
+    final hasPermission = await ensureLocationPermission();
     if (!hasPermission || !mounted) return;
 
     try {
@@ -122,7 +113,7 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
   }
 
   Future<void> _refreshLocation() async {
-    final hasPermission = await _ensureLocationPermission();
+    final hasPermission = await ensureLocationPermission();
     if (!hasPermission || !mounted) return;
 
     try {

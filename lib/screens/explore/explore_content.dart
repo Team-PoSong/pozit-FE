@@ -60,6 +60,7 @@ class ExploreContent extends StatefulWidget {
     this.onFilterResetTap,
     this.onTravelTap,
     this.onFavoriteToggle,
+    this.extraBottomGap = 0,
     this.assetPackage,
   });
 
@@ -73,6 +74,7 @@ class ExploreContent extends StatefulWidget {
   final VoidCallback? onFilterResetTap;
   final ValueChanged<int>? onTravelTap;
   final Future<void> Function(int travelId, bool isFavorite)? onFavoriteToggle;
+  final double extraBottomGap;
   final String? assetPackage;
 
   @override
@@ -315,7 +317,10 @@ class _ExploreContentState extends State<ExploreContent> {
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.only(
-                bottom: AppNavigationBar.clearance(context),
+                bottom: AppNavigationBar.clearance(
+                  context,
+                  extraGap: widget.extraBottomGap,
+                ),
               ),
               itemCount: visibleTravels.length,
               separatorBuilder: (_, _) =>

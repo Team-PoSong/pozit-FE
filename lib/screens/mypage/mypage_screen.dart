@@ -307,4 +307,11 @@ const _previewSupportInfo = SupportInfoModel(
       TermSectionModel(title: '1. 수집하는 개인정보', content: '개인정보처리방침 본문입니다.'),
     ],
   ),
+  locationTerm: TermModel(
+    title: '위치기반서비스 이용약관',
+    version: '1.0',
+    sections: [
+      TermSectionModel(title: '제1조 (목적)', content: '위치기반서비스 이용약관 본문입니다.'),
+    ],
+  ),
 );
