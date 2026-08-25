@@ -53,6 +53,7 @@ class _TravelCourseCreationScreenState
   final Map<int, List<TouristSpotModel>> _spotsByDay = {};
   bool _isSaving = false;
   TravelCreateResult? _createdTravel;
+  TravelCreateResult? _createdWishTravel;
 
   @override
   void initState() {
@@ -158,31 +159,33 @@ class _TravelCourseCreationScreenState
           widget.travelInfo.creationMethod == TravelCreationMethod.wish;
       final TravelCreateResult created;
       if (isWish) {
-        created = await widget.travelRepository.createLikeBasedTravel(
-          TravelCreationPipeline.buildLikeBasedCreateRequest(
-            widget.travelInfo,
-            _spotsByDay,
-          ),
-        );
+        created =
+            _createdWishTravel ??
+            await widget.travelRepository.createLikeBasedTravel(
+              TravelCreationPipeline.buildLikeBasedCreateRequest(
+                widget.travelInfo,
+                _spotsByDay,
+              ),
+            );
+        _createdWishTravel = created;
       } else {
         created =
             _createdTravel ??
             await widget.travelRepository.createTravel(
               TravelCreationPipeline.buildCreateRequest(widget.travelInfo),
             );
-        _createdTravel = created;
         _validateCreatedCourses(created);
-        for (final course in created.courses) {
-          final spotIds = (_spotsByDay[course.dayNumber] ?? const [])
-              .map((spot) => spot.touristSpotId)
-              .toList();
-          if (spotIds.isNotEmpty) {
-            await widget.travelRepository.updateCourseSpots(
-              course.courseId,
-              spotIds,
-            );
-          }
-        }
+        _createdTravel = created;
+        await Future.wait([
+          for (final course in created.courses)
+            if ((_spotsByDay[course.dayNumber] ?? const []).isNotEmpty)
+              widget.travelRepository.updateCourseSpots(
+                course.courseId,
+                (_spotsByDay[course.dayNumber] ?? const [])
+                    .map((spot) => spot.touristSpotId)
+                    .toList(),
+              ),
+        ]);
       }
       if (!mounted) return;
       await Navigator.of(context).pushAndRemoveUntil(

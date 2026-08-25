@@ -3,6 +3,7 @@ import '../../../core/network/dio_client.dart';
 import '../../datasources/auth/auth_token_storage.dart';
 import '../../models/auth/apple_login_request.dart';
 import '../../models/auth/login_token_model.dart';
+import '../travel/travel_repository.dart';
 
 class AuthRepository {
   const AuthRepository({AuthTokenStorage? tokenStorage})
@@ -15,6 +16,7 @@ class AuthRepository {
       await DioClient.instance.post('/api/auth/logout');
     } catch (_) {}
     await _tokenStorage.clear();
+    TravelRepository.clearTagCache();
   }
 
   Future<LoginTokenModel> loginWithApple(AppleLoginRequest request) async {
@@ -52,6 +54,7 @@ class AuthRepository {
         tokenType: token.tokenType,
         userId: token.userId,
       );
+      TravelRepository.clearTagCache();
       return token;
     } on ApiException {
       rethrow;

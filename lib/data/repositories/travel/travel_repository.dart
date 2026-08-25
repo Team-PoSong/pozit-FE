@@ -110,7 +110,8 @@ class TravelRepository {
         throw const ApiException('추천 코스 응답 형식이 올바르지 않습니다.');
       }
       final recommendation = TravelRecommendationModel.fromJson(result);
-      if (!recommendation.days.any((day) => day.validCommitPlaces.isNotEmpty)) {
+      if (recommendation.days.isEmpty ||
+          recommendation.days.any((day) => day.validCommitPlaces.isEmpty)) {
         throw const ApiException('추천 가능한 장소를 찾지 못했어요. 다시 추천해주세요.');
       }
       return recommendation;
@@ -171,7 +172,11 @@ class TravelRepository {
       if (result is! Map<String, dynamic>) {
         throw const ApiException('찜 기반 여행 생성 응답 형식이 올바르지 않습니다.');
       }
-      return TravelCreateResult.fromJson(result);
+      final travelId = result['travelId'];
+      if (travelId is! int) {
+        throw const ApiException('찜 기반 여행 ID 응답 형식이 올바르지 않습니다.');
+      }
+      return TravelCreateResult(travelId: travelId, courses: const []);
     } on ApiException {
       rethrow;
     } catch (_) {
@@ -380,6 +385,10 @@ class TravelRepository {
       if (identical(_tagRequest, request)) _tagRequest = null;
       rethrow;
     }
+  }
+
+  static void clearTagCache() {
+    _tagRequest = null;
   }
 
   Future<List<TravelTagModel>> _loadTags() async {

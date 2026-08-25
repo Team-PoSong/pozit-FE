@@ -180,23 +180,25 @@ class TravelRecommendationModel {
     );
   }
 
+  List<RecommendedDayModel> get _validSortedDays =>
+      days.where((day) => day.validCommitPlaces.isNotEmpty).toList()
+        ..sort((left, right) => left.dayNumber.compareTo(right.dayNumber));
+
   Map<String, dynamic> toCommitJson() => {
     'days': [
-      for (final day in days)
-        if (day.validCommitPlaces.isNotEmpty)
-          {
-            'dayNumber': day.dayNumber,
-            'places': day.validCommitPlaces
-                .map((place) => place.toCommitJson())
-                .toList(),
-          },
+      for (var index = 0; index < _validSortedDays.length; index++)
+        {
+          'dayNumber': index + 1,
+          'places': _validSortedDays[index].validCommitPlaces
+              .map((place) => place.toCommitJson())
+              .toList(),
+        },
     ],
   };
 
   List<TravelCourseModel> toPreviewCourses() {
     var syntheticSpotId = -1;
-    final sortedDays = [...days]
-      ..sort((left, right) => left.dayNumber.compareTo(right.dayNumber));
+    final sortedDays = _validSortedDays;
     return [
       for (var index = 0; index < sortedDays.length; index++)
         TravelCourseModel(

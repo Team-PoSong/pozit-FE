@@ -154,4 +154,30 @@ void main() {
     expect(places, hasLength(1));
     expect((places.single as Map<String, dynamic>)['title'], '경복궁');
   });
+
+  test('빈 일차를 제외한 미리보기와 commit 일차 번호를 동일하게 재정렬한다', () {
+    final recommendation = TravelRecommendationModel.fromJson({
+      'travelId': 31,
+      'dayCount': 2,
+      'days': [
+        {'dayNumber': 1, 'date': '2026-08-22', 'places': <dynamic>[]},
+        {
+          'dayNumber': 2,
+          'date': '2026-08-23',
+          'places': [
+            {
+              'contentId': '126508',
+              'title': '경복궁',
+              'latitude': 37.57,
+              'longitude': 126.97,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(recommendation.toPreviewCourses().single.dayNumber, 1);
+    final days = recommendation.toCommitJson()['days'] as List<dynamic>;
+    expect((days.single as Map<String, dynamic>)['dayNumber'], 1);
+  });
 }

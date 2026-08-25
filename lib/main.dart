@@ -6,6 +6,7 @@ import 'package:pozit/core/config/app_config.dart';
 import 'package:pozit/core/design_system/app_colors.dart';
 import 'package:pozit/core/network/dio_client.dart';
 import 'package:pozit/data/datasources/auth/auth_token_storage.dart';
+import 'package:pozit/data/repositories/travel/travel_repository.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
 
 Future<void> main() async {
@@ -34,7 +35,10 @@ Future<void> main() async {
     accessTokenProvider: tokenStorage.readAccessToken,
     refreshTokenProvider: tokenStorage.readRefreshToken,
     onTokensReissued: tokenStorage.saveReissuedTokens,
-    onRefreshFailed: tokenStorage.clear,
+    onRefreshFailed: () async {
+      await tokenStorage.clear();
+      TravelRepository.clearTagCache();
+    },
   );
 
   runApp(const MyApp());

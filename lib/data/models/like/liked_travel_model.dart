@@ -54,8 +54,12 @@ class LikedTravelModel {
 }
 
 AppTravelStatus _parseStatus(String status) {
-  if (status != 'DONE' && status != 'COMPLETED') {
-    throw FormatException('찜할 수 없는 여행 상태입니다: $status');
-  }
-  return AppTravelStatus.completed;
+  return switch (status.toUpperCase()) {
+    'DONE' || 'COMPLETED' || 'FINISHED' => AppTravelStatus.completed,
+    'IN_PROGRESS' ||
+    'INPROGRESS' ||
+    'ONGOING' ||
+    'TRAVELING' => AppTravelStatus.inProgress,
+    _ => AppTravelStatus.upcoming,
+  };
 }

@@ -128,7 +128,7 @@ List<TravelCourseModel> _withPublicDisplayIds(
 }
 
 AppTravelStatus _parseStatus(String status) {
-  if (status != 'DONE') {
+  if (status != 'DONE' && status != 'COMPLETED') {
     throw FormatException('공개할 수 없는 여행 상태입니다: $status');
   }
   return AppTravelStatus.completed;
