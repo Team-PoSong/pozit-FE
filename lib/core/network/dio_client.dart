@@ -36,6 +36,39 @@ class DioClient {
           }
           handler.next(options);
         },
+        onError: (error, handler) async {
+          if (!_shouldRefresh(error)) {
+            handler.next(error);
+            return;
+          }
+          try {
+            final refreshResult = await _refreshAccessToken();
+            if (refreshResult == _TokenRefreshResult.sessionChanged) {
+              handler.next(error);
+              return;
+            }
+            if (refreshResult == _TokenRefreshResult.invalidToken) {
+              await _onRefreshFailed?.call();
+              handler.next(error);
+              return;
+            }
+            if (refreshResult == _TokenRefreshResult.transientFailure) {
+              handler.next(error);
+              return;
+            }
+            final accessToken = await _accessTokenProvider?.call();
+            final request = error.requestOptions;
+            request.extra[_retryAfterRefreshKey] = true;
+            request.headers['Authorization'] = 'Bearer $accessToken';
+            try {
+              handler.resolve(await _dio.fetch<dynamic>(request));
+            } on DioException catch (retryError) {
+              handler.next(retryError);
+            }
+          } catch (retryError) {
+            handler.next(retryError is DioException ? retryError : error);
+          }
+        },
       ),
     );
     if (kDebugMode) {
@@ -70,10 +103,112 @@ class DioClient {
   static final DioClient instance = DioClient._();
 
   final Dio _dio;
+  static const String _retryAfterRefreshKey = 'retriedAfterTokenRefresh';
   Future<String?> Function()? _accessTokenProvider;
+  Future<String?> Function()? _refreshTokenProvider;
+  Future<bool> Function({
+    required String expectedRefreshToken,
+    required String accessToken,
+    required String refreshToken,
+  })?
+  _onTokensReissued;
+  Future<void> Function()? _onRefreshFailed;
+  Future<_TokenRefreshResult>? _refreshInFlight;
 
   void attachAccessTokenProvider(Future<String?> Function() provider) {
     _accessTokenProvider = provider;
+  }
+
+  void attachTokenHandlers({
+    required Future<String?> Function() accessTokenProvider,
+    required Future<String?> Function() refreshTokenProvider,
+    required Future<bool> Function({
+      required String expectedRefreshToken,
+      required String accessToken,
+      required String refreshToken,
+    })
+    onTokensReissued,
+    required Future<void> Function() onRefreshFailed,
+  }) {
+    _accessTokenProvider = accessTokenProvider;
+    _refreshTokenProvider = refreshTokenProvider;
+    _onTokensReissued = onTokensReissued;
+    _onRefreshFailed = onRefreshFailed;
+  }
+
+  bool _shouldRefresh(DioException error) {
+    return error.response?.statusCode == 401 &&
+        error.requestOptions.path != '/api/auth/reissue' &&
+        error.requestOptions.extra[_retryAfterRefreshKey] != true &&
+        _refreshTokenProvider != null &&
+        _onTokensReissued != null;
+  }
+
+  Future<_TokenRefreshResult> _refreshAccessToken() {
+    final existing = _refreshInFlight;
+    if (existing != null) return existing;
+    final refresh = _performTokenRefresh();
+    _refreshInFlight = refresh;
+    return refresh.whenComplete(() => _refreshInFlight = null);
+  }
+
+  Future<_TokenRefreshResult> _performTokenRefresh() async {
+    final refreshToken = await _refreshTokenProvider?.call();
+    if (refreshToken == null || refreshToken.isEmpty) {
+      return _TokenRefreshResult.invalidToken;
+    }
+
+    final refreshDio = Dio(
+      BaseOptions(
+        baseUrl: AppConfig.apiBaseUrl,
+        contentType: Headers.jsonContentType,
+        connectTimeout: const Duration(seconds: 10),
+        sendTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
+    );
+    try {
+      final response = await refreshDio.post<dynamic>(
+        '/api/auth/reissue',
+        data: {'refreshToken': refreshToken},
+      );
+      if (await _refreshTokenProvider?.call() != refreshToken) {
+        return _TokenRefreshResult.sessionChanged;
+      }
+      final body = response.data;
+      if (body is! Map<String, dynamic> || body['isSuccess'] != true) {
+        return _TokenRefreshResult.invalidToken;
+      }
+      final result = body['result'];
+      if (result is! Map<String, dynamic>) {
+        return _TokenRefreshResult.invalidToken;
+      }
+      final newAccessToken = result['accessToken'] as String?;
+      final newRefreshToken = result['refreshToken'] as String?;
+      if (newAccessToken == null || newRefreshToken == null) {
+        return _TokenRefreshResult.invalidToken;
+      }
+      final saved = await _onTokensReissued!(
+        expectedRefreshToken: refreshToken,
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      );
+      return saved
+          ? _TokenRefreshResult.refreshed
+          : _TokenRefreshResult.sessionChanged;
+    } on DioException catch (error) {
+      if (await _refreshTokenProvider?.call() != refreshToken) {
+        return _TokenRefreshResult.sessionChanged;
+      }
+      final statusCode = error.response?.statusCode;
+      return statusCode == 400 || statusCode == 401 || statusCode == 403
+          ? _TokenRefreshResult.invalidToken
+          : _TokenRefreshResult.transientFailure;
+    } catch (_) {
+      return await _refreshTokenProvider?.call() == refreshToken
+          ? _TokenRefreshResult.transientFailure
+          : _TokenRefreshResult.sessionChanged;
+    }
   }
 
   Future<dynamic> get(String path, {Map<String, dynamic>? queryParameters}) {
@@ -120,4 +255,11 @@ class DioClient {
     }
     return body['result'];
   }
+}
+
+enum _TokenRefreshResult {
+  refreshed,
+  invalidToken,
+  transientFailure,
+  sessionChanged,
 }

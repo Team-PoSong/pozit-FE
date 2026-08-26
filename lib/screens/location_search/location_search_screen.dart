@@ -182,7 +182,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       return _SearchError(onRetry: _loadPopularSpots);
     }
     if (_popularSpots.isEmpty) {
-      return const _EmptyResult();
+      return const _EmptyPopularSpots();
     }
 
     return ListView.separated(
@@ -600,6 +600,33 @@ class _EmptyResult extends StatelessWidget {
             style: AppTextStyles.subTitle.copyWith(color: AppColors.gray5),
           ),
           const Expanded(flex: _kEmptyResultBottomFlex, child: SizedBox()),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyPopularSpots extends StatelessWidget {
+  const _EmptyPopularSpots();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(
+            AppImages.pin,
+            width: 160,
+            height: 160,
+            fit: BoxFit.cover,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '현재 인기 있는 장소가 없어요.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.body.copyWith(color: AppColors.gray5),
+          ),
         ],
       ),
     );

@@ -76,26 +76,40 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
 
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       if (mounted) {
         setState(
-          () => _currentLocation = LatLng(position.latitude, position.longitude),
+          () =>
+              _currentLocation = LatLng(position.latitude, position.longitude),
         );
       }
     } catch (_) {}
 
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 5,
-      ),
-    ).listen((position) {
-      if (!mounted) return;
-      setState(
-        () => _currentLocation = LatLng(position.latitude, position.longitude),
-      );
-    });
+    if (!mounted) return;
+
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 5,
+          ),
+        ).listen(
+          (position) {
+            if (!mounted) return;
+            setState(
+              () => _currentLocation = LatLng(
+                position.latitude,
+                position.longitude,
+              ),
+            );
+          },
+          onError: (_) {
+            if (mounted) setState(() => _currentLocation = null);
+          },
+        );
   }
 
   Future<void> _refreshLocation() async {
@@ -104,7 +118,9 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
 
     try {
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
       if (!mounted) return;
       final latLng = LatLng(position.latitude, position.longitude);
@@ -130,7 +146,9 @@ class _TravelCourseMapScreenState extends State<TravelCourseMapScreen> {
           label: spot.name,
           status: switch (spot.status) {
             'visited' => MapMarkerStatus.visited,
-            _ when allowVisiting && nearbySpotIds.contains(spot.touristSpotId) =>
+            _
+                when allowVisiting &&
+                    nearbySpotIds.contains(spot.touristSpotId) =>
               MapMarkerStatus.visiting,
             _ => MapMarkerStatus.notVisited,
           },

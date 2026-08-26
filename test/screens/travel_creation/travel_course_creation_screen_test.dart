@@ -12,6 +12,73 @@ import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart
 import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/data/models/travel/travel_course_model.dart';
 import 'package:pozit/data/models/tourist_spot_search_result_model.dart';
+import 'package:pozit/data/models/tourist_spot_model.dart';
+import 'package:pozit/data/models/tourist_spot_rank_model.dart';
+import 'package:pozit/data/repositories/tourist_spot/tourist_spot_repository.dart';
+
+class _TouristSpotRepository extends TouristSpotRepository {
+  const _TouristSpotRepository();
+
+  static const spots = [
+    TouristSpotModel(
+      touristSpotId: 1,
+      name: '불국사',
+      address: '경북 경주시',
+      latitude: 35.79,
+      longitude: 129.33,
+    ),
+    TouristSpotModel(
+      touristSpotId: 2,
+      name: '미륵사지',
+      address: '전북 익산시',
+      latitude: 35.98,
+      longitude: 126.99,
+    ),
+    TouristSpotModel(
+      touristSpotId: 3,
+      name: '경주월드',
+      address: '경북 경주시',
+      latitude: 35.83,
+      longitude: 129.28,
+    ),
+  ];
+
+  @override
+  Future<TouristSpotRankPage> getHostTouristSpotsRank({
+    String? regionCode,
+    int cursor = 1,
+  }) async => TouristSpotRankPage(
+    ranks: [
+      for (var index = 0; index < spots.length; index++)
+        TouristSpotRankModel(
+          rank: index + 1,
+          touristSpotId: spots[index].touristSpotId,
+          title: spots[index].name,
+          address: spots[index].address,
+          latitude: spots[index].latitude,
+          longitude: spots[index].longitude,
+          courseSpotCount: 1,
+        ),
+    ],
+    currentCursor: cursor,
+    nextCursor: null,
+    hasNext: false,
+  );
+
+  @override
+  Future<List<TouristSpotModel>> saveSelectedSpots(
+    List<TouristSpotSearchResultModel> selected,
+  ) async => [
+    for (final selectedSpot in selected)
+      TouristSpotModel(
+        touristSpotId: int.parse(selectedSpot.contentId),
+        name: selectedSpot.title,
+        address: selectedSpot.address,
+        latitude: selectedSpot.latitude,
+        longitude: selectedSpot.longitude,
+      ),
+  ];
+}
 
 void main() {
   testWidgets('새 일정이 짧으면 초과 일차를 버리고 길면 뒤 일차를 비워둔다', (tester) async {
@@ -164,7 +231,7 @@ void main() {
     expect(find.text('4일차'), findsNWidgets(2));
   });
 
-  testWidgets('플러스 버튼을 누르면 목데이터가 있는 장소 검색 화면으로 이동한다', (tester) async {
+  testWidgets('플러스 버튼을 누르면 API 장소 검색 화면으로 이동한다', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -173,6 +240,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelCourseCreationScreen(
+          touristSpotRepository: const _TouristSpotRepository(),
           travelInfo: TravelInfoResult(
             destination: '경주',
             dateRange: DateTimeRange(
@@ -206,6 +274,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelCourseCreationScreen(
+          touristSpotRepository: const _TouristSpotRepository(),
           travelInfo: TravelInfoResult(
             destination: '경주',
             dateRange: DateTimeRange(
@@ -241,6 +310,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelCourseCreationScreen(
+          touristSpotRepository: const _TouristSpotRepository(),
           travelInfo: TravelInfoResult(
             destination: '경주',
             dateRange: DateTimeRange(

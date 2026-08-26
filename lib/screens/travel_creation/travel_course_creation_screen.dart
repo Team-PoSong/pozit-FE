@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
@@ -11,12 +12,13 @@ import '../../core/design_system/widgets/app_location.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_chatbot_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/models/tourist_spot_model.dart';
-import '../../data/models/tourist_spot_rank_model.dart';
-import '../../data/models/tourist_spot_search_result_model.dart';
-import '../../data/mock/mock_tourist_spots.dart';
-import '../../data/repositories/local/travel_store.dart';
+import '../../data/models/travel/travel_create_model.dart';
+import '../../data/repositories/tourist_spot/tourist_spot_repository.dart';
+import '../../data/repositories/travel/travel_repository.dart';
 import '../location_search/location_search_screen.dart';
+import '../travel_detail/travel_detail_page.dart';
 import 'travel_creation_data.dart';
 import 'travel_creation_pipeline.dart';
 import 'widgets/travel_creation_header.dart';
@@ -29,6 +31,8 @@ class TravelCourseCreationScreen extends StatefulWidget {
     this.onAddCourseTap,
     this.onStartTravel,
     this.onBackTap,
+    this.travelRepository = const TravelRepository(),
+    this.touristSpotRepository = const TouristSpotRepository(),
   });
 
   final TravelInfoResult travelInfo;
@@ -36,6 +40,8 @@ class TravelCourseCreationScreen extends StatefulWidget {
   final ValueChanged<int>? onAddCourseTap;
   final VoidCallback? onStartTravel;
   final VoidCallback? onBackTap;
+  final TravelRepository travelRepository;
+  final TouristSpotRepository touristSpotRepository;
 
   @override
   State<TravelCourseCreationScreen> createState() =>
@@ -46,6 +52,9 @@ class _TravelCourseCreationScreenState
     extends State<TravelCourseCreationScreen> {
   int _selectedDay = 1;
   final Map<int, List<TouristSpotModel>> _spotsByDay = {};
+  bool _isSaving = false;
+  TravelCreateResult? _createdTravel;
+  TravelCreateResult? _createdWishTravel;
 
   @override
   void initState() {
@@ -56,6 +65,9 @@ class _TravelCourseCreationScreenState
   @override
   void didUpdateWidget(covariant TravelCourseCreationScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (_hasDraftChanged(oldWidget.travelInfo, widget.travelInfo)) {
+      _invalidateCreatedTravelCache();
+    }
     final dayCountChanged =
         TravelCreationPipeline.dayCount(oldWidget.travelInfo) !=
         TravelCreationPipeline.dayCount(widget.travelInfo);
@@ -82,71 +94,6 @@ class _TravelCourseCreationScreenState
 
   bool get _hasAnyCourse => _spotsByDay.values.any((spots) => spots.isNotEmpty);
 
-  Future<TouristSpotRankPage> _loadMockPopularSpots(int cursor) async {
-    return TouristSpotRankPage(
-      ranks: [
-        for (var i = 0; i < mockPopularTouristSpots.length; i++)
-          TouristSpotRankModel(
-            rank: i + 1,
-            touristSpotId: mockPopularTouristSpots[i].touristSpotId,
-            title: mockPopularTouristSpots[i].name,
-            address: mockPopularTouristSpots[i].address,
-            latitude: mockPopularTouristSpots[i].latitude,
-            longitude: mockPopularTouristSpots[i].longitude,
-            courseSpotCount: 0,
-          ),
-      ],
-      currentCursor: cursor,
-      nextCursor: null,
-      hasNext: false,
-    );
-  }
-
-  Future<TouristSpotSearchPage> _searchMockSpots(
-    String query,
-    int cursor,
-  ) async {
-    final normalizedQuery = query.trim().toLowerCase();
-    final spots = mockPopularTouristSpots
-        .where(
-          (spot) =>
-              spot.name.toLowerCase().contains(normalizedQuery) ||
-              spot.address.toLowerCase().contains(normalizedQuery),
-        )
-        .toList();
-    return TouristSpotSearchPage(
-      places: [
-        for (final spot in spots)
-          TouristSpotSearchResultModel(
-            contentId: '${spot.touristSpotId}',
-            contentTypeId: '12',
-            title: spot.name,
-            address: spot.address,
-            latitude: spot.latitude,
-            longitude: spot.longitude,
-          ),
-      ],
-      currentCursor: cursor,
-      nextCursor: null,
-      hasNext: false,
-    );
-  }
-
-  Future<List<TouristSpotModel>> _addMockSpots(
-    List<TouristSpotSearchResultModel> selected,
-  ) async {
-    return [
-      for (final spot in selected)
-        TouristSpotModel(
-          touristSpotId: int.parse(spot.contentId),
-          name: spot.title,
-          address: spot.address,
-          latitude: spot.latitude,
-          longitude: spot.longitude,
-        ),
-    ];
-  }
-
   Future<void> _handleAddCourseTap() async {
     final callback = widget.onAddCourseTap;
     if (callback != null) {
@@ -157,15 +104,21 @@ class _TravelCourseCreationScreenState
     final spots = await Navigator.of(context).push<List<TouristSpotModel>>(
       MaterialPageRoute<List<TouristSpotModel>>(
         builder: (_) => LocationSearchScreen(
-          onLoadPopularSpots: _loadMockPopularSpots,
-          onSearch: _searchMockSpots,
-          onAddSelectedSpots: _addMockSpots,
+          onLoadPopularSpots: (cursor) =>
+              widget.touristSpotRepository.getHostTouristSpotsRank(
+                regionCode: widget.travelInfo.regionCode,
+                cursor: cursor,
+              ),
+          onSearch: (query, cursor) => widget.touristSpotRepository
+              .searchCourseSpots(keyword: query, cursor: cursor),
+          onAddSelectedSpots: widget.touristSpotRepository.saveSelectedSpots,
         ),
       ),
     );
     if (!mounted || spots == null || spots.isEmpty) return;
 
     setState(() {
+      _invalidateCreatedTravelCache();
       final selectedSpots = _spotsByDay.putIfAbsent(
         _selectedDay,
         () => <TouristSpotModel>[],
@@ -181,6 +134,7 @@ class _TravelCourseCreationScreenState
 
   void _handleReorder(int oldIndex, int newIndex) {
     setState(() {
+      _invalidateCreatedTravelCache();
       final spots = _spotsByDay[_selectedDay]!;
       final spot = spots.removeAt(oldIndex);
       spots.insert(newIndex, spot);
@@ -189,9 +143,30 @@ class _TravelCourseCreationScreenState
 
   void _handleDelete(TouristSpotModel spot) {
     setState(() {
+      _invalidateCreatedTravelCache();
       final spots = _spotsByDay[_selectedDay]!;
       spots.removeWhere((item) => item.touristSpotId == spot.touristSpotId);
     });
+  }
+
+  void _invalidateCreatedTravelCache() {
+    _createdTravel = null;
+    _createdWishTravel = null;
+  }
+
+  bool _hasDraftChanged(TravelInfoResult oldDraft, TravelInfoResult newDraft) {
+    return oldDraft.destination != newDraft.destination ||
+        oldDraft.regionCode != newDraft.regionCode ||
+        oldDraft.dateRange != newDraft.dateRange ||
+        oldDraft.name != newDraft.name ||
+        !setEquals(oldDraft.tags, newDraft.tags) ||
+        !listEquals(oldDraft.tagIds, newDraft.tagIds) ||
+        oldDraft.creationMethod != newDraft.creationMethod ||
+        oldDraft.transportation != newDraft.transportation ||
+        oldDraft.densityLevel != newDraft.densityLevel ||
+        !listEquals(oldDraft.initialCourses, newDraft.initialCourses) ||
+        oldDraft.sourceTravelId != newDraft.sourceTravelId ||
+        oldDraft.backgroundImageUrl != newDraft.backgroundImageUrl;
   }
 
   void _handleBack() {
@@ -203,15 +178,73 @@ class _TravelCourseCreationScreenState
     Navigator.of(context).maybePop();
   }
 
-  void _handleStartTravel() {
-    final courses = TravelCreationPipeline.buildCourses(
-      widget.travelInfo,
-      _spotsByDay,
-    );
-    TravelStore.instance.save(
-      TravelCreationPipeline.buildSavedTravel(widget.travelInfo, courses),
-    );
-    Navigator.of(context).popUntil((route) => route.isFirst);
+  Future<void> _handleStartTravel() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    try {
+      final isWish =
+          widget.travelInfo.creationMethod == TravelCreationMethod.wish;
+      final TravelCreateResult created;
+      if (isWish) {
+        created =
+            _createdWishTravel ??
+            await widget.travelRepository.createLikeBasedTravel(
+              TravelCreationPipeline.buildLikeBasedCreateRequest(
+                widget.travelInfo,
+                _spotsByDay,
+              ),
+            );
+        _createdWishTravel = created;
+      } else {
+        created =
+            _createdTravel ??
+            await widget.travelRepository.createTravel(
+              TravelCreationPipeline.buildCreateRequest(widget.travelInfo),
+            );
+        _validateCreatedCourses(created);
+        _createdTravel = created;
+        await Future.wait([
+          for (final course in created.courses)
+            if ((_spotsByDay[course.dayNumber] ?? const []).isNotEmpty)
+              widget.travelRepository.updateCourseSpots(
+                course.courseId,
+                (_spotsByDay[course.dayNumber] ?? const [])
+                    .map((spot) => spot.touristSpotId)
+                    .toList(),
+              ),
+        ]);
+      }
+      if (!mounted) return;
+      await Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(
+          builder: (_) => TravelDetailPage(travelId: created.travelId),
+        ),
+        (route) => route.isFirst,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error is ApiException ? error.message : '여행을 생성하지 못했어요. 다시 시도해주세요.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  void _validateCreatedCourses(TravelCreateResult created) {
+    final expectedDays = {for (var day = 1; day <= _dayCount; day++) day};
+    final actualDays = created.courses
+        .map((course) => course.dayNumber)
+        .toSet();
+    if (created.courses.length != _dayCount ||
+        actualDays.length != _dayCount ||
+        !actualDays.containsAll(expectedDays)) {
+      throw const ApiException('생성된 여행의 코스 정보가 올바르지 않습니다.');
+    }
   }
 
   @override
@@ -315,8 +348,8 @@ class _TravelCourseCreationScreenState
                 AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
-                text: '여행 시작하기',
-                isEnabled: _hasAnyCourse,
+                text: _isSaving ? '여행을 만드는 중...' : '여행 시작하기',
+                isEnabled: _hasAnyCourse && !_isSaving,
                 onPressed: widget.onStartTravel ?? _handleStartTravel,
               ),
             ),

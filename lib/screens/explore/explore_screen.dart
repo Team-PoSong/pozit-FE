@@ -33,6 +33,8 @@ class ExploreScreen extends StatelessWidget {
     this.onDateFilterTap,
     this.onCategoryFilterTap,
     this.onFilterResetTap,
+    this.onTravelTap,
+    this.onFavoriteToggle,
     this.travels = const [],
     this.isCameraReady = false,
     this.assetPackage,
@@ -57,6 +59,8 @@ class ExploreScreen extends StatelessWidget {
   final VoidCallback? onDateFilterTap;
   final VoidCallback? onCategoryFilterTap;
   final VoidCallback? onFilterResetTap;
+  final ValueChanged<int>? onTravelTap;
+  final Future<void> Function(int travelId, bool isFavorite)? onFavoriteToggle;
   final List<ExploreTravelItem> travels;
   final bool isCameraReady;
   final String? assetPackage;
@@ -119,6 +123,8 @@ class ExploreScreen extends StatelessWidget {
       onDateFilterTap: onDateFilterTap,
       onCategoryFilterTap: onCategoryFilterTap,
       onFilterResetTap: onFilterResetTap,
+      onTravelTap: onTravelTap,
+      onFavoriteToggle: onFavoriteToggle,
       extraBottomGap: isTravelCreationMode ? _travelCreationBottomGap : 0,
       assetPackage: assetPackage,
     );

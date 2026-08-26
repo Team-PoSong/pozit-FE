@@ -8,6 +8,8 @@ import '../../core/design_system/widgets/app_chip.dart';
 import '../../core/design_system/widgets/app_region_select.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
+import '../../data/models/travel/travel_region_model.dart';
+import '../../data/repositories/travel/travel_repository.dart';
 import 'travel_creation_data.dart';
 import 'widgets/travel_creation_header.dart';
 import 'travel_schedule_screen.dart';
@@ -21,12 +23,14 @@ class TravelDestinationScreen extends StatefulWidget {
     this.onSave,
     this.onBackTap,
     this.creationMethod = TravelCreationMethod.create,
+    this.repository = const TravelRepository(),
   });
 
   final DestinationSearch? onSearch;
   final ValueChanged<String>? onSave;
   final VoidCallback? onBackTap;
   final TravelCreationMethod creationMethod;
+  final TravelRepository repository;
 
   @override
   State<TravelDestinationScreen> createState() =>
@@ -35,11 +39,9 @@ class TravelDestinationScreen extends StatefulWidget {
 
 class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
   static const int _minimumQueryLength = 2;
-  static const List<String> _sampleDestinations = ['경상북도 경주시', '경상남도 경주시'];
-
   final TextEditingController _searchController = TextEditingController();
-  List<String> _results = const [];
-  String? _selectedDestination;
+  List<TravelRegionModel> _results = const [];
+  TravelRegionModel? _selectedDestination;
   bool _showLengthError = false;
   bool _hasSearchError = false;
   bool _isSearching = false;
@@ -82,11 +84,17 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
       _isSearching = true;
     });
 
-    final List<String> results;
+    final List<TravelRegionModel> results;
     try {
-      results = widget.onSearch == null
-          ? _sampleDestinations.where((item) => item.contains(query)).toList()
-          : await widget.onSearch!(query);
+      if (widget.onSearch != null) {
+        results = (await widget.onSearch!(
+          query,
+        )).map((name) => TravelRegionModel(code: name, name: name)).toList();
+      } else {
+        results = (await widget.repository.searchRegions(
+          keyword: query,
+        )).regions;
+      }
     } catch (_) {
       if (!mounted || requestId != _requestId) return;
       setState(() {
@@ -127,18 +135,19 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
   }
 
   void _handleSave() {
-    final destination = _selectedDestination;
-    if (destination == null) return;
+    final selectedRegion = _selectedDestination;
+    if (selectedRegion == null) return;
     final onSave = widget.onSave;
     if (onSave != null) {
-      onSave(destination);
+      onSave(selectedRegion.name);
       return;
     }
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => TravelScheduleScreen(
-          destination: destination,
+          destination: selectedRegion.name,
+          regionCode: selectedRegion.code,
           creationMethod: widget.creationMethod,
         ),
       ),
@@ -207,8 +216,9 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
                       itemBuilder: (context, index) {
                         final destination = _results[index];
                         return AppRegionSelect(
-                          label: destination,
-                          isSelected: _selectedDestination == destination,
+                          label: destination.name,
+                          isSelected:
+                              _selectedDestination?.code == destination.code,
                           onChanged: (_) {
                             setState(() => _selectedDestination = destination);
                           },
@@ -222,7 +232,7 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: AppDeletableChip(
-                    label: _selectedDestination!,
+                    label: _selectedDestination!.name,
                     onDeleted: () {
                       setState(() => _selectedDestination = null);
                     },

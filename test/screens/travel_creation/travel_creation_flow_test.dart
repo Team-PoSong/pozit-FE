@@ -50,7 +50,13 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MaterialApp(home: TravelDestinationScreen()));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelDestinationScreen(
+          onSearch: (_) async => const ['경상북도 경주시', '경상남도 경주시'],
+        ),
+      ),
+    );
 
     await tester.enterText(find.byType(TextField), '경주');
     await tester.testTextInput.receiveAction(TextInputAction.search);

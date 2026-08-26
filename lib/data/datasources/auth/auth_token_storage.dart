@@ -7,27 +7,55 @@ class AuthTokenStorage {
       _uuid = uuid ?? const Uuid();
 
   static const String _accessTokenKey = 'pozit_access_token';
+  static const String _refreshTokenKey = 'pozit_refresh_token';
   static const String _tokenTypeKey = 'pozit_token_type';
   static const String _userIdKey = 'pozit_user_id';
   static const String _deviceIdKey = 'pozit_device_id';
+  static Future<void> _mutationQueue = Future<void>.value();
 
   final FlutterSecureStorage _storage;
   final Uuid _uuid;
 
   Future<void> save({
     required String accessToken,
+    String? refreshToken,
     required String tokenType,
     required int userId,
   }) async {
-    await Future.wait([
-      _storage.write(key: _accessTokenKey, value: accessToken),
-      _storage.write(key: _tokenTypeKey, value: tokenType),
-      _storage.write(key: _userIdKey, value: userId.toString()),
-    ]);
+    await _mutate(() async {
+      await Future.wait([
+        _storage.write(key: _accessTokenKey, value: accessToken),
+        refreshToken == null
+            ? _storage.delete(key: _refreshTokenKey)
+            : _storage.write(key: _refreshTokenKey, value: refreshToken),
+        _storage.write(key: _tokenTypeKey, value: tokenType),
+        _storage.write(key: _userIdKey, value: userId.toString()),
+      ]);
+    });
   }
 
   Future<String?> readAccessToken() {
     return _storage.read(key: _accessTokenKey);
+  }
+
+  Future<String?> readRefreshToken() {
+    return _storage.read(key: _refreshTokenKey);
+  }
+
+  Future<bool> saveReissuedTokens({
+    required String expectedRefreshToken,
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    return _mutate(() async {
+      final currentRefreshToken = await _storage.read(key: _refreshTokenKey);
+      if (currentRefreshToken != expectedRefreshToken) return false;
+      await Future.wait([
+        _storage.write(key: _accessTokenKey, value: accessToken),
+        _storage.write(key: _refreshTokenKey, value: refreshToken),
+      ]);
+      return true;
+    });
   }
 
   Future<int?> readUserId() async {
@@ -46,10 +74,19 @@ class AuthTokenStorage {
   }
 
   Future<void> clear() async {
-    await Future.wait([
-      _storage.delete(key: _accessTokenKey),
-      _storage.delete(key: _tokenTypeKey),
-      _storage.delete(key: _userIdKey),
-    ]);
+    await _mutate(() async {
+      await Future.wait([
+        _storage.delete(key: _accessTokenKey),
+        _storage.delete(key: _refreshTokenKey),
+        _storage.delete(key: _tokenTypeKey),
+        _storage.delete(key: _userIdKey),
+      ]);
+    });
+  }
+
+  Future<T> _mutate<T>(Future<T> Function() action) {
+    final operation = _mutationQueue.then((_) => action());
+    _mutationQueue = operation.then<void>((_) {}, onError: (_, _) {});
+    return operation;
   }
 }

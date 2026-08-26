@@ -5,6 +5,22 @@ import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_info_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_preferences_screen.dart';
+import 'package:pozit/data/models/travel/travel_tag_model.dart';
+import 'package:pozit/data/repositories/travel/travel_repository.dart';
+
+class _TagRepository extends TravelRepository {
+  const _TagRepository();
+
+  @override
+  Future<List<TravelTagModel>> getTags() async => const [
+    TravelTagModel(id: 1, name: '미식'),
+    TravelTagModel(id: 2, name: '문화'),
+    TravelTagModel(id: 3, name: '힐링'),
+    TravelTagModel(id: 4, name: '탐험'),
+    TravelTagModel(id: 5, name: '기록'),
+    TravelTagModel(id: 6, name: '체험'),
+  ];
+}
 
 void main() {
   testWidgets('찜한 코스의 태그는 미리 선택되어 있다', (tester) async {
@@ -16,6 +32,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelInfoScreen(
+          repository: const _TagRepository(),
           destination: '경주',
           dateRange: DateTimeRange(
             start: DateTime(2026, 7, 3),
@@ -26,12 +43,49 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
 
     final selectedLabels = tester
         .widgetList<AppTagChip>(find.byType(AppTagChip))
         .where((chip) => chip.isSelected)
         .map((chip) => chip.label);
     expect(selectedLabels, containsAll(['# 힐링', '# 미식']));
+  });
+
+  testWidgets('찜 초안의 태그 ID를 기준으로 선택 상태와 저장값을 복원한다', (tester) async {
+    TravelInfoResult? savedResult;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelInfoScreen(
+          repository: const _TagRepository(),
+          destination: '경주',
+          dateRange: DateTimeRange(
+            start: DateTime(2026, 7, 3),
+            end: DateTime(2026, 7, 4),
+          ),
+          creationMethod: TravelCreationMethod.wish,
+          initialTags: const ['서버에서 변경된 이름'],
+          initialTagIds: const [3],
+          onSave: (result) => savedResult = result,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final selectedLabels = tester
+        .widgetList<AppTagChip>(find.byType(AppTagChip))
+        .where((chip) => chip.isSelected)
+        .map((chip) => chip.label);
+    expect(selectedLabels, ['# 힐링']);
+
+    await tester.enterText(find.byType(TextField), '찜 기반 여행');
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('다음'));
+    await tester.tap(find.text('다음'));
+    await tester.pump();
+    expect(savedResult?.tagIds, [3]);
+    expect(savedResult?.tags, {'힐링'});
   });
 
   testWidgets('여행 태그는 최대 2개까지 선택하고 저장할 수 있다', (tester) async {
@@ -44,6 +98,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelInfoScreen(
+          repository: const _TagRepository(),
           destination: '경상북도 경주시',
           dateRange: DateTimeRange(
             start: DateTime(2026, 7, 3),
@@ -82,6 +137,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelInfoScreen(
+          repository: const _TagRepository(),
           destination: '경주',
           dateRange: DateTimeRange(
             start: DateTime(2026, 7, 3),
@@ -110,6 +166,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: TravelInfoScreen(
+          repository: const _TagRepository(),
           destination: '경주',
           dateRange: DateTimeRange(
             start: DateTime(2026, 7, 3),

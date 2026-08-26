@@ -4,9 +4,25 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
+import '../../core/network/api_exception.dart';
+import '../../data/models/travel/travel_recommendation_model.dart';
+import '../../data/repositories/travel/travel_repository.dart';
+import 'travel_creation_pipeline.dart';
 import 'travel_creation_data.dart';
 import 'travel_recommendation_result_screen.dart';
 import 'widgets/travel_creation_header.dart';
+
+class TravelRecommendationLoadResult {
+  const TravelRecommendationLoadResult({
+    required this.travelId,
+    required this.card,
+    required this.recommendation,
+  });
+
+  final int travelId;
+  final TravelRecommendationCardModel card;
+  final TravelRecommendationModel recommendation;
+}
 
 class TravelRecommendationLoadingScreen extends StatefulWidget {
   const TravelRecommendationLoadingScreen({
@@ -14,11 +30,13 @@ class TravelRecommendationLoadingScreen extends StatefulWidget {
     required this.travelInfo,
     this.loadRecommendations,
     this.onBackTap,
+    this.repository = const TravelRepository(),
   });
 
   final TravelInfoResult travelInfo;
-  final Future<void> Function()? loadRecommendations;
+  final Future<TravelRecommendationLoadResult> Function()? loadRecommendations;
   final VoidCallback? onBackTap;
+  final TravelRepository repository;
 
   @override
   State<TravelRecommendationLoadingScreen> createState() =>
@@ -31,7 +49,9 @@ class _TravelRecommendationLoadingScreenState
   late final AnimationController _floatingController;
   late final Animation<double> _floatingOffset;
   bool _hasLoadError = false;
+  String? _loadErrorMessage;
   bool _isLoading = false;
+  int? _createdTravelId;
 
   @override
   void initState() {
@@ -49,23 +69,74 @@ class _TravelRecommendationLoadingScreenState
   Future<void> _loadRecommendations() async {
     if (_isLoading) return;
     _isLoading = true;
-    setState(() => _hasLoadError = false);
+    setState(() {
+      _hasLoadError = false;
+      _loadErrorMessage = null;
+    });
     try {
-      await (widget.loadRecommendations?.call() ??
-          Future<void>.delayed(const Duration(seconds: 2)));
+      int? travelId;
+      TravelRecommendationCardModel? recommendationCard;
+      TravelRecommendationModel? recommendation;
+      final callback = widget.loadRecommendations;
+      if (callback != null) {
+        final result = await callback();
+        travelId = result.travelId;
+        recommendationCard = result.card;
+        recommendation = result.recommendation;
+      } else if (_usesApi) {
+        travelId = _createdTravelId;
+        if (travelId == null) {
+          final created = await widget.repository.createTravel(
+            TravelCreationPipeline.buildCreateRequest(widget.travelInfo),
+          );
+          travelId = created.travelId;
+          _createdTravelId = travelId;
+        }
+        recommendationCard = await widget.repository.previewRecommendationCard(
+          travelId,
+        );
+        recommendation = await widget.repository.getRecommendationPreview(
+          travelId,
+          recommendationCard.previewId,
+        );
+      }
+      if (travelId == null ||
+          recommendationCard == null ||
+          recommendation == null) {
+        throw const ApiException('추천 코스 응답을 받지 못했어요.');
+      }
+      final resultTravelId = travelId;
+      final resultCard = recommendationCard;
+      final resultRecommendation = recommendation;
       if (!mounted) return;
       await Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (_) =>
-              TravelRecommendationResultScreen(travelInfo: widget.travelInfo),
+          builder: (_) => TravelRecommendationResultScreen(
+            travelInfo: widget.travelInfo,
+            travelId: resultTravelId,
+            recommendationCard: resultCard,
+            recommendation: resultRecommendation,
+            repository: widget.repository,
+          ),
         ),
       );
-    } catch (_) {
-      if (mounted) setState(() => _hasLoadError = true);
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _hasLoadError = true;
+          _loadErrorMessage = error is ApiException
+              ? error.message
+              : '추천 코스를 불러오지 못했어요.';
+        });
+      }
     } finally {
       _isLoading = false;
     }
   }
+
+  bool get _usesApi =>
+      widget.travelInfo.regionCode != null &&
+      widget.travelInfo.tagIds.isNotEmpty;
 
   @override
   void dispose() {
@@ -112,7 +183,7 @@ class _TravelRecommendationLoadingScreenState
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              '추천 코스를 불러오지 못했어요.',
+                              _loadErrorMessage ?? '추천 코스를 불러오지 못했어요.',
                               style: AppTextStyles.body.copyWith(
                                 color: AppColors.gray5,
                               ),

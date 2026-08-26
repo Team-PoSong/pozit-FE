@@ -8,6 +8,7 @@ class AppTravelTagGrid extends StatelessWidget {
     super.key,
     required this.selectedTags,
     required this.onToggle,
+    this.availableTags = options,
   });
 
   static const List<String> options = [
@@ -25,12 +26,13 @@ class AppTravelTagGrid extends StatelessWidget {
 
   final Set<String> selectedTags;
   final ValueChanged<String> onToggle;
+  final List<String> availableTags;
 
   @override
   Widget build(BuildContext context) {
     final rows = [
-      for (var i = 0; i < options.length; i += _columns)
-        options.sublist(i, (i + _columns).clamp(0, options.length)),
+      for (var i = 0; i < availableTags.length; i += _columns)
+        availableTags.sublist(i, (i + _columns).clamp(0, availableTags.length)),
     ];
 
     return Column(
