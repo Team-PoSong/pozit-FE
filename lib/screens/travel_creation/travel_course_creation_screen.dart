@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
@@ -64,6 +65,9 @@ class _TravelCourseCreationScreenState
   @override
   void didUpdateWidget(covariant TravelCourseCreationScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (_hasDraftChanged(oldWidget.travelInfo, widget.travelInfo)) {
+      _invalidateCreatedTravelCache();
+    }
     final dayCountChanged =
         TravelCreationPipeline.dayCount(oldWidget.travelInfo) !=
         TravelCreationPipeline.dayCount(widget.travelInfo);
@@ -114,6 +118,7 @@ class _TravelCourseCreationScreenState
     if (!mounted || spots == null || spots.isEmpty) return;
 
     setState(() {
+      _invalidateCreatedTravelCache();
       final selectedSpots = _spotsByDay.putIfAbsent(
         _selectedDay,
         () => <TouristSpotModel>[],
@@ -129,6 +134,7 @@ class _TravelCourseCreationScreenState
 
   void _handleReorder(int oldIndex, int newIndex) {
     setState(() {
+      _invalidateCreatedTravelCache();
       final spots = _spotsByDay[_selectedDay]!;
       final spot = spots.removeAt(oldIndex);
       spots.insert(newIndex, spot);
@@ -137,9 +143,30 @@ class _TravelCourseCreationScreenState
 
   void _handleDelete(TouristSpotModel spot) {
     setState(() {
+      _invalidateCreatedTravelCache();
       final spots = _spotsByDay[_selectedDay]!;
       spots.removeWhere((item) => item.touristSpotId == spot.touristSpotId);
     });
+  }
+
+  void _invalidateCreatedTravelCache() {
+    _createdTravel = null;
+    _createdWishTravel = null;
+  }
+
+  bool _hasDraftChanged(TravelInfoResult oldDraft, TravelInfoResult newDraft) {
+    return oldDraft.destination != newDraft.destination ||
+        oldDraft.regionCode != newDraft.regionCode ||
+        oldDraft.dateRange != newDraft.dateRange ||
+        oldDraft.name != newDraft.name ||
+        !setEquals(oldDraft.tags, newDraft.tags) ||
+        !listEquals(oldDraft.tagIds, newDraft.tagIds) ||
+        oldDraft.creationMethod != newDraft.creationMethod ||
+        oldDraft.transportation != newDraft.transportation ||
+        oldDraft.densityLevel != newDraft.densityLevel ||
+        !listEquals(oldDraft.initialCourses, newDraft.initialCourses) ||
+        oldDraft.sourceTravelId != newDraft.sourceTravelId ||
+        oldDraft.backgroundImageUrl != newDraft.backgroundImageUrl;
   }
 
   void _handleBack() {

@@ -106,7 +106,8 @@ class DioClient {
   static const String _retryAfterRefreshKey = 'retriedAfterTokenRefresh';
   Future<String?> Function()? _accessTokenProvider;
   Future<String?> Function()? _refreshTokenProvider;
-  Future<void> Function({
+  Future<bool> Function({
+    required String expectedRefreshToken,
     required String accessToken,
     required String refreshToken,
   })?
@@ -121,7 +122,8 @@ class DioClient {
   void attachTokenHandlers({
     required Future<String?> Function() accessTokenProvider,
     required Future<String?> Function() refreshTokenProvider,
-    required Future<void> Function({
+    required Future<bool> Function({
+      required String expectedRefreshToken,
       required String accessToken,
       required String refreshToken,
     })
@@ -186,11 +188,14 @@ class DioClient {
       if (newAccessToken == null || newRefreshToken == null) {
         return _TokenRefreshResult.invalidToken;
       }
-      await _onTokensReissued!(
+      final saved = await _onTokensReissued!(
+        expectedRefreshToken: refreshToken,
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       );
-      return _TokenRefreshResult.refreshed;
+      return saved
+          ? _TokenRefreshResult.refreshed
+          : _TokenRefreshResult.sessionChanged;
     } on DioException catch (error) {
       if (await _refreshTokenProvider?.call() != refreshToken) {
         return _TokenRefreshResult.sessionChanged;
