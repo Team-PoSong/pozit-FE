@@ -13,13 +13,7 @@ enum AppNavigationTab { travel, explore }
 class AppNavigationBar extends StatefulWidget {
   static const double height = 63;
 
-  // Scaffold(extendBody: true)는 body 쪽 MediaQuery.padding.bottom을 이미
-  // "실제 렌더링된 bottomNavigationBar 높이" 이상으로 맞춰서 내려보낸다
-  // (raw safe area와 max 비교). 그래서 이 값에 spacing/height를 또 더하면
-  // 이중 계산이 된다. viewPaddingOf도 대안이 될 수 없는데, Scaffold가
-  // bottomNavigationBar 존재만으로 body 쪽 MediaQuery.removePadding을 걸어
-  // padding뿐 아니라 viewPadding.bottom까지 0으로 지워버리기 때문이다.
-  static double clearance(BuildContext context, {double extraGap = 0}) {
+  static double clearance(BuildContext context, {double extraGap = 40}) {
     return MediaQuery.paddingOf(context).bottom + extraGap;
   }
 
