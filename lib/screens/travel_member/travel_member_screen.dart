@@ -7,7 +7,6 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/app_travel_status.dart';
-import '../../core/design_system/widgets/button/app_button.dart';
 import '../../data/models/travel/travel_member_model.dart';
 import '../travel_detail/widgets/travel_detail_top_bar.dart';
 import 'widgets/travel_member_item.dart';
@@ -18,8 +17,7 @@ const double _kTopBarToFirstGap = 24.0;
 const double _kTitleToDescGap = 12.0;
 const double _kDescToCodeBoxesGap = 21.0;
 const double _kCodeBoxesToCopyGap = 12.0;
-const double _kCopyToShareButtonGap = 22.0;
-const double _kShareButtonToDividerGap = 18.0;
+const double _kCopyToDividerGap = 18.0;
 const double _kDividerThickness = 8.0;
 const double _kDividerToMembersTitleGap = 27.0;
 const double _kMembersTitleToListGap = 24.0;
@@ -39,7 +37,6 @@ class TravelMemberScreen extends StatelessWidget {
     this.inviteCode,
     this.onBackTap,
     this.onCopyCode,
-    this.onShareTap,
     this.onDeleteMember,
   }) : assert(
          !isLeader || status == AppTravelStatus.completed || inviteCode != null,
@@ -55,8 +52,6 @@ class TravelMemberScreen extends StatelessWidget {
   final VoidCallback? onBackTap;
 
   final VoidCallback? onCopyCode;
-
-  final VoidCallback? onShareTap;
 
   final ValueChanged<TravelMemberModel>? onDeleteMember;
 
@@ -89,10 +84,9 @@ class TravelMemberScreen extends StatelessWidget {
                   child: _InviteCodeSection(
                     code: inviteCode!,
                     onCopyTap: onCopyCode,
-                    onShareTap: onShareTap,
                   ),
                 ),
-                const SizedBox(height: _kShareButtonToDividerGap),
+                const SizedBox(height: _kCopyToDividerGap),
                 const _FullWidthDivider(),
                 const SizedBox(height: _kDividerToMembersTitleGap),
               ],
@@ -148,15 +142,10 @@ class _FullWidthDivider extends StatelessWidget {
 }
 
 class _InviteCodeSection extends StatelessWidget {
-  const _InviteCodeSection({
-    required this.code,
-    this.onCopyTap,
-    this.onShareTap,
-  });
+  const _InviteCodeSection({required this.code, this.onCopyTap});
 
   final String code;
   final VoidCallback? onCopyTap;
-  final VoidCallback? onShareTap;
 
   void _handleCopy() {
     Clipboard.setData(ClipboardData(text: code));
@@ -207,19 +196,6 @@ class _InviteCodeSection extends StatelessWidget {
               ),
             ],
           ),
-        ),
-        const SizedBox(height: _kCopyToShareButtonGap),
-        AppButton(
-          text: '링크 공유하기',
-          iconAsset: AppIcons.shareWhite,
-          iconWidth: 24,
-          iconHeight: 24,
-          textStyle: const TextStyle(
-            fontFamily: 'Pretendard',
-            fontSize: 18,
-            fontWeight: FontWeight.w400,
-          ),
-          onPressed: onShareTap,
         ),
       ],
     );
