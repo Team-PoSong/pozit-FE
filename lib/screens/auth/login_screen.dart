@@ -6,6 +6,7 @@ import 'package:flutter/widget_previews.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/datasources/auth/apple_login_service.dart';
 import '../../data/datasources/auth/kakao_login_service.dart';
@@ -173,9 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showLoginError(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showAppToast(context, message);
   }
 
   @override

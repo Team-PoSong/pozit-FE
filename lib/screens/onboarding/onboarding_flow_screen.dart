@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/support/support_info_model.dart';
 import '../../data/repositories/support/support_repository.dart';
@@ -70,9 +71,7 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
       final message = error is ApiException
           ? error.message
           : '약관 정보를 불러오지 못했습니다.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      showAppToast(context, message);
     } finally {
       if (mounted) setState(() => _isOpeningTerm = false);
     }

@@ -5,6 +5,7 @@ import 'package:flutter/widget_previews.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_retry_error_view.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/like/liked_travel_model.dart';
 import '../../data/repositories/like/like_repository.dart';
@@ -94,9 +95,7 @@ class _LikesScreenState extends State<LikesScreen> {
     } catch (error) {
       if (!mounted) return;
       final message = error is ApiException ? error.message : '찜을 해제하지 못했습니다.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      showAppToast(context, message);
     } finally {
       if (mounted) setState(() => _pendingTravelIds.remove(travelId));
     }

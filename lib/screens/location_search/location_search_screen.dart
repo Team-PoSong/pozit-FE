@@ -8,6 +8,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_chip.dart';
 import '../../core/design_system/widgets/app_location_select.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../data/models/tourist_spot_model.dart';
 import '../../data/models/tourist_spot_rank_model.dart';
@@ -364,9 +365,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _isAddingSpots = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('선택한 장소를 추가하지 못했어요. 다시 시도해주세요.')),
-      );
+      showAppToast(context, '선택한 장소를 추가하지 못했어요. 다시 시도해주세요.');
     }
   }
 

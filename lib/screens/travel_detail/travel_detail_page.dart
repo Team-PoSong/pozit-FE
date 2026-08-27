@@ -5,6 +5,7 @@ import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_travel_status.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/location/course_visiting.dart';
 import '../../core/location/location_permission.dart';
 import '../../core/network/api_exception.dart';
@@ -271,10 +272,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       await _load();
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      _showSnackBar(context, error.message);
+      _showToast(context, error.message);
     } catch (_) {
       if (!context.mounted) return;
-      _showSnackBar(context, '멤버를 내보내지 못했어요.');
+      _showToast(context, '멤버를 내보내지 못했어요.');
     }
   }
 
@@ -304,7 +305,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     );
 
     if (context.mounted && results.any((result) => !result.ok)) {
-      _showSnackBar(context, '일부 장소의 주소를 불러오지 못했어요. 다시 열어 주세요.');
+      _showToast(context, '일부 장소의 주소를 불러오지 못했어요. 다시 열어 주세요.');
     }
 
     return [for (final result in results) result.course];
@@ -401,7 +402,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     await _load();
 
     if (errors.isNotEmpty && context.mounted) {
-      _showSnackBar(context, errors.join('\n'));
+      _showToast(context, errors.join('\n'));
     }
   }
 
@@ -442,16 +443,16 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         }
       } else {
         closeSavingScreenIfActive();
-        _showSnackBar(context, status.errorMessage ?? '여행 로그를 만들지 못했어요.');
+        _showToast(context, status.errorMessage ?? '여행 로그를 만들지 못했어요.');
       }
     } on ApiException catch (error) {
       if (!context.mounted) return;
       closeSavingScreenIfActive();
-      _showSnackBar(context, error.message);
+      _showToast(context, error.message);
     } catch (_) {
       if (!context.mounted) return;
       closeSavingScreenIfActive();
-      _showSnackBar(context, '여행 로그를 만들지 못했어요.');
+      _showToast(context, '여행 로그를 만들지 못했어요.');
     }
   }
 
@@ -473,10 +474,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       _navigateToHome(context);
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      _showSnackBar(context, error.message);
+      _showToast(context, error.message);
     } catch (_) {
       if (!context.mounted) return;
-      _showSnackBar(context, '여행에서 나가지 못했어요.');
+      _showToast(context, '여행에서 나가지 못했어요.');
     }
   }
 
@@ -487,10 +488,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       _navigateToHome(context);
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      _showSnackBar(context, error.message);
+      _showToast(context, error.message);
     } catch (_) {
       if (!context.mounted) return;
-      _showSnackBar(context, '여행을 삭제하지 못했어요.');
+      _showToast(context, '여행을 삭제하지 못했어요.');
     }
   }
 
@@ -501,11 +502,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     );
   }
 
-  void _showSnackBar(BuildContext context, String message) {
+  void _showToast(BuildContext context, String message) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    showAppToast(context, message);
   }
 
   Future<void> _openCourseEditScreen(BuildContext context) async {
@@ -553,7 +552,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     await _load();
 
     if (errors.isNotEmpty && context.mounted) {
-      _showSnackBar(context, errors.join('\n'));
+      _showToast(context, errors.join('\n'));
     }
   }
 

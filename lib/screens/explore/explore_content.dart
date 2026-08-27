@@ -8,6 +8,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_filter_chip.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
 import 'widgets/explore_filter_sheet.dart';
 
@@ -196,9 +197,7 @@ class _ExploreContentState extends State<ExploreContent> {
       });
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('찜 상태를 변경하지 못했습니다.')));
+      showAppToast(context, '찜 상태를 변경하지 못했습니다.');
     } finally {
       if (mounted) setState(() => _pendingFavoriteIds.remove(travel.id));
     }

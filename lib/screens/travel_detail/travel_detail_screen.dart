@@ -10,6 +10,7 @@ import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/location/course_visiting.dart';
 import '../../core/location/location_permission.dart';
 import '../../core/network/api_exception.dart';
@@ -544,9 +545,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
       final message = error is ApiException
           ? error.message
           : '찜 상태를 변경하지 못했습니다.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      showAppToast(context, message);
     } finally {
       if (mounted) setState(() => _isFavoriteUpdating = false);
     }

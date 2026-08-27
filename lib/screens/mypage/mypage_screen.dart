@@ -5,6 +5,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/widgets/app_confirm_dialog.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_retry_error_view.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/datasources/auth/apple_login_service.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
@@ -171,9 +172,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
       ),
     );
     if (!mounted || sent != true) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('피드백을 보내주셔서 감사합니다.')));
+    showAppToast(context, '피드백을 보내주셔서 감사합니다.');
   }
 
   void _openWithdrawal() {
@@ -214,9 +213,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
   void _showError(Object error, {required String fallback}) {
     if (!mounted) return;
     final message = error is ApiException ? error.message : fallback;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    showAppToast(context, message);
   }
 
   @override
