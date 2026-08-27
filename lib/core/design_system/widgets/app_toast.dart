@@ -18,18 +18,18 @@ class AppToast extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: ShapeDecoration(
-          color: AppColors.text,
+          color: AppColors.gray1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           shadows: const [
-            BoxShadow(color: AppColors.shadow, blurRadius: 8, offset: Offset(0, 2)),
+            BoxShadow(color: AppColors.shadow, blurRadius: 6, offset: Offset(0, 2)),
           ],
         ),
         child: Text(
           message,
           textAlign: TextAlign.center,
-          style: AppTextStyles.body.copyWith(color: AppColors.white),
+          style: AppTextStyles.body.copyWith(color: AppColors.text),
         ),
       ),
     );
@@ -155,5 +155,5 @@ class _AppToastDemo extends StatelessWidget {
   }
 }
 
-@Preview(group: 'haerim', name: 'AppToast')
+@Preview(group: 'seohyun', name: 'AppToast')
 Widget appToastPreview() => const _AppToastDemo();
