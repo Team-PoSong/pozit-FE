@@ -163,6 +163,7 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         maintainBottomViewPadding: true,
         child: Column(

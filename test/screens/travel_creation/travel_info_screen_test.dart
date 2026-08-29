@@ -23,6 +23,25 @@ class _TagRepository extends TravelRepository {
 }
 
 void main() {
+  testWidgets('여행명 입력 중 키보드가 나타나도 화면 크기를 조정하지 않는다', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelInfoScreen(
+          repository: const _TagRepository(),
+          destination: '경주',
+          dateRange: DateTimeRange(
+            start: DateTime(2026, 8, 1),
+            end: DateTime(2026, 8, 2),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(scaffold.resizeToAvoidBottomInset, isFalse);
+  });
+
   testWidgets('찜한 코스의 태그는 미리 선택되어 있다', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;
