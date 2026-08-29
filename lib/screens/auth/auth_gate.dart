@@ -6,6 +6,7 @@ import '../../core/network/dio_client.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
 import '../home/home_screen.dart';
 import '../mypage/mypage_screen.dart';
+import '../onboarding/onboarding_flow_screen.dart';
 import 'login_screen.dart';
 
 enum _AuthGateStatus { checking, signedOut, signedIn }
@@ -16,12 +17,14 @@ class AuthGate extends StatefulWidget {
     this.readAccessToken,
     this.clearToken,
     this.validateSession,
+    this.homeBuilder,
     this.retryDelay = const Duration(milliseconds: 300),
   });
 
   final Future<String?> Function()? readAccessToken;
   final Future<void> Function()? clearToken;
   final Future<void> Function()? validateSession;
+  final Widget Function(VoidCallback onMyPageTap)? homeBuilder;
   final Duration retryDelay;
 
   @override
@@ -129,6 +132,17 @@ class _AuthGateState extends State<AuthGate> {
     _setStatus(_AuthGateStatus.signedOut);
   }
 
+  Future<void> _handleLoginSuccess(bool isNewUser) async {
+    if (!mounted) return;
+    if (isNewUser) {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute(builder: (_) => const OnboardingFlowScreen()),
+      );
+      return;
+    }
+    _setStatus(_AuthGateStatus.signedIn);
+  }
+
   @override
   Widget build(BuildContext context) {
     return switch (_status) {
@@ -136,8 +150,12 @@ class _AuthGateState extends State<AuthGate> {
         backgroundColor: AppColors.white,
         body: Center(child: CircularProgressIndicator()),
       ),
-      _AuthGateStatus.signedOut => const LoginScreen(),
-      _AuthGateStatus.signedIn => HomeScreen(onMyPageTap: _openMyPage),
+      _AuthGateStatus.signedOut => LoginScreen(
+        onLoginSuccess: _handleLoginSuccess,
+      ),
+      _AuthGateStatus.signedIn =>
+        widget.homeBuilder?.call(_openMyPage) ??
+            HomeScreen(onMyPageTap: _openMyPage),
     };
   }
 }

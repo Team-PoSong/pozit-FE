@@ -21,6 +21,7 @@ class LoginScreen extends StatefulWidget {
     this.onAppleLoginRequest,
     this.onKakaoLogin,
     this.onKakaoAccessToken,
+    this.onLoginSuccess,
     this.assetPackage,
   });
 
@@ -28,6 +29,7 @@ class LoginScreen extends StatefulWidget {
   final Future<bool> Function(AppleLoginRequest request)? onAppleLoginRequest;
   final FutureOr<void> Function()? onKakaoLogin;
   final Future<bool> Function(String accessToken)? onKakaoAccessToken;
+  final FutureOr<void> Function(bool isNewUser)? onLoginSuccess;
   final String? assetPackage;
 
   @override
@@ -147,8 +149,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _openAfterLogin(
     BuildContext context, {
     required bool isNewUser,
-  }) {
-    return Navigator.of(context).pushReplacement(
+  }) async {
+    if (widget.onLoginSuccess case final callback?) {
+      await callback(isNewUser);
+      return;
+    }
+    if (!context.mounted) return;
+    await Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
         builder: (_) =>
             isNewUser ? const OnboardingFlowScreen() : const HomeScreen(),
