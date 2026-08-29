@@ -37,6 +37,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -56,3 +57,14 @@ flutter:
           weight: 500
         - asset: assets/fonts/Pretendard-SemiBold.otf
           weight: 600
+
+flutter_launcher_icons:
+  image_path: "assets/images/img_app_logo.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"
+  macos:
+    generate: true
+  windows:
+    generate: true
