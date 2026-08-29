@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -12,24 +14,27 @@ class AppToast extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      type: MaterialType.transparency,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        decoration: ShapeDecoration(
-          color: AppColors.gray1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    return Semantics(
+      liveRegion: true,
+      child: Material(
+        type: MaterialType.transparency,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: ShapeDecoration(
+            color: AppColors.gray1,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            shadows: const [
+              BoxShadow(color: AppColors.shadow, blurRadius: 6, offset: Offset(0, 2)),
+            ],
           ),
-          shadows: const [
-            BoxShadow(color: AppColors.shadow, blurRadius: 6, offset: Offset(0, 2)),
-          ],
-        ),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.body.copyWith(color: AppColors.text),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.body.copyWith(color: AppColors.text),
+          ),
         ),
       ),
     );
@@ -122,10 +127,15 @@ class _AppToastOverlayState extends State<_AppToastOverlay>
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final bottomInset = math.max(
+      mediaQuery.padding.bottom,
+      mediaQuery.viewInsets.bottom,
+    );
     return Positioned(
       left: 20,
       right: 20,
-      bottom: 32 + MediaQuery.of(context).padding.bottom,
+      bottom: 32 + bottomInset,
       child: IgnorePointer(
         child: FadeTransition(
           opacity: _fade,
