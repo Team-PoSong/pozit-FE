@@ -59,7 +59,7 @@ flutter:
           weight: 600
 
 flutter_launcher_icons:
-  image_path: "assets/images/img_app_logo.png"
+  image_path: "assets/images/img_app_logo_for_device.png"
   android: true
   ios: true
   remove_alpha_ios: true
