@@ -177,7 +177,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   Widget _buildPopularSpotsSection() {
     if (_isLoadingPopular) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
     if (_hasPopularError) {
       return _SearchError(onRetry: _loadPopularSpots);
@@ -200,7 +202,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         if (index >= _popularSpots.length) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
           );
         }
         final spot = _popularSpots[index];
@@ -458,7 +462,11 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 children: [
                   Positioned.fill(
                     child: _isSearching
-                        ? const Center(child: CircularProgressIndicator())
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
+                          )
                         : isEmptyResult
                         ? const _EmptyResult()
                         : _hasSearched
@@ -480,7 +488,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                                 return const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 16),
                                   child: Center(
-                                    child: CircularProgressIndicator(),
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.primary,
+                                    ),
                                   ),
                                 );
                               }

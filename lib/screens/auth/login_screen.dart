@@ -392,7 +392,7 @@ class _SocialLoginButton extends StatelessWidget {
                               child: CircularProgressIndicator(
                                 key: Key('social-login-progress'),
                                 strokeWidth: 2.5,
-                                color: AppColors.purple3,
+                                color: AppColors.primary,
                               ),
                             ),
                           ),

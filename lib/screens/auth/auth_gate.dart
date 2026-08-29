@@ -133,7 +133,9 @@ class _AuthGateState extends State<AuthGate> {
     return switch (_status) {
       _AuthGateStatus.checking => const Scaffold(
         backgroundColor: AppColors.white,
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
       ),
       _AuthGateStatus.signedOut => const LoginScreen(),
       _AuthGateStatus.signedIn => HomeScreen(onMyPageTap: _openMyPage),

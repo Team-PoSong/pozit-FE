@@ -231,10 +231,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                 child: const AppDetailHeader(title: '내 정보'),
               ),
               Expanded(
-                child: ColoredBox(
-                  color: AppColors.gray2,
-                  child: _buildBody(),
-                ),
+                child: ColoredBox(color: AppColors.gray2, child: _buildBody()),
               ),
             ],
           ),
@@ -266,7 +263,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
       );
     }
     return const Center(
-      child: CircularProgressIndicator(color: AppColors.purple3),
+      child: CircularProgressIndicator(color: AppColors.primary),
     );
   }
 }

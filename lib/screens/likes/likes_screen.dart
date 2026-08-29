@@ -184,7 +184,7 @@ class _LikesScreenState extends State<LikesScreen> {
       );
     }
     return const Center(
-      child: CircularProgressIndicator(color: AppColors.purple3),
+      child: CircularProgressIndicator(color: AppColors.primary),
     );
   }
 }

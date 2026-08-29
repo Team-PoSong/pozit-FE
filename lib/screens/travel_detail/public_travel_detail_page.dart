@@ -101,7 +101,7 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
                 ),
                 const Expanded(
                   child: Center(
-                    child: CircularProgressIndicator(color: AppColors.purple3),
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 ),
               ],
@@ -154,7 +154,7 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
             child: ColoredBox(
               color: Color(0x33000000),
               child: Center(
-                child: CircularProgressIndicator(color: AppColors.purple3),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
             ),
           ),

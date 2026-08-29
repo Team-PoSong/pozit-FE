@@ -247,7 +247,11 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
                     ),
                     if (_isSaving) ...[
                       const SizedBox(height: 20),
-                      const Center(child: CircularProgressIndicator()),
+                      const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ],
                   ],
                 ),

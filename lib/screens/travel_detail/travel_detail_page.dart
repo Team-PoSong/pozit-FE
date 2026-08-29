@@ -112,10 +112,12 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         _detail = detail;
         _tagOptions = tagOptions;
         _travelTags = travelTags;
-        _inviteCode = (fetchedInviteCode != null && fetchedInviteCode.isNotEmpty)
+        _inviteCode =
+            (fetchedInviteCode != null && fetchedInviteCode.isNotEmpty)
             ? fetchedInviteCode
             : detail.inviteCode;
-        _isLeader = myUserId != null &&
+        _isLeader =
+            myUserId != null &&
             detail.members.any(
               (member) => member.userId == myUserId && member.isLeader,
             );
@@ -168,7 +170,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       if (!await ensureLocationPermission()) return null;
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       ).timeout(_kLocationFixTimeout);
       return LatLng(position.latitude, position.longitude);
     } catch (_) {
@@ -281,7 +285,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
 
   Future<void> _openCourseMapScreen(BuildContext context, int day) async {
     final detail = _detail!;
-    final enrichedCourses = await _fetchEnrichedCourses(context, detail.courses);
+    final enrichedCourses = await _fetchEnrichedCourses(
+      context,
+      detail.courses,
+    );
     if (!context.mounted) return;
 
     Navigator.of(context).push(
@@ -300,9 +307,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     BuildContext context,
     List<TravelCourseModel> courses,
   ) async {
-    final results = await Future.wait(
-      courses.map(_fetchCourseDetailWithRetry),
-    );
+    final results = await Future.wait(courses.map(_fetchCourseDetailWithRetry));
 
     if (context.mounted && results.any((result) => !result.ok)) {
       _showToast(context, '일부 장소의 주소를 불러오지 못했어요. 다시 열어 주세요.');
@@ -316,12 +321,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   ) async {
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
-        final detail = await widget.repository.getCourseDetail(
-          course.courseId,
-        );
+        final detail = await widget.repository.getCourseDetail(course.courseId);
         return (course: detail, ok: true);
-      } catch (_) {
-      }
+      } catch (_) {}
     }
     return (course: course, ok: false);
   }
@@ -509,7 +511,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
 
   Future<void> _openCourseEditScreen(BuildContext context) async {
     final detail = _detail!;
-    final enrichedCourses = await _fetchEnrichedCourses(context, detail.courses);
+    final enrichedCourses = await _fetchEnrichedCourses(
+      context,
+      detail.courses,
+    );
     if (!context.mounted) return;
 
     Navigator.of(context).push(
@@ -562,7 +567,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       case _LoadStatus.loading:
         return const Scaffold(
           backgroundColor: AppColors.white,
-          body: Center(child: CircularProgressIndicator()),
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
         );
       case _LoadStatus.error:
         return Scaffold(

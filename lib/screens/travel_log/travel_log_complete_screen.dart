@@ -67,9 +67,7 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
     final downloadUrl = widget.downloadUrl;
     if (downloadUrl == null) return;
 
-    final controller = VideoPlayerController.networkUrl(
-      Uri.parse(downloadUrl),
-    );
+    final controller = VideoPlayerController.networkUrl(Uri.parse(downloadUrl));
     _previewController = controller;
     controller.setLooping(true);
     controller
@@ -146,7 +144,7 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
     final controller = _previewController;
     if (controller == null || !controller.value.isInitialized) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.white),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
 
@@ -220,9 +218,7 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(_kLogBlockRadius),
                       child: DecoratedBox(
-                        decoration: const BoxDecoration(
-                          color: AppColors.text,
-                        ),
+                        decoration: const BoxDecoration(color: AppColors.text),
                         child: _buildLogPreview(),
                       ),
                     ),
@@ -242,24 +238,21 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
                       icon: AppIcons.save,
                       label: '저장',
                       isLoading: _busy == _BusyAction.saving,
-                      onTap: _busy == _BusyAction.none
-                          ? _handleSaveTap
-                          : null,
+                      onTap: _busy == _BusyAction.none ? _handleSaveTap : null,
                     ),
                     const SizedBox(width: _kButtonGap),
                     _LogActionButton(
                       icon: AppIcons.share,
                       label: '공유',
                       isLoading: _busy == _BusyAction.sharing,
-                      onTap: _busy == _BusyAction.none
-                          ? _handleShareTap
-                          : null,
+                      onTap: _busy == _BusyAction.none ? _handleShareTap : null,
                     ),
                   ],
                 ),
                 SizedBox(
                   height:
-                      _kButtonsBottomGap + MediaQuery.of(context).padding.bottom,
+                      _kButtonsBottomGap +
+                      MediaQuery.of(context).padding.bottom,
                 ),
               ],
             ),
@@ -312,7 +305,10 @@ class _LogActionButton extends StatelessWidget {
                       ? const SizedBox(
                           width: _kButtonIconSize,
                           height: _kButtonIconSize,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primary,
+                          ),
                         )
                       : SvgPicture.asset(
                           icon,

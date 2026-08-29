@@ -104,7 +104,7 @@ class _OnboardingFlowScreenState extends State<OnboardingFlowScreen> {
             semanticsLabel: '약관 불러오는 중',
           ),
           const Center(
-            child: CircularProgressIndicator(color: AppColors.purple3),
+            child: CircularProgressIndicator(color: AppColors.primary),
           ),
         ],
       ],

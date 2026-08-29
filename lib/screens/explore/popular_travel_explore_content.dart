@@ -96,7 +96,7 @@ class _PopularTravelExploreContentState
     final travels = _travels;
     if (travels == null) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.purple3),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
     return ExploreContent(

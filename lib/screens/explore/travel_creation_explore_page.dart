@@ -103,7 +103,7 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
     if (travels == null) {
       return const _StatusScaffold(
         child: Center(
-          child: CircularProgressIndicator(color: AppColors.purple3),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }

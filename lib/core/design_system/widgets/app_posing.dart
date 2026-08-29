@@ -36,8 +36,7 @@ class AppPosing extends StatelessWidget {
   final bool _isThumbnailPending;
   final VoidCallback? _onTap;
 
-  bool get _hasThumbnail =>
-      _thumbnailUrl != null && _thumbnailUrl.isNotEmpty;
+  bool get _hasThumbnail => _thumbnailUrl != null && _thumbnailUrl.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +70,7 @@ class AppPosing extends StatelessWidget {
                   height: 28,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    color: AppColors.gray5,
+                    color: AppColors.primary,
                   ),
                 ),
               )

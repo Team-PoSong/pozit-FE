@@ -98,7 +98,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
 
     return const Center(
-      child: CircularProgressIndicator(color: AppColors.purple3),
+      child: CircularProgressIndicator(color: AppColors.primary),
     );
   }
 }
