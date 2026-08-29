@@ -33,6 +33,25 @@ class LikedTravelModel {
   final int likeCount;
   final bool isLiked;
 
+  LikedTravelModel copyWith({int? likeCount, bool? isLiked}) {
+    return LikedTravelModel(
+      travelId: travelId,
+      title: title,
+      destination: destination,
+      startDate: startDate,
+      endDate: endDate,
+      status: status,
+      isPublic: isPublic,
+      backgroundImageUrl: backgroundImageUrl,
+      completionRate: completionRate,
+      tags: tags,
+      leaderNickname: leaderNickname,
+      memberCount: memberCount,
+      likeCount: likeCount ?? this.likeCount,
+      isLiked: isLiked ?? this.isLiked,
+    );
+  }
+
   factory LikedTravelModel.fromJson(Map<String, dynamic> json) {
     return LikedTravelModel(
       travelId: json['travelId'] as int,
