@@ -123,13 +123,16 @@ class AppFavoriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isEnabled = onPressed != null;
     return AppButton(
       text: '찜하기',
-      isEnabled: onPressed != null,
+      isEnabled: isEnabled,
       style: AppButtonStyle.tonal,
-      backgroundColor: isFavorite ? AppColors.gray3 : AppColors.purple1,
-      contentColor: isFavorite ? AppColors.gray5 : AppColors.purple3,
-      iconAsset: isFavorite ? AppIcons.heartMiddleGray : AppIcons.heartMiddle,
+      backgroundColor: isFavorite ? AppColors.purple1 : AppColors.gray3,
+      contentColor: isFavorite ? AppColors.purple3 : AppColors.gray5,
+      iconAsset: isFavorite && isEnabled
+          ? AppIcons.heartMiddle
+          : AppIcons.heartMiddleGray,
       iconWidth: 24,
       iconHeight: 24,
       iconGap: 14,
@@ -154,13 +157,13 @@ class _LikeButtonDemo extends StatefulWidget {
 }
 
 class _LikeButtonDemoState extends State<_LikeButtonDemo> {
-  bool _isActive = true;
+  bool _isFavorite = true;
 
   @override
   Widget build(BuildContext context) {
     return AppFavoriteButton(
-      isFavorite: _isActive,
-      onPressed: () => setState(() => _isActive = !_isActive),
+      isFavorite: _isFavorite,
+      onPressed: () => setState(() => _isFavorite = !_isFavorite),
     );
   }
 }
