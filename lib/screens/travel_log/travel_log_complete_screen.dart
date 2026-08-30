@@ -9,6 +9,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/repositories/pozing/pozing_repository.dart';
 
@@ -66,9 +67,7 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
     final downloadUrl = widget.downloadUrl;
     if (downloadUrl == null) return;
 
-    final controller = VideoPlayerController.networkUrl(
-      Uri.parse(downloadUrl),
-    );
+    final controller = VideoPlayerController.networkUrl(Uri.parse(downloadUrl));
     _previewController = controller;
     controller.setLooping(true);
     controller
@@ -99,16 +98,16 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
       final file = await widget.repository.downloadEditedVideo(downloadUrl);
       await Gal.putVideo(file.path, album: _kSavedAlbumName);
       if (!mounted) return;
-      _showSnackBar('기기에 저장했어요.');
+      _showToast('기기에 저장했어요.');
     } on GalException {
       if (!mounted) return;
-      _showSnackBar('저장 권한이 없어서 저장하지 못했어요.');
+      _showToast('저장 권한이 없어서 저장하지 못했어요.');
     } on ApiException catch (error) {
       if (!mounted) return;
-      _showSnackBar(error.message);
+      _showToast(error.message);
     } catch (_) {
       if (!mounted) return;
-      _showSnackBar('저장하지 못했어요.');
+      _showToast('저장하지 못했어요.');
     } finally {
       if (mounted) setState(() => _busy = _BusyAction.none);
     }
@@ -124,19 +123,17 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } on ApiException catch (error) {
       if (!mounted) return;
-      _showSnackBar(error.message);
+      _showToast(error.message);
     } catch (_) {
       if (!mounted) return;
-      _showSnackBar('공유하지 못했어요.');
+      _showToast('공유하지 못했어요.');
     } finally {
       if (mounted) setState(() => _busy = _BusyAction.none);
     }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+  void _showToast(String message) {
+    showAppToast(context, message);
   }
 
   Widget _buildLogPreview() {
@@ -147,7 +144,7 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
     final controller = _previewController;
     if (controller == null || !controller.value.isInitialized) {
       return const Center(
-        child: CircularProgressIndicator(color: AppColors.white),
+        child: CircularProgressIndicator(color: AppColors.primary),
       );
     }
 
@@ -221,9 +218,7 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(_kLogBlockRadius),
                       child: DecoratedBox(
-                        decoration: const BoxDecoration(
-                          color: AppColors.text,
-                        ),
+                        decoration: const BoxDecoration(color: AppColors.text),
                         child: _buildLogPreview(),
                       ),
                     ),
@@ -243,24 +238,21 @@ class _TravelLogCompleteScreenState extends State<TravelLogCompleteScreen> {
                       icon: AppIcons.save,
                       label: '저장',
                       isLoading: _busy == _BusyAction.saving,
-                      onTap: _busy == _BusyAction.none
-                          ? _handleSaveTap
-                          : null,
+                      onTap: _busy == _BusyAction.none ? _handleSaveTap : null,
                     ),
                     const SizedBox(width: _kButtonGap),
                     _LogActionButton(
                       icon: AppIcons.share,
                       label: '공유',
                       isLoading: _busy == _BusyAction.sharing,
-                      onTap: _busy == _BusyAction.none
-                          ? _handleShareTap
-                          : null,
+                      onTap: _busy == _BusyAction.none ? _handleShareTap : null,
                     ),
                   ],
                 ),
                 SizedBox(
                   height:
-                      _kButtonsBottomGap + MediaQuery.of(context).padding.bottom,
+                      _kButtonsBottomGap +
+                      MediaQuery.of(context).padding.bottom,
                 ),
               ],
             ),
@@ -313,7 +305,10 @@ class _LogActionButton extends StatelessWidget {
                       ? const SizedBox(
                           width: _kButtonIconSize,
                           height: _kButtonIconSize,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primary,
+                          ),
                         )
                       : SvgPicture.asset(
                           icon,

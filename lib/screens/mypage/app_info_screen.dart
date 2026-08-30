@@ -113,7 +113,7 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
     }
 
     return const Center(
-      child: CircularProgressIndicator(color: AppColors.purple3),
+      child: CircularProgressIndicator(color: AppColors.primary),
     );
   }
 }

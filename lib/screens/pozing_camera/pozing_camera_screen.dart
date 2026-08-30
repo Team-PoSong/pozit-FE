@@ -113,7 +113,7 @@ class _PozingCameraScreenState extends State<PozingCameraScreen> {
         child: switch (_status) {
           _CaptureStatus.capturing => const SizedBox.shrink(),
           _CaptureStatus.uploading => const Center(
-            child: CircularProgressIndicator(color: AppColors.white),
+            child: CircularProgressIndicator(color: AppColors.primary),
           ),
           _CaptureStatus.error => _buildError(),
         },

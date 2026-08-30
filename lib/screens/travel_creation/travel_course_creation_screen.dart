@@ -9,6 +9,7 @@ import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_chatbot_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
@@ -223,12 +224,9 @@ class _TravelCourseCreationScreenState
       );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            error is ApiException ? error.message : '여행을 생성하지 못했어요. 다시 시도해주세요.',
-          ),
-        ),
+      showAppToast(
+        context,
+        error is ApiException ? error.message : '여행을 생성하지 못했어요. 다시 시도해주세요.',
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);

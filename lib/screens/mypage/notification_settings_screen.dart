@@ -5,6 +5,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_switch.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/user/notification_settings_model.dart';
 
@@ -48,9 +49,7 @@ class _NotificationSettingsScreenState
       final message = error is ApiException
           ? error.message
           : '알림 설정을 변경하지 못했습니다.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      showAppToast(context, message);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

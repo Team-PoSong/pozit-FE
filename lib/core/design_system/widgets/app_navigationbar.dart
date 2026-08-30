@@ -7,19 +7,14 @@ import '../app_colors.dart';
 import '../app_dimensions.dart';
 import '../app_images.dart';
 import '../app_text_styles.dart';
+import 'app_pulsing_ring.dart';
 
 enum AppNavigationTab { travel, explore }
 
 class AppNavigationBar extends StatefulWidget {
   static const double height = 63;
 
-  // Scaffold(extendBody: true)는 body 쪽 MediaQuery.padding.bottom을 이미
-  // "실제 렌더링된 bottomNavigationBar 높이" 이상으로 맞춰서 내려보낸다
-  // (raw safe area와 max 비교). 그래서 이 값에 spacing/height를 또 더하면
-  // 이중 계산이 된다. viewPaddingOf도 대안이 될 수 없는데, Scaffold가
-  // bottomNavigationBar 존재만으로 body 쪽 MediaQuery.removePadding을 걸어
-  // padding뿐 아니라 viewPadding.bottom까지 0으로 지워버리기 때문이다.
-  static double clearance(BuildContext context, {double extraGap = 0}) {
+  static double clearance(BuildContext context, {double extraGap = 40}) {
     return MediaQuery.paddingOf(context).bottom + extraGap;
   }
 
@@ -222,7 +217,7 @@ class _NavigationItem extends StatelessWidget {
   }
 }
 
-class _CenterButton extends StatefulWidget {
+class _CenterButton extends StatelessWidget {
   const _CenterButton({
     required this.isCameraReady,
     required this.assetPackage,
@@ -234,150 +229,36 @@ class _CenterButton extends StatefulWidget {
   final VoidCallback? onTap;
 
   @override
-  State<_CenterButton> createState() => _CenterButtonState();
-}
-
-class _CenterButtonState extends State<_CenterButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1800),
-  );
-
-  bool _disableAnimations = false;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _disableAnimations =
-        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    _syncAnimation();
-  }
-
-  @override
-  void didUpdateWidget(_CenterButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isCameraReady != oldWidget.isCameraReady) {
-      _syncAnimation();
-    }
-  }
-
-  void _syncAnimation() {
-    if (widget.isCameraReady && !_disableAnimations) {
-      if (!_controller.isAnimating) _controller.repeat();
-      return;
-    }
-
-    _controller.stop();
-    _controller.value = 0;
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: widget.isCameraReady ? '포짓 촬영' : '포짓',
-      child: SizedBox.square(
-        dimension: 75,
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            final pulse = (math.sin(_controller.value * math.pi * 2) + 1) / 2;
-            final glowBlur = widget.isCameraReady ? 12 + (pulse * 6) : 12.0;
-
-            return DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: widget.isCameraReady
-                        ? const Color(0xFFC7C8FF).withValues(alpha: 0.72)
-                        : const Color(0xFFECEBFF),
-                    blurRadius: glowBlur,
-                  ),
-                ],
+      label: isCameraReady ? '포짓 촬영' : '포짓',
+      child: AppPulsingRing(
+        size: 75,
+        strokeWidth: 75 / 2,
+        active: isCameraReady,
+        child: Padding(
+          padding: const EdgeInsets.all(2),
+          child: Material(
+            color: AppColors.white,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              customBorder: const CircleBorder(),
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(9),
+                child: Image.asset(
+                  AppImages.appLogo,
+                  package: assetPackage,
+                  width: 52,
+                  height: 52,
+                  fit: BoxFit.contain,
+                  excludeFromSemantics: true,
+                ),
               ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Positioned.fill(
-                    child: Transform.rotate(
-                      angle: widget.isCameraReady
-                          ? _controller.value * math.pi * 2
-                          : 0,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: widget.isCameraReady
-                              ? const SweepGradient(
-                                  colors: [
-                                    Color(0xFFC7C8FF),
-                                    Color(0xFFF2F0FF),
-                                    Color(0xFFF6DDFB),
-                                    Color(0xFFF6DDFB),
-                                    Color(0xFFC7C8FF),
-                                    Color(0xFFF2F0FF),
-                                    Color(0xFFF6DDFB),
-                                    Color(0xFFF6DDFB),
-                                    Color(0xFFC7C8FF),
-                                  ],
-                                  stops: [
-                                    0,
-                                    0.12,
-                                    0.22,
-                                    0.3,
-                                    0.5,
-                                    0.62,
-                                    0.72,
-                                    0.8,
-                                    1,
-                                  ],
-                                )
-                              : const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Color(0xFFECEBFF),
-                                    Color(0xFFC7C8FF),
-                                  ],
-                                ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(2),
-                    child: Material(
-                      color: AppColors.white,
-                      shape: const CircleBorder(),
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: widget.onTap,
-                        child: Padding(
-                          padding: const EdgeInsets.all(9),
-                          child: Image.asset(
-                            AppImages.appLogo,
-                            package: widget.assetPackage,
-                            width: 52,
-                            height: 52,
-                            fit: BoxFit.contain,
-                            excludeFromSemantics: true,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );

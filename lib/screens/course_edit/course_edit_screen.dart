@@ -74,7 +74,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
   };
 
   late int _selectedDay = widget.initialDay;
-  late bool _hasChanges = widget.onSave != null;
+  bool _hasChanges = false;
 
   int get _dayCount => _dayNumbers.isEmpty ? 1 : _dayNumbers.length;
 

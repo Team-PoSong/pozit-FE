@@ -4,6 +4,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_retry_error_view.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/travel/public_travel_detail_model.dart';
 import '../../data/models/travel/travel_info_card_model.dart';
@@ -100,7 +101,7 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
                 ),
                 const Expanded(
                   child: Center(
-                    child: CircularProgressIndicator(color: AppColors.purple3),
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 ),
               ],
@@ -153,7 +154,7 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
             child: ColoredBox(
               color: Color(0x33000000),
               child: Center(
-                child: CircularProgressIndicator(color: AppColors.purple3),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
             ),
           ),
@@ -214,14 +215,10 @@ class _PublicTravelDetailPageState extends State<PublicTravelDetailPage> {
       );
     } on ApiException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.message)));
+      showAppToast(context, error.message);
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('찜 기반 여행 초안을 불러오지 못했습니다.')));
+      showAppToast(context, '찜 기반 여행 초안을 불러오지 못했습니다.');
     } finally {
       if (mounted) setState(() => _isOpeningDraft = false);
     }

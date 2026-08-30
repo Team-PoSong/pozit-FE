@@ -205,7 +205,11 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
                     ),
                     const SizedBox(height: 18),
                     if (_isLoadingTags)
-                      const Center(child: CircularProgressIndicator())
+                      const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      )
                     else if (_hasTagLoadError)
                       GestureDetector(
                         onTap: _loadTags,

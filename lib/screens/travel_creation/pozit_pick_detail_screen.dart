@@ -11,6 +11,7 @@ import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_info_tag.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/travel/travel_course_model.dart';
@@ -63,14 +64,11 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
       await widget.onFollowCourseTap();
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            error is ApiException
-                ? error.message
-                : '추천 코스를 저장하지 못했어요. 다시 시도해주세요.',
-          ),
-        ),
+      showAppToast(
+        context,
+        error is ApiException
+            ? error.message
+            : '추천 코스를 저장하지 못했어요. 다시 시도해주세요.',
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
