@@ -172,74 +172,90 @@ class _TravelInfoScreenState extends State<TravelInfoScreen> {
             TravelCreationHeader(currentStepIndex: 1, onBackTap: _handleBack),
             const SizedBox(height: 40),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '어떤 여행인지 알려주세요.',
-                      style: AppTextStyles.headline.copyWith(
-                        color: AppColors.text,
-                        letterSpacing: -0.5,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final keyboardHeight = MediaQuery.viewInsetsOf(
+                    context,
+                  ).bottom;
+                  return SingleChildScrollView(
+                    key: const Key('travel-info-scroll'),
+                    padding: EdgeInsets.fromLTRB(
+                      24,
+                      0,
+                      24,
+                      AppDimensions.screenBottomPadding + keyboardHeight,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight:
+                            constraints.maxHeight -
+                            AppDimensions.screenBottomPadding,
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      '여행명',
-                      style: AppTextStyles.subTitle.copyWith(
-                        color: AppColors.text,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    AppInputField(
-                      controller: _nameController,
-                      hintText: '직접 입력',
-                      onChanged: (_) => setState(() {}),
-                    ),
-                    const SizedBox(height: 40),
-                    Text(
-                      '어떤 여행인가요?(최대 2개 선택)',
-                      style: AppTextStyles.subTitle.copyWith(
-                        color: AppColors.text,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    if (_isLoadingTags)
-                      const Center(child: CircularProgressIndicator())
-                    else if (_hasTagLoadError)
-                      GestureDetector(
-                        onTap: _loadTags,
-                        child: Text(
-                          '태그를 불러오지 못했어요. 다시 시도하기',
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.error,
-                          ),
+                      child: IntrinsicHeight(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              '어떤 여행인지 알려주세요.',
+                              style: AppTextStyles.headline.copyWith(
+                                color: AppColors.text,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              '여행명',
+                              style: AppTextStyles.subTitle.copyWith(
+                                color: AppColors.text,
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            AppInputField(
+                              controller: _nameController,
+                              hintText: '직접 입력',
+                              onChanged: (_) => setState(() {}),
+                            ),
+                            const SizedBox(height: 40),
+                            Text(
+                              '어떤 여행인가요?(최대 2개 선택)',
+                              style: AppTextStyles.subTitle.copyWith(
+                                color: AppColors.text,
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            if (_isLoadingTags)
+                              const Center(child: CircularProgressIndicator())
+                            else if (_hasTagLoadError)
+                              GestureDetector(
+                                onTap: _loadTags,
+                                child: Text(
+                                  '태그를 불러오지 못했어요. 다시 시도하기',
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.error,
+                                  ),
+                                ),
+                              )
+                            else
+                              AppTravelTagGrid(
+                                selectedTags: _selectedTags,
+                                availableTags: _availableTags
+                                    .map((tag) => tag.name)
+                                    .toList(),
+                                onToggle: _handleTagTap,
+                              ),
+                            const Spacer(),
+                            const SizedBox(height: 24),
+                            AppButton(
+                              text: '다음',
+                              isEnabled: _canSave,
+                              onPressed: _handleSave,
+                            ),
+                          ],
                         ),
-                      )
-                    else
-                      AppTravelTagGrid(
-                        selectedTags: _selectedTags,
-                        availableTags: _availableTags
-                            .map((tag) => tag.name)
-                            .toList(),
-                        onToggle: _handleTagTap,
                       ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                24,
-                0,
-                24,
-                AppDimensions.screenBottomPadding,
-              ),
-              child: AppButton(
-                text: '다음',
-                isEnabled: _canSave,
-                onPressed: _handleSave,
+                    ),
+                  );
+                },
               ),
             ),
           ],

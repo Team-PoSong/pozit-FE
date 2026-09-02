@@ -23,7 +23,12 @@ class _TagRepository extends TravelRepository {
 }
 
 void main() {
-  testWidgets('여행명 입력 중 키보드가 나타나도 화면 크기를 조정하지 않는다', (tester) async {
+  testWidgets('키보드가 나타나도 화면은 고정하고 다음 버튼까지 스크롤한다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(
       MaterialApp(
         home: TravelInfoScreen(
@@ -40,6 +45,21 @@ void main() {
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
     expect(scaffold.resizeToAvoidBottomInset, isFalse);
+
+    final scrollable = tester.state<ScrollableState>(
+      find
+          .descendant(
+            of: find.byKey(const Key('travel-info-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(scrollable.position.maxScrollExtent, greaterThan(0));
+
+    await tester.ensureVisible(find.text('다음'));
+    await tester.pumpAndSettle();
+
+    expect(tester.getBottomRight(find.text('다음')).dy, lessThanOrEqualTo(552));
   });
 
   testWidgets('찜한 코스의 태그는 미리 선택되어 있다', (tester) async {
