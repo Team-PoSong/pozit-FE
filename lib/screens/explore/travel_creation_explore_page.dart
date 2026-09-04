@@ -30,6 +30,7 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
   List<LikedTravelModel>? _travels;
   Set<int> _likedTravelIds = const <int>{};
   Object? _error;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
   }
 
   Future<void> _load() async {
+    final generation = ++_loadGeneration;
     setState(() => _error = null);
     try {
       final results = await Future.wait([
@@ -46,13 +48,13 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
       ]);
       final travels = results[0];
       final likedTravels = results[1];
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         _travels = travels;
         _likedTravelIds = likedTravels.map((travel) => travel.travelId).toSet();
       });
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
       setState(() => _error = error);
     }
   }
@@ -62,7 +64,11 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
       MaterialPageRoute<void>(
         builder: (_) => PublicTravelDetailPage(
           travelId: travelId,
+          initialIsFavorite: _likedTravelIds.contains(travelId),
+          repository: widget.repository,
           likeRepository: widget.likeRepository,
+          onFavoriteChanged: (isFavorite) =>
+              _applyFavoriteState(travelId, isFavorite),
         ),
       ),
     );
@@ -70,18 +76,37 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
   }
 
   Future<void> _toggleFavorite(int travelId, bool isFavorite) async {
-    if (isFavorite) {
-      await widget.likeRepository.likeTravel(travelId);
-    } else {
-      await widget.likeRepository.unlikeTravel(travelId);
-    }
-    if (!mounted) return;
-    setState(() {
+    _applyFavoriteState(travelId, isFavorite);
+    try {
       if (isFavorite) {
-        _likedTravelIds.add(travelId);
+        await widget.likeRepository.likeTravel(travelId);
       } else {
-        _likedTravelIds.remove(travelId);
+        await widget.likeRepository.unlikeTravel(travelId);
       }
+    } catch (_) {
+      if (mounted) _applyFavoriteState(travelId, !isFavorite);
+      rethrow;
+    }
+  }
+
+  void _applyFavoriteState(int travelId, bool isFavorite) {
+    if (!mounted) return;
+    final wasFavorite = _likedTravelIds.contains(travelId);
+    setState(() {
+      isFavorite
+          ? _likedTravelIds.add(travelId)
+          : _likedTravelIds.remove(travelId);
+      _travels = _travels?.map((travel) {
+        if (travel.travelId != travelId) return travel;
+        final nextLikeCount = wasFavorite == isFavorite
+            ? travel.likeCount
+            : isFavorite
+            ? travel.likeCount + 1
+            : travel.likeCount > 0
+            ? travel.likeCount - 1
+            : 0;
+        return travel.copyWith(likeCount: nextLikeCount, isLiked: isFavorite);
+      }).toList();
     });
   }
 
@@ -103,7 +128,7 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
     if (travels == null) {
       return const _StatusScaffold(
         child: Center(
-          child: CircularProgressIndicator(color: AppColors.purple3),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }

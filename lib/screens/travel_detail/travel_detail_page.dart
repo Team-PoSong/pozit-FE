@@ -5,6 +5,7 @@ import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_travel_status.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/location/course_visiting.dart';
 import '../../core/location/location_permission.dart';
 import '../../core/network/api_exception.dart';
@@ -111,10 +112,12 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         _detail = detail;
         _tagOptions = tagOptions;
         _travelTags = travelTags;
-        _inviteCode = (fetchedInviteCode != null && fetchedInviteCode.isNotEmpty)
+        _inviteCode =
+            (fetchedInviteCode != null && fetchedInviteCode.isNotEmpty)
             ? fetchedInviteCode
             : detail.inviteCode;
-        _isLeader = myUserId != null &&
+        _isLeader =
+            myUserId != null &&
             detail.members.any(
               (member) => member.userId == myUserId && member.isLeader,
             );
@@ -167,7 +170,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       if (!await ensureLocationPermission()) return null;
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       ).timeout(_kLocationFixTimeout);
       return LatLng(position.latitude, position.longitude);
     } catch (_) {
@@ -271,16 +276,19 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       await _load();
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      _showSnackBar(context, error.message);
+      _showToast(context, error.message);
     } catch (_) {
       if (!context.mounted) return;
-      _showSnackBar(context, '멤버를 내보내지 못했어요.');
+      _showToast(context, '멤버를 내보내지 못했어요.');
     }
   }
 
   Future<void> _openCourseMapScreen(BuildContext context, int day) async {
     final detail = _detail!;
-    final enrichedCourses = await _fetchEnrichedCourses(context, detail.courses);
+    final enrichedCourses = await _fetchEnrichedCourses(
+      context,
+      detail.courses,
+    );
     if (!context.mounted) return;
 
     Navigator.of(context).push(
@@ -299,12 +307,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     BuildContext context,
     List<TravelCourseModel> courses,
   ) async {
-    final results = await Future.wait(
-      courses.map(_fetchCourseDetailWithRetry),
-    );
+    final results = await Future.wait(courses.map(_fetchCourseDetailWithRetry));
 
     if (context.mounted && results.any((result) => !result.ok)) {
-      _showSnackBar(context, '일부 장소의 주소를 불러오지 못했어요. 다시 열어 주세요.');
+      _showToast(context, '일부 장소의 주소를 불러오지 못했어요. 다시 열어 주세요.');
     }
 
     return [for (final result in results) result.course];
@@ -315,12 +321,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
   ) async {
     for (var attempt = 0; attempt < 2; attempt++) {
       try {
-        final detail = await widget.repository.getCourseDetail(
-          course.courseId,
-        );
+        final detail = await widget.repository.getCourseDetail(course.courseId);
         return (course: detail, ok: true);
-      } catch (_) {
-      }
+      } catch (_) {}
     }
     return (course: course, ok: false);
   }
@@ -401,7 +404,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     await _load();
 
     if (errors.isNotEmpty && context.mounted) {
-      _showSnackBar(context, errors.join('\n'));
+      _showToast(context, errors.join('\n'));
     }
   }
 
@@ -442,16 +445,16 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
         }
       } else {
         closeSavingScreenIfActive();
-        _showSnackBar(context, status.errorMessage ?? '여행 로그를 만들지 못했어요.');
+        _showToast(context, status.errorMessage ?? '여행 로그를 만들지 못했어요.');
       }
     } on ApiException catch (error) {
       if (!context.mounted) return;
       closeSavingScreenIfActive();
-      _showSnackBar(context, error.message);
+      _showToast(context, error.message);
     } catch (_) {
       if (!context.mounted) return;
       closeSavingScreenIfActive();
-      _showSnackBar(context, '여행 로그를 만들지 못했어요.');
+      _showToast(context, '여행 로그를 만들지 못했어요.');
     }
   }
 
@@ -473,10 +476,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       _navigateToHome(context);
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      _showSnackBar(context, error.message);
+      _showToast(context, error.message);
     } catch (_) {
       if (!context.mounted) return;
-      _showSnackBar(context, '여행에서 나가지 못했어요.');
+      _showToast(context, '여행에서 나가지 못했어요.');
     }
   }
 
@@ -487,10 +490,10 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       _navigateToHome(context);
     } on ApiException catch (error) {
       if (!context.mounted) return;
-      _showSnackBar(context, error.message);
+      _showToast(context, error.message);
     } catch (_) {
       if (!context.mounted) return;
-      _showSnackBar(context, '여행을 삭제하지 못했어요.');
+      _showToast(context, '여행을 삭제하지 못했어요.');
     }
   }
 
@@ -501,16 +504,17 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     );
   }
 
-  void _showSnackBar(BuildContext context, String message) {
+  void _showToast(BuildContext context, String message) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    showAppToast(context, message);
   }
 
   Future<void> _openCourseEditScreen(BuildContext context) async {
     final detail = _detail!;
-    final enrichedCourses = await _fetchEnrichedCourses(context, detail.courses);
+    final enrichedCourses = await _fetchEnrichedCourses(
+      context,
+      detail.courses,
+    );
     if (!context.mounted) return;
 
     Navigator.of(context).push(
@@ -553,7 +557,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     await _load();
 
     if (errors.isNotEmpty && context.mounted) {
-      _showSnackBar(context, errors.join('\n'));
+      _showToast(context, errors.join('\n'));
     }
   }
 
@@ -563,7 +567,9 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
       case _LoadStatus.loading:
         return const Scaffold(
           backgroundColor: AppColors.white,
-          body: Center(child: CircularProgressIndicator()),
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
         );
       case _LoadStatus.error:
         return Scaffold(

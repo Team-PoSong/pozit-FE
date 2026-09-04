@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/network/dio_client.dart';
 import '../../data/datasources/auth/auth_token_storage.dart';
@@ -103,9 +104,7 @@ class _AuthGateState extends State<AuthGate> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(_sessionCheckFailureMessage)),
-      );
+      showAppToast(context, _sessionCheckFailureMessage);
     });
   }
 
@@ -148,7 +147,9 @@ class _AuthGateState extends State<AuthGate> {
     return switch (_status) {
       _AuthGateStatus.checking => const Scaffold(
         backgroundColor: AppColors.white,
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
       ),
       _AuthGateStatus.signedOut => LoginScreen(
         onLoginSuccess: _handleLoginSuccess,

@@ -8,6 +8,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_filter_chip.dart';
 import '../../core/design_system/widgets/app_navigationbar.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
 import 'widgets/explore_filter_sheet.dart';
 
@@ -113,10 +114,18 @@ class _ExploreContentState extends State<ExploreContent> {
   void didUpdateWidget(covariant ExploreContent oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.travels != widget.travels) {
-      _favoriteIds = _travels
+      final updatedFavoriteIds = _travels
           .where((travel) => travel.isFavorite)
           .map((travel) => travel.id)
           .toSet();
+      for (final travelId in _pendingFavoriteIds) {
+        if (_favoriteIds.contains(travelId)) {
+          updatedFavoriteIds.add(travelId);
+        } else {
+          updatedFavoriteIds.remove(travelId);
+        }
+      }
+      _favoriteIds = updatedFavoriteIds;
     }
   }
 
@@ -186,19 +195,22 @@ class _ExploreContentState extends State<ExploreContent> {
 
   Future<void> _toggleFavorite(ExploreTravelItem travel) async {
     if (_pendingFavoriteIds.contains(travel.id)) return;
-    final next = !_favoriteIds.contains(travel.id);
-    setState(() => _pendingFavoriteIds.add(travel.id));
+    final wasFavorite = _favoriteIds.contains(travel.id);
+    final next = !wasFavorite;
+    setState(() {
+      _pendingFavoriteIds.add(travel.id);
+      next ? _favoriteIds.add(travel.id) : _favoriteIds.remove(travel.id);
+    });
     try {
       await widget.onFavoriteToggle?.call(travel.id, next);
-      if (!mounted) return;
-      setState(() {
-        next ? _favoriteIds.add(travel.id) : _favoriteIds.remove(travel.id);
-      });
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('찜 상태를 변경하지 못했습니다.')));
+      setState(() {
+        wasFavorite
+            ? _favoriteIds.add(travel.id)
+            : _favoriteIds.remove(travel.id);
+      });
+      showAppToast(context, '찜 상태를 변경하지 못했습니다.');
     } finally {
       if (mounted) setState(() => _pendingFavoriteIds.remove(travel.id));
     }

@@ -3,6 +3,7 @@ import 'package:flutter/widget_previews.dart';
 
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/repositories/support/support_repository.dart';
 import 'feedback_content.dart';
@@ -46,9 +47,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
       final message = error is ApiException ? error.message : '피드백을 보내지 못했습니다.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      showAppToast(context, message);
     }
   }
 
@@ -56,6 +55,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         bottom: false,
         child: Padding(

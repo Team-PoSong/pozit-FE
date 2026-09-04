@@ -7,6 +7,7 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_dimensions.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/network/api_exception.dart';
 
@@ -59,9 +60,7 @@ class _TermsAgreementScreenState extends State<TermsAgreementScreen> {
       final message = error is ApiException
           ? error.message
           : '약관 동의를 저장하지 못했습니다.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      showAppToast(context, message);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

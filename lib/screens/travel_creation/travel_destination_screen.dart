@@ -208,7 +208,11 @@ class _TravelDestinationScreenState extends State<TravelDestinationScreen> {
             const SizedBox(height: 24),
             Expanded(
               child: _isSearching
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
                   : ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       itemCount: _results.length,

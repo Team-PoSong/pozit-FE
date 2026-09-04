@@ -8,6 +8,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_chip.dart';
 import '../../core/design_system/widgets/app_location_select.dart';
 import '../../core/design_system/widgets/app_search_bar.dart';
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../data/models/tourist_spot_model.dart';
 import '../../data/models/tourist_spot_rank_model.dart';
@@ -176,7 +177,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   Widget _buildPopularSpotsSection() {
     if (_isLoadingPopular) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
     }
     if (_hasPopularError) {
       return _SearchError(onRetry: _loadPopularSpots);
@@ -199,7 +202,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         if (index >= _popularSpots.length) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
           );
         }
         final spot = _popularSpots[index];
@@ -364,9 +369,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _isAddingSpots = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('선택한 장소를 추가하지 못했어요. 다시 시도해주세요.')),
-      );
+      showAppToast(context, '선택한 장소를 추가하지 못했어요. 다시 시도해주세요.');
     }
   }
 
@@ -459,7 +462,11 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 children: [
                   Positioned.fill(
                     child: _isSearching
-                        ? const Center(child: CircularProgressIndicator())
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.primary,
+                            ),
+                          )
                         : isEmptyResult
                         ? const _EmptyResult()
                         : _hasSearched
@@ -481,7 +488,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                                 return const Padding(
                                   padding: EdgeInsets.symmetric(vertical: 16),
                                   child: Center(
-                                    child: CircularProgressIndicator(),
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.primary,
+                                    ),
                                   ),
                                 );
                               }
