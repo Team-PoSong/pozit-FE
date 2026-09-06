@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -82,7 +83,7 @@ class TravelSettingsScreen extends StatefulWidget {
   final File? initialBackgroundImage;
   final VoidCallback? onBackTap;
 
-  final ValueChanged<TravelSettingsResult>? onSave;
+  final FutureOr<void> Function(TravelSettingsResult result)? onSave;
 
   @override
   State<TravelSettingsScreen> createState() => _TravelSettingsScreenState();
@@ -103,6 +104,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
   late final Set<int> _selectedTagIds = {...widget.initialTagIds};
   late bool _isPublic = widget.initialIsPublic;
   File? _backgroundImage;
+  bool _isSaving = false;
 
   bool get _hasInitialDateRange =>
       widget.initialStartDate != null && widget.initialEndDate != null;
@@ -149,9 +151,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
 
   Future<void> _handlePickBackgroundImage() async {
     try {
-      final picked = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-      );
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (picked == null || !mounted) return;
       setState(() => _backgroundImage = File(picked.path));
     } catch (_) {}
@@ -185,20 +185,26 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
     });
   }
 
-  void _handleSave() {
-    widget.onSave?.call(
-      TravelSettingsResult(
-        travelName: _travelNameController.text.trim(),
-        startDate: _startDate!,
-        endDate: _endDate!,
-        tagIds: _selectedTagIds.toList(),
-        isPublic: _isPublic,
-        hasCoreFieldChanges: _hasCoreFieldChanges,
-        isPublicChanged: _isPublicChanged,
-        backgroundImage: _backgroundImage,
-      ),
-    );
-    Navigator.of(context).pop();
+  Future<void> _handleSave() async {
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    try {
+      await widget.onSave?.call(
+        TravelSettingsResult(
+          travelName: _travelNameController.text.trim(),
+          startDate: _startDate!,
+          endDate: _endDate!,
+          tagIds: _selectedTagIds.toList(),
+          isPublic: _isPublic,
+          hasCoreFieldChanges: _hasCoreFieldChanges,
+          isPublicChanged: _isPublicChanged,
+          backgroundImage: _backgroundImage,
+        ),
+      );
+      if (mounted) Navigator.of(context).pop();
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   void _handleBack() {
@@ -248,9 +254,7 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                         onTap: _handlePickBackgroundImage,
                         child: _backgroundImage == null
                             ? const AppPosing.travelPhoto()
-                            : _BackgroundPhotoPreview(
-                                image: _backgroundImage!,
-                              ),
+                            : _BackgroundPhotoPreview(image: _backgroundImage!),
                       ),
                       const SizedBox(height: _kPhotoToNameLabelGap),
                       const _SectionLabel('여행명'),
@@ -290,8 +294,8 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
                       ),
                       const SizedBox(height: _kTagGridToButtonGap),
                       AppButton(
-                        text: '저장하기',
-                        isEnabled: _isFormValid,
+                        text: _isSaving ? '저장 중...' : '저장하기',
+                        isEnabled: _isFormValid && !_isSaving,
                         onPressed: _handleSave,
                       ),
                     ],
