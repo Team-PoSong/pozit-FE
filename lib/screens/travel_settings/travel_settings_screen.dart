@@ -216,92 +216,98 @@ class _TravelSettingsScreenState extends State<TravelSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TravelDetailTopBar(title: '여행 설정', onBackTap: _handleBack),
-                const SizedBox(height: _kTopBarToFirstGap),
-                if (_isCompleted) ...[
+      body: IgnorePointer(
+        key: const ValueKey('travel-settings-saving-guard'),
+        ignoring: _isSaving,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TravelDetailTopBar(title: '여행 설정', onBackTap: _handleBack),
+                  const SizedBox(height: _kTopBarToFirstGap),
+                  if (_isCompleted) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: _kHorizontalPadding,
+                      ),
+                      child: _VisibilitySection(
+                        isPublic: _isPublic,
+                        onChanged: (value) => setState(() => _isPublic = value),
+                      ),
+                    ),
+                    const SizedBox(height: _kVisibilityToggleToCommonGap),
+                  ],
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: _kHorizontalPadding,
+                    padding: const EdgeInsets.fromLTRB(
+                      _kHorizontalPadding,
+                      0,
+                      _kHorizontalPadding,
+                      AppDimensions.screenBottomPadding,
                     ),
-                    child: _VisibilitySection(
-                      isPublic: _isPublic,
-                      onChanged: (value) => setState(() => _isPublic = value),
-                    ),
-                  ),
-                  const SizedBox(height: _kVisibilityToggleToCommonGap),
-                ],
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    _kHorizontalPadding,
-                    0,
-                    _kHorizontalPadding,
-                    AppDimensions.screenBottomPadding,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const _SectionLabel('배경사진 추가하기'),
-                      const SizedBox(height: _kLabelToFieldGap),
-                      GestureDetector(
-                        onTap: _handlePickBackgroundImage,
-                        child: _backgroundImage == null
-                            ? const AppPosing.travelPhoto()
-                            : _BackgroundPhotoPreview(image: _backgroundImage!),
-                      ),
-                      const SizedBox(height: _kPhotoToNameLabelGap),
-                      const _SectionLabel('여행명'),
-                      const SizedBox(height: _kLabelToFieldGap),
-                      AppInputField(
-                        controller: _travelNameController,
-                        hintText: '친구들과 경주 여행',
-                        onChanged: (_) => setState(() {}),
-                      ),
-                      const SizedBox(height: _kFieldToNextLabelGap),
-                      const _SectionLabel('어디로 떠나시나요?'),
-                      const SizedBox(height: _kLabelToFieldGap),
-
-                      IgnorePointer(
-                        child: AppInputField(
-                          controller: _destinationController,
-                          readOnly: true,
-                          textColor: AppColors.gray5,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const _SectionLabel('배경사진 추가하기'),
+                        const SizedBox(height: _kLabelToFieldGap),
+                        GestureDetector(
+                          onTap: _handlePickBackgroundImage,
+                          child: _backgroundImage == null
+                              ? const AppPosing.travelPhoto()
+                              : _BackgroundPhotoPreview(
+                                  image: _backgroundImage!,
+                                ),
                         ),
-                      ),
-                      const SizedBox(height: _kFieldToNextLabelGap),
-                      const _SectionLabel('여행이 언제인가요?'),
-                      const SizedBox(height: _kLabelToFieldGap),
-                      AppInputField(
-                        controller: _dateController,
-                        readOnly: true,
-                        hintText: '8/18 - 8/21',
-                        onTap: _handlePickDateRange,
-                      ),
-                      const SizedBox(height: _kFieldToNextLabelGap),
-                      const _SectionLabel('어떤 여행인가요?(최대 2개 선택)'),
-                      const SizedBox(height: _kLabelToFieldGap),
-                      _TagGrid(
-                        tagOptions: widget.tagOptions,
-                        selectedTagIds: _selectedTagIds,
-                        onToggle: _handleToggleTag,
-                      ),
-                      const SizedBox(height: _kTagGridToButtonGap),
-                      AppButton(
-                        text: _isSaving ? '저장 중...' : '저장하기',
-                        isEnabled: _isFormValid && !_isSaving,
-                        onPressed: _handleSave,
-                      ),
-                    ],
+                        const SizedBox(height: _kPhotoToNameLabelGap),
+                        const _SectionLabel('여행명'),
+                        const SizedBox(height: _kLabelToFieldGap),
+                        AppInputField(
+                          controller: _travelNameController,
+                          hintText: '친구들과 경주 여행',
+                          onChanged: (_) => setState(() {}),
+                        ),
+                        const SizedBox(height: _kFieldToNextLabelGap),
+                        const _SectionLabel('어디로 떠나시나요?'),
+                        const SizedBox(height: _kLabelToFieldGap),
+
+                        IgnorePointer(
+                          child: AppInputField(
+                            controller: _destinationController,
+                            readOnly: true,
+                            textColor: AppColors.gray5,
+                          ),
+                        ),
+                        const SizedBox(height: _kFieldToNextLabelGap),
+                        const _SectionLabel('여행이 언제인가요?'),
+                        const SizedBox(height: _kLabelToFieldGap),
+                        AppInputField(
+                          controller: _dateController,
+                          readOnly: true,
+                          hintText: '8/18 - 8/21',
+                          onTap: _handlePickDateRange,
+                        ),
+                        const SizedBox(height: _kFieldToNextLabelGap),
+                        const _SectionLabel('어떤 여행인가요?(최대 2개 선택)'),
+                        const SizedBox(height: _kLabelToFieldGap),
+                        _TagGrid(
+                          tagOptions: widget.tagOptions,
+                          selectedTagIds: _selectedTagIds,
+                          onToggle: _handleToggleTag,
+                        ),
+                        const SizedBox(height: _kTagGridToButtonGap),
+                        AppButton(
+                          text: _isSaving ? '저장 중...' : '저장하기',
+                          isEnabled: _isFormValid && !_isSaving,
+                          onPressed: _handleSave,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

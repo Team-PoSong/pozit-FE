@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/app_travel_status.dart';
+import 'package:pozit/core/design_system/widgets/toggle/app_visibility_toggle.dart';
 import 'package:pozit/data/models/travel/travel_tag_model.dart';
 import 'package:pozit/screens/travel_settings/travel_settings_screen.dart';
 
@@ -45,6 +46,26 @@ void main() {
 
     expect(find.byType(TravelSettingsScreen), findsOneWidget);
     expect(find.text('저장 중...'), findsOneWidget);
+    expect(
+      tester
+          .widget<IgnorePointer>(
+            find.byKey(const ValueKey('travel-settings-saving-guard')),
+          )
+          .ignoring,
+      isTrue,
+    );
+
+    final toggles = tester.widgetList<AppVisibilityToggle>(
+      find.byType(AppVisibilityToggle),
+    );
+    expect(
+      toggles.singleWhere((toggle) => toggle.label == '공개').isSelected,
+      isTrue,
+    );
+    expect(
+      toggles.singleWhere((toggle) => toggle.label == '비공개').isSelected,
+      isFalse,
+    );
 
     saveCompleter.complete();
     await tester.pumpAndSettle();
