@@ -416,8 +416,8 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                           TravelDetailTopBar(
                             title: widget.title,
                             showLock:
-                                widget.status == AppTravelStatus.completed &&
-                                !widget.isPublic,
+                                widget.status == AppTravelStatus.completed,
+                            isPublic: widget.isPublic,
                             showSettingsButton: widget.isMyTravel,
                             travelStatus: widget.status,
                             isLeader: widget.isLeader,

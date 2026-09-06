@@ -25,6 +25,7 @@ class TravelDetailTopBar extends StatelessWidget {
     super.key,
     this.title,
     this.showLock = false,
+    this.isPublic = false,
     this.showSettingsButton = false,
     this.isSettingsEnabled = true,
     this.travelStatusMode,
@@ -54,6 +55,7 @@ class TravelDetailTopBar extends StatelessWidget {
   final String? title;
 
   final bool showLock;
+  final bool isPublic;
 
   final bool showSettingsButton;
   final bool isSettingsEnabled;
@@ -100,7 +102,7 @@ class TravelDetailTopBar extends StatelessWidget {
                   children: [
                     if (showLock) ...[
                       SvgPicture.asset(
-                        AppIcons.lockClosed,
+                        isPublic ? AppIcons.lockOpen : AppIcons.lockClosed,
                         width: _kIconSize,
                         height: _kIconSize,
                         colorFilter: ColorFilter.mode(
@@ -283,9 +285,7 @@ class _IconButton extends StatelessWidget {
 @Preview(group: 'travel_detail', name: 'TopBar - 텍스트만')
 Widget travelDetailTopBarTitleOnlyPreview() {
   return const MaterialApp(
-    home: Scaffold(
-      body: TravelDetailTopBar(title: '여행 설정'),
-    ),
+    home: Scaffold(body: TravelDetailTopBar(title: '여행 설정')),
   );
 }
 
