@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
 import 'package:pozit/screens/auth/login_screen.dart';
+import 'package:pozit/screens/mypage/mypage_screen.dart';
 import 'package:pozit/screens/onboarding/onboarding_flow_screen.dart';
 
 class _HomeProbe extends StatelessWidget {
@@ -30,7 +31,10 @@ void main() {
     await tester.pumpAndSettle();
 
     final home = tester.widget<_HomeProbe>(find.byType(_HomeProbe));
-    expect(home.onMyPageTap, isNotNull);
+    home.onMyPageTap();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MyPageScreen), findsOneWidget);
   });
 
   testWidgets('신규 회원 로그인 성공 시 로그인 라우트를 온보딩으로 교체한다', (tester) async {
