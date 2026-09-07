@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/screens/auth/auth_gate.dart';
 import 'package:pozit/screens/auth/login_screen.dart';
+import 'package:pozit/screens/onboarding/onboarding_flow_screen.dart';
 
 class _HomeProbe extends StatelessWidget {
   const _HomeProbe({required this.onMyPageTap});
@@ -30,5 +31,23 @@ void main() {
 
     final home = tester.widget<_HomeProbe>(find.byType(_HomeProbe));
     expect(home.onMyPageTap, isNotNull);
+  });
+
+  testWidgets('신규 회원 로그인 성공 시 로그인 라우트를 온보딩으로 교체한다', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(home: AuthGate(readAccessToken: () async => null)),
+    );
+    await tester.pumpAndSettle();
+
+    final loginScreen = tester.widget<LoginScreen>(find.byType(LoginScreen));
+    await loginScreen.onLoginSuccess!(true);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(OnboardingFlowScreen), findsOneWidget);
+    expect(find.byType(LoginScreen), findsNothing);
+    expect(
+      Navigator.of(tester.element(find.byType(OnboardingFlowScreen))).canPop(),
+      isFalse,
+    );
   });
 }

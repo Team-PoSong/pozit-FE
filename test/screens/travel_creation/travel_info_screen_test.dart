@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/widgets/app_chip.dart';
+import 'package:pozit/core/design_system/widgets/button/app_button.dart';
 import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_info_screen.dart';
@@ -56,10 +57,11 @@ void main() {
     );
     expect(scrollable.position.maxScrollExtent, greaterThan(0));
 
-    await tester.ensureVisible(find.text('다음'));
+    final nextButton = find.byType(AppButton);
+    await tester.ensureVisible(nextButton);
     await tester.pumpAndSettle();
 
-    expect(tester.getBottomRight(find.text('다음')).dy, lessThanOrEqualTo(552));
+    expect(tester.getBottomRight(nextButton).dy, lessThanOrEqualTo(552));
   });
 
   testWidgets('찜한 코스의 태그는 미리 선택되어 있다', (tester) async {

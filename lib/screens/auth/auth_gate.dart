@@ -131,10 +131,10 @@ class _AuthGateState extends State<AuthGate> {
     _setStatus(_AuthGateStatus.signedOut);
   }
 
-  Future<void> _handleLoginSuccess(bool isNewUser) async {
+  void _handleLoginSuccess(bool isNewUser) {
     if (!mounted) return;
     if (isNewUser) {
-      await Navigator.of(context).push<void>(
+      Navigator.of(context).pushReplacement<void, void>(
         MaterialPageRoute(builder: (_) => const OnboardingFlowScreen()),
       );
       return;
