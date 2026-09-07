@@ -11,7 +11,6 @@ import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location.dart';
 import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
-import '../../core/design_system/widgets/button/app_chatbot_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
 import '../../core/network/api_exception.dart';
 import '../../data/models/tourist_spot_model.dart';
@@ -28,7 +27,6 @@ class TravelCourseCreationScreen extends StatefulWidget {
   const TravelCourseCreationScreen({
     super.key,
     required this.travelInfo,
-    this.onAiTap,
     this.onAddCourseTap,
     this.onStartTravel,
     this.onBackTap,
@@ -37,7 +35,6 @@ class TravelCourseCreationScreen extends StatefulWidget {
   });
 
   final TravelInfoResult travelInfo;
-  final VoidCallback? onAiTap;
   final ValueChanged<int>? onAddCourseTap;
   final VoidCallback? onStartTravel;
   final VoidCallback? onBackTap;
@@ -257,11 +254,7 @@ class _TravelCourseCreationScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TravelCreationHeader(
-              currentStepIndex: 2,
-              onBackTap: _handleBack,
-              trailing: AppChatbotButton(onPressed: widget.onAiTap),
-            ),
+            TravelCreationHeader(currentStepIndex: 2, onBackTap: _handleBack),
             const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -329,7 +322,6 @@ class _TravelCourseCreationScreenState
                     bottom: 22,
                     child: AppCircleButton(
                       size: 62,
-                      backgroundColor: AppColors.purple3,
                       iconAsset: AppIcons.plus,
                       onPressed: _handleAddCourseTap,
                     ),
@@ -337,7 +329,6 @@ class _TravelCourseCreationScreenState
                 ],
               ),
             ),
-            const SizedBox(height: 22),
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 24,

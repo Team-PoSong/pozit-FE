@@ -19,6 +19,7 @@ class SavedTravelModel {
     this.backgroundImage,
     this.tags = const [],
     this.participantCount,
+    this.isPublic = false,
   });
 
   final String id;
@@ -33,4 +34,5 @@ class SavedTravelModel {
   final ImageProvider<Object>? backgroundImage;
   final List<String> tags;
   final int? participantCount;
+  final bool isPublic;
 }

@@ -349,7 +349,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     );
   }
 
-  Future<void> _handleSettingsSave(
+  Future<bool> _handleSettingsSave(
     BuildContext context,
     TravelDetailModel detail,
     TravelSettingsResult result,
@@ -406,6 +406,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
     if (errors.isNotEmpty && context.mounted) {
       _showToast(context, errors.join('\n'));
     }
+    return errors.isEmpty;
   }
 
   Future<void> _handleSaveLogTap(BuildContext context) async {

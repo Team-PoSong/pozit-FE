@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/widgets/app_date_detail_select.dart';
 import 'package:pozit/core/design_system/widgets/app_location_select.dart';
 import 'package:pozit/core/design_system/widgets/app_location.dart';
-import 'package:pozit/core/design_system/widgets/button/app_chatbot_button.dart';
 import 'package:pozit/core/design_system/widgets/button/app_circle_button.dart';
 import 'package:pozit/screens/location_search/location_search_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
@@ -218,7 +217,6 @@ void main() {
     );
 
     expect(find.byType(AppDateDetailSelect), findsOneWidget);
-    expect(find.byType(AppChatbotButton), findsOneWidget);
     expect(find.text('1일차'), findsNWidgets(2));
 
     final daySelector = find.byType(AppDateDetailSelect);

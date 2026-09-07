@@ -139,9 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           return;
         }
-        await Future<void>.delayed(
-          _activeSpotsRetryDelay * (attempt + 1),
-        );
+        await Future<void>.delayed(_activeSpotsRetryDelay * (attempt + 1));
         if (!mounted) return;
       }
     }
@@ -296,6 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
           : null,
       tags: travel.tags,
       participantCount: travel.memberCount,
+      isPublic: travel.isPublic,
     );
   }
 
@@ -329,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
           info: travel.info,
           status: travel.status,
           isLeader: true,
-          isPublic: false,
+          isPublic: travel.isPublic,
           backgroundImage:
               travel.backgroundImage ??
               const AssetImage(AppImages.travelMockup),
@@ -641,7 +640,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   tags: travel.tags,
                                   participantCount: travel.participantCount,
                                   backgroundImage: travel.backgroundImage,
-                                  isPublic: false,
+                                  isPublic: travel.isPublic,
                                   onTap: () => _openSavedTravel(travel),
                                 );
                               },

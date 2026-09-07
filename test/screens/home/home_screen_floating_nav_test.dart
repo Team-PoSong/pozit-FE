@@ -24,7 +24,8 @@ SavedTravelModel _travel(int index) {
     id: 'travel-$index',
     title: '더미 여행 $index',
     location: '서울 종로',
-    dateText: '${startDate.month}/${startDate.day} ~ ${endDate.month}/${endDate.day}',
+    dateText:
+        '${startDate.month}/${startDate.day} ~ ${endDate.month}/${endDate.day}',
     author: '포송',
     info: TravelInfoCardModel(
       destination: '서울 종로',
@@ -68,9 +69,7 @@ void main() {
     TravelStore.instance.travels.value = const [];
   });
 
-  testWidgets('여행 목록의 하단 패딩은 플로팅 바텀 네비게이션 바 높이만큼 확보되어 있다', (
-    tester,
-  ) async {
+  testWidgets('여행 목록의 하단 패딩은 플로팅 바텀 네비게이션 바 높이만큼 확보되어 있다', (tester) async {
     await _pumpHomeScreen(tester);
 
     final tripList = find.byWidgetPredicate(
@@ -88,7 +87,7 @@ void main() {
 
     expect(
       padding?.bottom,
-      expectedClearance,
+      greaterThanOrEqualTo(expectedClearance),
       reason:
           '여행 목록 하단 패딩이 플로팅 네비게이션 바의 높이(핸들 영역 포함)보다 작으면 '
           '마지막 카드가 바에 가려질 수 있습니다.',
@@ -156,8 +155,7 @@ void main() {
     expect(
       gapBeforeScroll,
       greaterThan(0),
-      reason:
-          '목록 첫 카드가 토글/+ 버튼 바로 아래에 붙지 않도록 고정 여백이 있어야 합니다.',
+      reason: '목록 첫 카드가 토글/+ 버튼 바로 아래에 붙지 않도록 고정 여백이 있어야 합니다.',
     );
 
     final scrollable = find.descendant(

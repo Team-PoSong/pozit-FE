@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/widgets/app_chip.dart';
+import 'package:pozit/core/design_system/widgets/button/app_button.dart';
 import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_info_screen.dart';
@@ -23,6 +24,46 @@ class _TagRepository extends TravelRepository {
 }
 
 void main() {
+  testWidgets('키보드가 나타나도 화면은 고정하고 다음 버튼까지 스크롤한다', (tester) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TravelInfoScreen(
+          repository: const _TagRepository(),
+          destination: '경주',
+          dateRange: DateTimeRange(
+            start: DateTime(2026, 8, 1),
+            end: DateTime(2026, 8, 2),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(scaffold.resizeToAvoidBottomInset, isFalse);
+
+    final scrollable = tester.state<ScrollableState>(
+      find
+          .descendant(
+            of: find.byKey(const Key('travel-info-scroll')),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    expect(scrollable.position.maxScrollExtent, greaterThan(0));
+
+    final nextButton = find.byType(AppButton);
+    await tester.ensureVisible(nextButton);
+    await tester.pumpAndSettle();
+
+    expect(tester.getBottomRight(nextButton).dy, lessThanOrEqualTo(552));
+  });
+
   testWidgets('찜한 코스의 태그는 미리 선택되어 있다', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;
