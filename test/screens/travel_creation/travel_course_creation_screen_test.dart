@@ -378,6 +378,30 @@ void main() {
     expect(find.text('강릉 이전 결과'), findsNothing);
     expect(find.text('검색 결과가 없어요.'), findsNothing);
   });
+
+  testWidgets('좁은 화면과 큰 글씨에서도 검색 안내와 출처가 겹치지 않는다', (tester) async {
+    tester.view.physicalSize = const Size(320, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: LocationSearchScreen(),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(EditableText), '불');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    expect(find.text('두 글자 이상 검색할 수 있어요.'), findsOneWidget);
+    expect(find.text('출처 : © 한국관광콘텐츠랩'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 TravelCourseModel _courseForDay(int zeroBasedDay) {

@@ -19,7 +19,7 @@ const double _kHorizontalPadding = 24.0;
 
 const double _kTopBarToSearchBarGap = 33.0;
 const double _kSearchBarToErrorGap = 4.0;
-const double _kSearchBarToLabelGap = 24.0;
+const double _kFeedbackToContentGap = 6.0;
 const double _kLabelToListGap = 24.0;
 const double _kLocationGap = 8.0;
 const double _kEmptyImageSize = 160.0;
@@ -415,8 +415,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 horizontal: _kHorizontalPadding,
               ),
 
-              child: Stack(
-                clipBehavior: Clip.none,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   AppSearchBar(
                     controller: _controller,
@@ -425,31 +425,36 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     onSubmitted: _handleSearch,
                     onSearchTap: () => _handleSearch(_controller.text),
                   ),
-                  if (_showLengthError)
-                    Positioned(
-                      top: AppDimensions.inputMinHeight + _kSearchBarToErrorGap,
-                      left: 0,
-                      child: Text(
-                        '두 글자 이상 검색할 수 있어요.',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.error,
+                  const SizedBox(height: _kSearchBarToErrorGap),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _showLengthError
+                            ? Text(
+                                '두 글자 이상 검색할 수 있어요.',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.error,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '출처 : © 한국관광콘텐츠랩',
+                          textAlign: TextAlign.right,
+                          style: AppTextStyles.attribution.copyWith(
+                            color: AppColors.attribution,
+                          ),
                         ),
                       ),
-                    ),
-                  Positioned(
-                    top: AppDimensions.inputMinHeight + _kSearchBarToErrorGap,
-                    right: 0,
-                    child: Text(
-                      '출처 : © 한국관광콘텐츠랩',
-                      style: AppTextStyles.attribution.copyWith(
-                        color: AppColors.attribution,
-                      ),
-                    ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: _kSearchBarToLabelGap),
+            const SizedBox(height: _kFeedbackToContentGap),
             if (!isEditingQuery &&
                 !_hasSearched &&
                 !_showLengthError &&

@@ -73,6 +73,8 @@ class _ApiRecommendationResult extends StatefulWidget {
 
 class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
   bool _isSaving = false;
+  bool _isLeaving = false;
+  bool _canPop = false;
   int? _draftTravelId;
   List<TravelCourseModel>? _draftCourses;
 
@@ -202,12 +204,22 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
     );
   }
 
-  void _handleBack() {
+  Future<void> _handleBack() async {
+    if (_isLeaving) return;
+    _isLeaving = true;
+    final draftTravelId = _draftTravelId;
+    if (draftTravelId != null) {
+      await _discardDraft(draftTravelId);
+      _draftTravelId = null;
+      _draftCourses = null;
+    }
+    if (!mounted) return;
     final callback = widget.onBackTap;
     if (callback != null) {
       callback();
       return;
     }
+    setState(() => _canPop = true);
     Navigator.of(context).maybePop();
   }
 
@@ -247,91 +259,97 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
     final dateText =
         '${range.start.month}/${range.start.day} ~ '
         '${range.end.month}/${range.end.day}';
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TravelCreationHeader(currentStepIndex: 1, onBackTap: _handleBack),
-            const SizedBox(height: 40),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '당신의 여행 취향을 담아\nPozit이 추천 코스를 준비했어요.',
-                      style: AppTextStyles.headline.copyWith(
-                        color: AppColors.text,
-                        height: 1.5,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    AppTravelCard(
-                      type: AppTravelCardType.pozitPick,
-                      title: card.cardTitle.isEmpty
-                          ? card.travelTitle
-                          : card.cardTitle,
-                      location: card.destination,
-                      dateText: card.periodText.isEmpty
-                          ? dateText
-                          : card.periodText,
-                      tags: card.tags,
-                      author: 'Pozit',
-                      backgroundImage: previewImage,
-                      onTap: _openPreview,
-                    ),
-                    for (final related in card.relatedPublicTravels) ...[
-                      const SizedBox(height: 8),
-                      AppTravelCard(
-                        type: AppTravelCardType.otherTravel,
-                        title: related.title,
-                        location: related.destination,
-                        dateText:
-                            '${related.startDate.month}/${related.startDate.day} ~ '
-                            '${related.endDate.month}/${related.endDate.day}',
-                        tags: related.tags,
-                        author: related.leaderNickname,
-                        participantCount: related.memberCount,
-                        favoriteCount: related.likeCount,
-                        isFavorite: related.isLiked,
-                        backgroundImage: _imageProvider(
-                          related.backgroundImageUrl,
+    return PopScope(
+      canPop: _canPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _handleBack();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.white,
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TravelCreationHeader(currentStepIndex: 1, onBackTap: _handleBack),
+              const SizedBox(height: 40),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '당신의 여행 취향을 담아\nPozit이 추천 코스를 준비했어요.',
+                        style: AppTextStyles.headline.copyWith(
+                          color: AppColors.text,
+                          height: 1.5,
+                          letterSpacing: -0.5,
                         ),
-                        onTap: () => _openRelatedTravel(related.travelId),
                       ),
-                    ],
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: _browseOtherCourses,
-                        child: Text(
-                          '다른 사람 코스 둘러보기',
-                          style: AppTextStyles.body.copyWith(
-                            color: AppColors.gray5,
-                            decoration: TextDecoration.underline,
-                            decorationColor: AppColors.gray5,
+                      const SizedBox(height: 24),
+                      AppTravelCard(
+                        type: AppTravelCardType.pozitPick,
+                        title: card.cardTitle.isEmpty
+                            ? card.travelTitle
+                            : card.cardTitle,
+                        location: card.destination,
+                        dateText: card.periodText.isEmpty
+                            ? dateText
+                            : card.periodText,
+                        tags: card.tags,
+                        author: 'Pozit',
+                        backgroundImage: previewImage,
+                        onTap: _openPreview,
+                      ),
+                      for (final related in card.relatedPublicTravels) ...[
+                        const SizedBox(height: 8),
+                        AppTravelCard(
+                          type: AppTravelCardType.otherTravel,
+                          title: related.title,
+                          location: related.destination,
+                          dateText:
+                              '${related.startDate.month}/${related.startDate.day} ~ '
+                              '${related.endDate.month}/${related.endDate.day}',
+                          tags: related.tags,
+                          author: related.leaderNickname,
+                          participantCount: related.memberCount,
+                          favoriteCount: related.likeCount,
+                          isFavorite: related.isLiked,
+                          backgroundImage: _imageProvider(
+                            related.backgroundImageUrl,
+                          ),
+                          onTap: () => _openRelatedTravel(related.travelId),
+                        ),
+                      ],
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: _browseOtherCourses,
+                          child: Text(
+                            '다른 사람 코스 둘러보기',
+                            style: AppTextStyles.body.copyWith(
+                              color: AppColors.gray5,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.gray5,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    if (_isSaving) ...[
-                      const SizedBox(height: 20),
-                      const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primary,
+                      if (_isSaving) ...[
+                        const SizedBox(height: 20),
+                        const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
