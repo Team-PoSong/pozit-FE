@@ -283,7 +283,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                 AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
-                text: widget.isCreationFlow ? '편집 완료' : '저장하기',
+                text: widget.isCreationFlow ? '여행 시작하기' : '저장하기',
                 isEnabled: !_isSaving && (_hasChanges || widget.isCreationFlow),
                 onPressed: _handleSave,
               ),

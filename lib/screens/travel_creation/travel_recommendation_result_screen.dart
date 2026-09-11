@@ -73,36 +73,56 @@ class _ApiRecommendationResult extends StatefulWidget {
 
 class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
   bool _isSaving = false;
+  int? _draftTravelId;
+  List<TravelCourseModel>? _draftCourses;
 
   List<TravelCourseModel> get _courses =>
       widget.recommendation.toPreviewCourses();
 
+  Future<void> _discardDraft(int travelId) async {
+    try {
+      await widget.repository.cancelRecommendedTravel(travelId);
+    } catch (_) {
+      // Draft cleanup is best-effort. The server also removes stale drafts,
+      // so leaving the editor must not surface a misleading request error.
+    }
+  }
+
   Future<void> _startEditing() async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
-    int? draftTravelId;
     var completed = false;
     try {
-      final created = await widget.repository.startRecommendedTravel(
-        widget.recommendationCard.previewId,
-        widget.recommendation,
-      );
-      draftTravelId = created.travelId;
-      if (created.courses.isEmpty) {
-        throw const ApiException('편집할 추천 코스 정보를 받지 못했어요.');
+      var travelId = _draftTravelId;
+      var courses = _draftCourses;
+      if (travelId == null || courses == null) {
+        final created = await widget.repository.startRecommendedTravel(
+          widget.recommendationCard.previewId,
+          widget.recommendation,
+        );
+        travelId = created.travelId;
+        _draftTravelId = travelId;
+        if (created.courses.isEmpty) {
+          throw const ApiException('편집할 추천 코스 정보를 받지 못했어요.');
+        }
+        courses = await Future.wait([
+          for (final course in created.courses)
+            widget.repository.getCourseDetail(course.courseId),
+        ]);
+        _draftCourses = courses;
       }
-      final courses = await Future.wait([
-        for (final course in created.courses)
-          widget.repository.getCourseDetail(course.courseId),
-      ]);
+      final activeTravelId = travelId;
+      final activeCourses = courses;
       if (!mounted) {
-        await widget.repository.cancelRecommendedTravel(created.travelId);
+        await _discardDraft(activeTravelId);
+        _draftTravelId = null;
+        _draftCourses = null;
         return;
       }
       await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
           builder: (_) => CourseEditScreen(
-            courses: courses,
+            courses: activeCourses,
             isCreationFlow: true,
             onLoadPopularSpots: (cursor) =>
                 const TouristSpotRepository().getHostTouristSpotsRank(
@@ -120,14 +140,14 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
                     entry.value.map((spot) => spot.touristSpotId).toList(),
                   ),
               ]);
-              await widget.repository.completeRecommendedTravel(
-                created.travelId,
-              );
+              await widget.repository.completeRecommendedTravel(activeTravelId);
               completed = true;
+              _draftTravelId = null;
+              _draftCourses = null;
               if (!mounted) return;
               await Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute<void>(
-                  builder: (_) => TravelDetailPage(travelId: created.travelId),
+                  builder: (_) => TravelDetailPage(travelId: activeTravelId),
                 ),
                 (route) => route.isFirst,
               );
@@ -135,21 +155,18 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
           ),
         ),
       );
-      if (!completed) {
-        await widget.repository.cancelRecommendedTravel(created.travelId);
-      }
     } on ApiException catch (error) {
-      if (draftTravelId != null && !completed) {
-        try {
-          await widget.repository.cancelRecommendedTravel(draftTravelId);
-        } catch (_) {}
+      final draftTravelId = _draftTravelId;
+      if (draftTravelId != null && !completed && _draftCourses == null) {
+        await _discardDraft(draftTravelId);
+        _draftTravelId = null;
       }
       if (mounted) showAppToast(context, error.message);
     } catch (_) {
-      if (draftTravelId != null && !completed) {
-        try {
-          await widget.repository.cancelRecommendedTravel(draftTravelId);
-        } catch (_) {}
+      final draftTravelId = _draftTravelId;
+      if (draftTravelId != null && !completed && _draftCourses == null) {
+        await _discardDraft(draftTravelId);
+        _draftTravelId = null;
       }
       if (mounted) showAppToast(context, '추천 여행을 시작하지 못했어요. 다시 시도해주세요.');
     } finally {
