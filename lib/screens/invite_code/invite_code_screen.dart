@@ -215,7 +215,7 @@ class _InviteCodeScreenState extends State<InviteCodeScreen> {
                       const SizedBox(height: _joinErrorToButtonGap),
                     ],
                     AppButton(
-                      text: '다음',
+                      text: _isJoining ? '참여하는 중...' : '여행 참여하기',
                       isEnabled: _canSubmit,
                       onPressed: _handleSubmit,
                     ),

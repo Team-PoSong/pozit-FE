@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -8,6 +10,8 @@ import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
+import '../../core/design_system/widgets/app_toast.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/tourist_spot_model.dart';
 import '../../data/models/tourist_spot_rank_model.dart';
@@ -51,7 +55,7 @@ class CourseEditScreen extends StatefulWidget {
 
   final VoidCallback? onBackTap;
 
-  final ValueChanged<Map<int, List<CourseSpotModel>>>? onSave;
+  final FutureOr<void> Function(Map<int, List<CourseSpotModel>>)? onSave;
 
   @override
   State<CourseEditScreen> createState() => _CourseEditScreenState();
@@ -75,6 +79,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
 
   late int _selectedDay = widget.initialDay;
   bool _hasChanges = false;
+  bool _isSaving = false;
 
   int get _dayCount => _dayNumbers.isEmpty ? 1 : _dayNumbers.length;
 
@@ -143,7 +148,8 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     return null;
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
+    if (_isSaving) return;
     final spotsByCourseId = <int, List<CourseSpotModel>>{};
     for (final entry in _spotsByDayIndex.entries) {
       final courseId = _courseIdForDay(_dayNumberForIndex(entry.key));
@@ -153,8 +159,24 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
           entry.value[i].copyWith(orderIndex: i),
       ]);
     }
-    widget.onSave?.call(spotsByCourseId);
-    if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+    final callback = widget.onSave;
+    if (callback == null) {
+      if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+      return;
+    }
+    setState(() => _isSaving = true);
+    try {
+      await callback(spotsByCourseId);
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    } on ApiException catch (error) {
+      if (mounted) showAppToast(context, error.message);
+    } catch (_) {
+      if (mounted) showAppToast(context, '코스를 저장하지 못했어요. 다시 시도해주세요.');
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   void _handleBack() {
@@ -261,8 +283,8 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
                 AppDimensions.screenBottomPadding,
               ),
               child: AppButton(
-                text: '저장하기',
-                isEnabled: _hasChanges,
+                text: widget.isCreationFlow ? '편집 완료' : '저장하기',
+                isEnabled: !_isSaving && (_hasChanges || widget.isCreationFlow),
                 onPressed: _handleSave,
               ),
             ),

@@ -14,12 +14,10 @@ import 'widgets/travel_creation_header.dart';
 
 class TravelRecommendationLoadResult {
   const TravelRecommendationLoadResult({
-    required this.travelId,
     required this.card,
     required this.recommendation,
   });
 
-  final int travelId;
   final TravelRecommendationCardModel card;
   final TravelRecommendationModel recommendation;
 }
@@ -51,8 +49,6 @@ class _TravelRecommendationLoadingScreenState
   bool _hasLoadError = false;
   String? _loadErrorMessage;
   bool _isLoading = false;
-  int? _createdTravelId;
-
   @override
   void initState() {
     super.initState();
@@ -74,38 +70,24 @@ class _TravelRecommendationLoadingScreenState
       _loadErrorMessage = null;
     });
     try {
-      int? travelId;
       TravelRecommendationCardModel? recommendationCard;
       TravelRecommendationModel? recommendation;
       final callback = widget.loadRecommendations;
       if (callback != null) {
         final result = await callback();
-        travelId = result.travelId;
         recommendationCard = result.card;
         recommendation = result.recommendation;
       } else if (_usesApi) {
-        travelId = _createdTravelId;
-        if (travelId == null) {
-          final created = await widget.repository.createTravel(
-            TravelCreationPipeline.buildCreateRequest(widget.travelInfo),
-          );
-          travelId = created.travelId;
-          _createdTravelId = travelId;
-        }
         recommendationCard = await widget.repository.previewRecommendationCard(
-          travelId,
+          TravelCreationPipeline.buildCreateRequest(widget.travelInfo),
         );
         recommendation = await widget.repository.getRecommendationPreview(
-          travelId,
           recommendationCard.previewId,
         );
       }
-      if (travelId == null ||
-          recommendationCard == null ||
-          recommendation == null) {
+      if (recommendationCard == null || recommendation == null) {
         throw const ApiException('추천 코스 응답을 받지 못했어요.');
       }
-      final resultTravelId = travelId;
       final resultCard = recommendationCard;
       final resultRecommendation = recommendation;
       if (!mounted) return;
@@ -113,7 +95,6 @@ class _TravelRecommendationLoadingScreenState
         MaterialPageRoute<void>(
           builder: (_) => TravelRecommendationResultScreen(
             travelInfo: widget.travelInfo,
-            travelId: resultTravelId,
             recommendationCard: resultCard,
             recommendation: resultRecommendation,
             repository: widget.repository,

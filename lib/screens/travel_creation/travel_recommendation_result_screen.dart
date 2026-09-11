@@ -4,9 +4,13 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
+import '../../core/design_system/widgets/app_toast.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/travel/travel_recommendation_model.dart';
+import '../../data/repositories/tourist_spot/tourist_spot_repository.dart';
 import '../../data/repositories/travel/travel_repository.dart';
+import '../course_edit/course_edit_screen.dart';
 import '../explore/travel_creation_explore_page.dart';
 import '../travel_detail/travel_detail_page.dart';
 import '../travel_detail/public_travel_detail_page.dart';
@@ -20,7 +24,6 @@ class TravelRecommendationResultScreen extends StatelessWidget {
     required this.travelInfo,
     this.onBackTap,
     this.onBrowseOtherCourses,
-    required this.travelId,
     required this.recommendationCard,
     required this.recommendation,
     this.repository = const TravelRepository(),
@@ -29,7 +32,6 @@ class TravelRecommendationResultScreen extends StatelessWidget {
   final TravelInfoResult travelInfo;
   final VoidCallback? onBackTap;
   final VoidCallback? onBrowseOtherCourses;
-  final int travelId;
   final TravelRecommendationCardModel recommendationCard;
   final TravelRecommendationModel recommendation;
   final TravelRepository repository;
@@ -38,7 +40,6 @@ class TravelRecommendationResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ApiRecommendationResult(
       travelInfo: travelInfo,
-      travelId: travelId,
       recommendationCard: recommendationCard,
       recommendation: recommendation,
       repository: repository,
@@ -51,7 +52,6 @@ class TravelRecommendationResultScreen extends StatelessWidget {
 class _ApiRecommendationResult extends StatefulWidget {
   const _ApiRecommendationResult({
     required this.travelInfo,
-    required this.travelId,
     required this.recommendationCard,
     required this.recommendation,
     required this.repository,
@@ -60,7 +60,6 @@ class _ApiRecommendationResult extends StatefulWidget {
   });
 
   final TravelInfoResult travelInfo;
-  final int travelId;
   final TravelRecommendationCardModel recommendationCard;
   final TravelRecommendationModel recommendation;
   final TravelRepository repository;
@@ -78,23 +77,81 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
   List<TravelCourseModel> get _courses =>
       widget.recommendation.toPreviewCourses();
 
-  Future<void> _commit() async {
+  Future<void> _startEditing() async {
     if (_isSaving) return;
     setState(() => _isSaving = true);
+    int? draftTravelId;
+    var completed = false;
     try {
-      await widget.repository.commitRecommendations(
-        widget.travelId,
+      final created = await widget.repository.startRecommendedTravel(
+        widget.recommendationCard.previewId,
         widget.recommendation,
       );
-      if (!mounted) return;
-      await Navigator.of(context).pushAndRemoveUntil(
+      draftTravelId = created.travelId;
+      if (created.courses.isEmpty) {
+        throw const ApiException('편집할 추천 코스 정보를 받지 못했어요.');
+      }
+      final courses = await Future.wait([
+        for (final course in created.courses)
+          widget.repository.getCourseDetail(course.courseId),
+      ]);
+      if (!mounted) {
+        await widget.repository.cancelRecommendedTravel(created.travelId);
+        return;
+      }
+      await Navigator.of(context).push<void>(
         MaterialPageRoute<void>(
-          builder: (_) => TravelDetailPage(travelId: widget.travelId),
+          builder: (_) => CourseEditScreen(
+            courses: courses,
+            isCreationFlow: true,
+            onLoadPopularSpots: (cursor) =>
+                const TouristSpotRepository().getHostTouristSpotsRank(
+                  regionCode: widget.travelInfo.regionCode,
+                  cursor: cursor,
+                ),
+            onSearch: (keyword, cursor) => const TouristSpotRepository()
+                .searchCourseSpots(keyword: keyword, cursor: cursor),
+            onAddSelectedSpots: const TouristSpotRepository().saveSelectedSpots,
+            onSave: (spotsByCourseId) async {
+              await Future.wait([
+                for (final entry in spotsByCourseId.entries)
+                  widget.repository.updateCourseSpots(
+                    entry.key,
+                    entry.value.map((spot) => spot.touristSpotId).toList(),
+                  ),
+              ]);
+              await widget.repository.completeRecommendedTravel(
+                created.travelId,
+              );
+              completed = true;
+              if (!mounted) return;
+              await Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute<void>(
+                  builder: (_) => TravelDetailPage(travelId: created.travelId),
+                ),
+                (route) => route.isFirst,
+              );
+            },
+          ),
         ),
-        (route) => route.isFirst,
       );
+      if (!completed) {
+        await widget.repository.cancelRecommendedTravel(created.travelId);
+      }
+    } on ApiException catch (error) {
+      if (draftTravelId != null && !completed) {
+        try {
+          await widget.repository.cancelRecommendedTravel(draftTravelId);
+        } catch (_) {}
+      }
+      if (mounted) showAppToast(context, error.message);
     } catch (_) {
-      rethrow;
+      if (draftTravelId != null && !completed) {
+        try {
+          await widget.repository.cancelRecommendedTravel(draftTravelId);
+        } catch (_) {}
+      }
+      if (mounted) showAppToast(context, '추천 여행을 시작하지 못했어요. 다시 시도해주세요.');
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -122,7 +179,7 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
           title: card.cardTitle.isEmpty ? card.travelTitle : card.cardTitle,
           tags: card.tags,
           backgroundImage: image,
-          onFollowCourseTap: _commit,
+          onFollowCourseTap: _startEditing,
         ),
       ),
     );

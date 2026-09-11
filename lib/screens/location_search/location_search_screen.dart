@@ -429,7 +429,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     Positioned(
                       top: AppDimensions.inputMinHeight + _kSearchBarToErrorGap,
                       left: 0,
-                      right: 0,
                       child: Text(
                         '두 글자 이상 검색할 수 있어요.',
                         style: AppTextStyles.caption.copyWith(
@@ -437,6 +436,16 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         ),
                       ),
                     ),
+                  Positioned(
+                    top: AppDimensions.inputMinHeight + _kSearchBarToErrorGap,
+                    right: 0,
+                    child: Text(
+                      '출처 : © 한국관광콘텐츠랩',
+                      style: AppTextStyles.attribution.copyWith(
+                        color: AppColors.attribution,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

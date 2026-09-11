@@ -43,6 +43,25 @@ void main() {
     expect(card.relatedPublicTravels.first.travelId, 1);
   });
 
+  test('여행을 생성하지 않은 추천 미리보기의 null travelId를 파싱한다', () {
+    final card = TravelRecommendationCardModel.fromJson({
+      'previewId': 'preview-1',
+      'travelId': null,
+      'destination': '경상북도 경주시',
+      'startDate': '2026-09-10',
+      'endDate': '2026-09-12',
+    });
+
+    final recommendation = TravelRecommendationModel.fromJson({
+      'travelId': null,
+      'dayCount': 0,
+      'days': <dynamic>[],
+    });
+
+    expect(card.travelId, isNull);
+    expect(recommendation.travelId, isNull);
+  });
+
   test('추천 미리보기 응답을 화면 코스와 commit 요청으로 변환한다', () {
     final recommendation = TravelRecommendationModel.fromJson({
       'travelId': 31,

@@ -11,7 +11,6 @@ import 'package:pozit/screens/travel_creation/travel_recommendation_result_scree
 import 'package:pozit/data/models/travel/travel_recommendation_model.dart';
 
 TravelRecommendationLoadResult _result() => TravelRecommendationLoadResult(
-  travelId: 1,
   card: TravelRecommendationCardModel(
     previewId: 'preview-1',
     travelId: 1,

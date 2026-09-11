@@ -66,9 +66,7 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
       if (!mounted) return;
       showAppToast(
         context,
-        error is ApiException
-            ? error.message
-            : '추천 코스를 저장하지 못했어요. 다시 시도해주세요.',
+        error is ApiException ? error.message : '추천 코스를 저장하지 못했어요. 다시 시도해주세요.',
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -141,7 +139,15 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
                     textAlign: TextAlign.center,
                     style: AppTextStyles.body.copyWith(color: AppColors.gray5),
                   ),
-                  const SizedBox(height: 26),
+                  const SizedBox(height: 6),
+                  Text(
+                    '출처 : © 한국관광콘텐츠랩',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.attribution.copyWith(
+                      color: AppColors.attribution,
+                    ),
+                  ),
+                  const SizedBox(height: 11),
                   AppButton(
                     text: _isSaving ? '코스를 저장하는 중...' : '이 코스 따라하기',
                     isEnabled: !_isSaving,
