@@ -2,7 +2,7 @@ name: pozit
 description: "Pozit Frontend Repository"
 publish_to: 'none'
 
-version: 1.0.0+2
+version: 1.0.0+4
 
 environment:
   sdk: ^3.9.2

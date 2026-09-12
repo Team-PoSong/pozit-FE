@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_images.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_retry_error_view.dart';
 import '../../core/design_system/widgets/app_toast.dart';
@@ -259,10 +258,10 @@ int _visitedPlaceCount(PublicTravelDetailModel detail) {
       .length;
 }
 
-ImageProvider<Object> _backgroundImage(String url) {
+ImageProvider<Object>? _backgroundImage(String url) {
   final uri = Uri.tryParse(url);
   if (uri != null && (uri.isScheme('http') || uri.isScheme('https'))) {
     return NetworkImage(url);
   }
-  return const AssetImage(AppImages.travelMockup);
+  return null;
 }

@@ -3,7 +3,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/location/course_visiting.dart';
@@ -606,7 +605,7 @@ class _TravelDetailPageState extends State<TravelDetailPage> {
           pendingThumbnailSpotIds: _pendingThumbnailSpotIds,
           backgroundImage: detail.backgroundImageUrl.isNotEmpty
               ? NetworkImage(detail.backgroundImageUrl)
-              : const AssetImage(AppImages.travelMockup),
+              : null,
           onBackTap: () => Navigator.of(context).maybePop(),
           onSettingsTap: () => _openSettingsScreen(context),
           onMemberTap: () => _openMemberScreen(context),
