@@ -329,9 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
           status: travel.status,
           isLeader: true,
           isPublic: travel.isPublic,
-          backgroundImage:
-              travel.backgroundImage ??
-              const AssetImage(AppImages.travelMockup),
+          backgroundImage: travel.backgroundImage,
           courses: travel.courses,
           onCourseTap: (day) {
             Navigator.of(context).push(

@@ -6,7 +6,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_travel_status.dart';
 import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_map_card.dart';
@@ -47,7 +46,7 @@ class TravelDetailScreen extends StatefulWidget {
     this.isFavorite = false,
     this.courses = const [],
     this.members = const [],
-    this.backgroundImage = const AssetImage(AppImages.travelMockup),
+    this.backgroundImage,
     this.initialDay = 1,
     this.initialSpotIndex = 0,
     this.onBackTap,
@@ -82,7 +81,7 @@ class TravelDetailScreen extends StatefulWidget {
   final List<TravelCourseModel> courses;
 
   final List<TravelMemberModel> members;
-  final ImageProvider<Object> backgroundImage;
+  final ImageProvider<Object>? backgroundImage;
   final int initialDay;
 
   final int initialSpotIndex;
@@ -406,8 +405,13 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image(image: widget.backgroundImage, fit: BoxFit.cover),
-                    const ColoredBox(color: AppColors.dim30),
+                    if (widget.backgroundImage case final backgroundImage?)
+                      Image(image: backgroundImage, fit: BoxFit.cover),
+                    ColoredBox(
+                      color: widget.backgroundImage == null
+                          ? Colors.black.withValues(alpha: 0.50)
+                          : AppColors.dim30,
+                    ),
                     SafeArea(
                       bottom: false,
                       child: Column(
