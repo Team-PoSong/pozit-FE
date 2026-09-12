@@ -31,6 +31,7 @@ class AppColors {
   static const Color dim30 = Color(0x4D000000);
   static const Color text = Color(0xFF161424);
   static const Color textSub = Color(0xFF6B7280);
+  static const Color attribution = Color(0xFF727A82);
   static const Color shadow = Color(0x19000000);
   static const Color popoverShadow = Color(0x21000000);
 }

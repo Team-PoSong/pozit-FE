@@ -5,8 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pozit/core/design_system/widgets/app_date_detail_select.dart';
 import 'package:pozit/core/design_system/widgets/app_location_select.dart';
 import 'package:pozit/core/design_system/widgets/app_location.dart';
+import 'package:pozit/core/design_system/widgets/button/app_button.dart';
 import 'package:pozit/core/design_system/widgets/button/app_circle_button.dart';
+import 'package:pozit/screens/course_edit/course_edit_screen.dart';
 import 'package:pozit/screens/location_search/location_search_screen.dart';
+import 'package:pozit/screens/travel_creation/pozit_pick_detail_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_course_creation_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
 import 'package:pozit/data/models/travel/travel_course_model.dart';
@@ -377,6 +380,106 @@ void main() {
 
     expect(find.text('강릉 이전 결과'), findsNothing);
     expect(find.text('검색 결과가 없어요.'), findsNothing);
+  });
+
+  testWidgets('좁은 화면과 큰 글씨에서도 검색 안내와 출처가 겹치지 않는다', (tester) async {
+    tester.view.physicalSize = const Size(320, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: LocationSearchScreen(),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(EditableText), '불');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+
+    expect(find.text('두 글자 이상 검색할 수 있어요.'), findsOneWidget);
+    expect(find.text('출처 : © 한국관광콘텐츠랩'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('추천 코스 저장 중에는 시스템 뒤로가기로 화면을 종료하지 않는다', (tester) async {
+    final saveCompleter = Completer<void>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseEditScreen(
+          courses: [_courseForDay(0)],
+          isCreationFlow: true,
+          onSave: (_) => saveCompleter.future,
+        ),
+      ),
+    );
+
+    await tester.tap(find.widgetWithText(AppButton, '여행 시작하기'));
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+
+    expect(find.byType(CourseEditScreen), findsOneWidget);
+    saveCompleter.complete();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('추천 코스 저장 중에는 편집 입력을 변경할 수 없다', (tester) async {
+    final saveCompleter = Completer<void>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseEditScreen(
+          courses: [_courseForDay(0), _courseForDay(1)],
+          isCreationFlow: true,
+          onSave: (_) => saveCompleter.future,
+        ),
+      ),
+    );
+
+    await tester.tap(find.widgetWithText(AppButton, '여행 시작하기'));
+    await tester.pump();
+    final selector = find.byType(AppDateDetailSelect);
+    final topLeft = tester.getTopLeft(selector);
+    final size = tester.getSize(selector);
+    await tester.tapAt(topLeft + Offset(size.width * 0.75, 15));
+    await tester.pump();
+
+    expect(find.text('1일차 코스'), findsOneWidget);
+    expect(find.text('2일차 코스'), findsNothing);
+    saveCompleter.complete();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('추천 상세 요청 중에는 시스템 뒤로가기로 화면을 종료하지 않는다', (tester) async {
+    final startCompleter = Completer<void>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: PozitPickDetailScreen(
+          courses: [_courseForDay(0)],
+          startDate: DateTime(2026, 9, 12),
+          endDate: DateTime(2026, 9, 12),
+          destination: '경주',
+          title: '추천 코스',
+          tags: const ['힐링'],
+          onFollowCourseTap: () => startCompleter.future,
+        ),
+      ),
+    );
+
+    await tester.ensureVisible(find.text('이 코스 따라하기'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('이 코스 따라하기'));
+    await tester.pump();
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+
+    expect(find.byType(PozitPickDetailScreen), findsOneWidget);
+    startCompleter.complete();
+    await tester.pumpAndSettle();
   });
 }
 

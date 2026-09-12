@@ -81,11 +81,12 @@ class TravelRepository {
   }
 
   Future<TravelRecommendationCardModel> previewRecommendationCard(
-    int travelId,
+    TravelCreateRequest request,
   ) async {
     try {
       final result = await DioClient.instance.post(
-        '/api/travels/$travelId/recommendations/preview/card',
+        '/api/recommendations/travels/preview/card',
+        data: request.toJson(),
       );
       if (result is! Map<String, dynamic>) {
         throw const ApiException('추천 카드 응답 형식이 올바르지 않습니다.');
@@ -99,12 +100,11 @@ class TravelRepository {
   }
 
   Future<TravelRecommendationModel> getRecommendationPreview(
-    int travelId,
     String previewId,
   ) async {
     try {
       final result = await DioClient.instance.get(
-        '/api/travels/$travelId/recommendations/previews/$previewId',
+        '/api/recommendations/travels/previews/$previewId',
       );
       if (result is! Map<String, dynamic>) {
         throw const ApiException('추천 코스 응답 형식이 올바르지 않습니다.');
@@ -121,8 +121,8 @@ class TravelRepository {
     }
   }
 
-  Future<void> commitRecommendations(
-    int travelId,
+  Future<TravelCreateResult> startRecommendedTravel(
+    String previewId,
     TravelRecommendationModel recommendation,
   ) async {
     try {
@@ -131,14 +131,40 @@ class TravelRepository {
       if (days.isEmpty) {
         throw const ApiException('저장할 수 있는 추천 장소가 없습니다. 추천을 다시 받아주세요.');
       }
+      final result = await DioClient.instance.post(
+        '/api/recommendations/travels/start',
+        data: {'previewId': previewId, ...request},
+      );
+      if (result is! Map<String, dynamic>) {
+        throw const ApiException('추천 여행 시작 응답 형식이 올바르지 않습니다.');
+      }
+      return TravelCreateResult.fromJson(result);
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('추천 여행을 시작하지 못했습니다.');
+    }
+  }
+
+  Future<void> completeRecommendedTravel(int travelId) async {
+    try {
       await DioClient.instance.post(
-        '/api/travels/$travelId/recommendations/commit',
-        data: request,
+        '/api/recommendations/travels/$travelId/complete',
       );
     } on ApiException {
       rethrow;
     } catch (_) {
-      throw const ApiException('추천 코스를 저장하지 못했습니다.');
+      throw const ApiException('추천 여행을 완료하지 못했습니다.');
+    }
+  }
+
+  Future<void> cancelRecommendedTravel(int travelId) async {
+    try {
+      await DioClient.instance.delete('/api/recommendations/travels/$travelId');
+    } on ApiException {
+      rethrow;
+    } catch (_) {
+      throw const ApiException('임시 여행을 삭제하지 못했습니다.');
     }
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -8,6 +10,8 @@ import '../../core/design_system/widgets/app_date_detail_select.dart';
 import '../../core/design_system/widgets/app_location.dart';
 import '../../core/design_system/widgets/button/app_button.dart';
 import '../../core/design_system/widgets/button/app_circle_button.dart';
+import '../../core/design_system/widgets/app_toast.dart';
+import '../../core/network/api_exception.dart';
 import '../../data/models/travel/travel_course_model.dart';
 import '../../data/models/tourist_spot_model.dart';
 import '../../data/models/tourist_spot_rank_model.dart';
@@ -51,7 +55,7 @@ class CourseEditScreen extends StatefulWidget {
 
   final VoidCallback? onBackTap;
 
-  final ValueChanged<Map<int, List<CourseSpotModel>>>? onSave;
+  final FutureOr<void> Function(Map<int, List<CourseSpotModel>>)? onSave;
 
   @override
   State<CourseEditScreen> createState() => _CourseEditScreenState();
@@ -75,6 +79,7 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
 
   late int _selectedDay = widget.initialDay;
   bool _hasChanges = false;
+  bool _isSaving = false;
 
   int get _dayCount => _dayNumbers.isEmpty ? 1 : _dayNumbers.length;
 
@@ -143,7 +148,8 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
     return null;
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
+    if (_isSaving) return;
     final spotsByCourseId = <int, List<CourseSpotModel>>{};
     for (final entry in _spotsByDayIndex.entries) {
       final courseId = _courseIdForDay(_dayNumberForIndex(entry.key));
@@ -153,11 +159,28 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
           entry.value[i].copyWith(orderIndex: i),
       ]);
     }
-    widget.onSave?.call(spotsByCourseId);
-    if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+    final callback = widget.onSave;
+    if (callback == null) {
+      if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+      return;
+    }
+    setState(() => _isSaving = true);
+    try {
+      await callback(spotsByCourseId);
+      if (mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    } on ApiException catch (error) {
+      if (mounted) showAppToast(context, error.message);
+    } catch (_) {
+      if (mounted) showAppToast(context, '코스를 저장하지 못했어요. 다시 시도해주세요.');
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   void _handleBack() {
+    if (_isSaving) return;
     widget.onBackTap?.call();
     Navigator.of(context).pop();
   }
@@ -166,107 +189,121 @@ class _CourseEditScreenState extends State<CourseEditScreen> {
   Widget build(BuildContext context) {
     final spots = _spotsForSelectedDay;
 
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TravelDetailTopBar(title: '코스 수정', onBackTap: _handleBack),
-            const SizedBox(height: _kTopBarToDateDetailGap),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _kHorizontalPadding,
-              ),
-              child: AppDateDetailSelect(
-                dayCount: _dayCount,
-                selectedDay: _selectedDay,
-                onChanged: _handleDayChanged,
-              ),
-            ),
-            const SizedBox(height: _kDateDetailToTitleGap),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _kHorizontalPadding,
-              ),
-              child: Text(
-                '$_selectedDay일차 코스',
-                style: AppTextStyles.headline.copyWith(color: AppColors.text),
-              ),
-            ),
-            const SizedBox(height: _kTitleToListGap),
-            Expanded(
-              child: Stack(
-                children: [
-                  ReorderableListView.builder(
-                    padding: const EdgeInsets.fromLTRB(
-                      _kHorizontalPadding,
-                      0,
-                      _kHorizontalPadding,
-                      _kFabSize + _kFabToButtonGap,
+    return PopScope(
+      canPop: !_isSaving,
+      child: Scaffold(
+        backgroundColor: AppColors.white,
+        body: SafeArea(
+          child: IgnorePointer(
+            ignoring: _isSaving,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TravelDetailTopBar(title: '코스 수정', onBackTap: _handleBack),
+                const SizedBox(height: _kTopBarToDateDetailGap),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: _kHorizontalPadding,
+                  ),
+                  child: AppDateDetailSelect(
+                    dayCount: _dayCount,
+                    selectedDay: _selectedDay,
+                    onChanged: _handleDayChanged,
+                  ),
+                ),
+                const SizedBox(height: _kDateDetailToTitleGap),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: _kHorizontalPadding,
+                  ),
+                  child: Text(
+                    '$_selectedDay일차 코스',
+                    style: AppTextStyles.headline.copyWith(
+                      color: AppColors.text,
                     ),
-                    buildDefaultDragHandles: false,
-                    itemCount: spots.length,
-                    onReorderItem: _handleReorder,
+                  ),
+                ),
+                const SizedBox(height: _kTitleToListGap),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      ReorderableListView.builder(
+                        padding: const EdgeInsets.fromLTRB(
+                          _kHorizontalPadding,
+                          0,
+                          _kHorizontalPadding,
+                          _kFabSize + _kFabToButtonGap,
+                        ),
+                        buildDefaultDragHandles: false,
+                        itemCount: spots.length,
+                        onReorderItem: _handleReorder,
 
-                    proxyDecorator: (child, index, animation) {
-                      return AnimatedBuilder(
-                        animation: animation,
-                        builder: (context, _) {
-                          final elevation =
-                              Curves.easeInOut.transform(animation.value) * 6;
-                          return Material(
-                            elevation: elevation,
-                            color: Colors.transparent,
-                            surfaceTintColor: Colors.transparent,
-                            shadowColor: Colors.black.withValues(alpha: 0.3),
+                        proxyDecorator: (child, index, animation) {
+                          return AnimatedBuilder(
+                            animation: animation,
+                            builder: (context, _) {
+                              final elevation =
+                                  Curves.easeInOut.transform(animation.value) *
+                                  6;
+                              return Material(
+                                elevation: elevation,
+                                color: Colors.transparent,
+                                surfaceTintColor: Colors.transparent,
+                                shadowColor: Colors.black.withValues(
+                                  alpha: 0.3,
+                                ),
+                                child: child,
+                              );
+                            },
                             child: child,
                           );
                         },
-                        child: child,
-                      );
-                    },
-                    itemBuilder: (context, index) {
-                      final spot = spots[index];
-                      return Padding(
-                        key: ValueKey(spot.touristSpotId),
-                        padding: const EdgeInsets.only(bottom: _kLocationGap),
-                        child: AppLocation(
-                          name: spot.name,
-                          address: spot.address,
-                          showReorderHandle: true,
-                          reorderIndex: index,
-                          onDelete: () => _handleDelete(spot),
-                        ),
-                      );
-                    },
-                  ),
+                        itemBuilder: (context, index) {
+                          final spot = spots[index];
+                          return Padding(
+                            key: ValueKey(spot.touristSpotId),
+                            padding: const EdgeInsets.only(
+                              bottom: _kLocationGap,
+                            ),
+                            child: AppLocation(
+                              name: spot.name,
+                              address: spot.address,
+                              showReorderHandle: true,
+                              reorderIndex: index,
+                              onDelete: () => _handleDelete(spot),
+                            ),
+                          );
+                        },
+                      ),
 
-                  Positioned(
-                    right: _kHorizontalPadding,
-                    bottom: _kFabToButtonGap,
-                    child: AppCircleButton(
-                      size: _kFabSize,
-                      onPressed: _handleAddTap,
-                    ),
+                      Positioned(
+                        right: _kHorizontalPadding,
+                        bottom: _kFabToButtonGap,
+                        child: AppCircleButton(
+                          size: _kFabSize,
+                          onPressed: _handleAddTap,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    _kHorizontalPadding,
+                    0,
+                    _kHorizontalPadding,
+                    AppDimensions.screenBottomPadding,
+                  ),
+                  child: AppButton(
+                    text: widget.isCreationFlow ? '여행 시작하기' : '저장하기',
+                    isEnabled:
+                        !_isSaving && (_hasChanges || widget.isCreationFlow),
+                    onPressed: _handleSave,
+                  ),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                _kHorizontalPadding,
-                0,
-                _kHorizontalPadding,
-                AppDimensions.screenBottomPadding,
-              ),
-              child: AppButton(
-                text: '저장하기',
-                isEnabled: _hasChanges,
-                onPressed: _handleSave,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

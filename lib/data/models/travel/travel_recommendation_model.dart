@@ -4,7 +4,7 @@ import 'travel_course_model.dart';
 class TravelRecommendationCardModel {
   const TravelRecommendationCardModel({
     required this.previewId,
-    required this.travelId,
+    this.travelId,
     required this.badge,
     required this.cardTitle,
     required this.travelTitle,
@@ -20,7 +20,7 @@ class TravelRecommendationCardModel {
   });
 
   final String previewId;
-  final int travelId;
+  final int? travelId;
   final String badge;
   final String cardTitle;
   final String travelTitle;
@@ -37,7 +37,7 @@ class TravelRecommendationCardModel {
   factory TravelRecommendationCardModel.fromJson(Map<String, dynamic> json) {
     return TravelRecommendationCardModel(
       previewId: json['previewId'] as String,
-      travelId: json['travelId'] as int,
+      travelId: json['travelId'] as int?,
       badge: json['badge'] as String? ?? 'Pozit Pick!',
       cardTitle: json['cardTitle'] as String? ?? '',
       travelTitle: json['travelTitle'] as String? ?? '',
@@ -158,18 +158,18 @@ class RecommendedDayModel {
 
 class TravelRecommendationModel {
   const TravelRecommendationModel({
-    required this.travelId,
+    this.travelId,
     required this.dayCount,
     required this.days,
   });
 
-  final int travelId;
+  final int? travelId;
   final int dayCount;
   final List<RecommendedDayModel> days;
 
   factory TravelRecommendationModel.fromJson(Map<String, dynamic> json) {
     return TravelRecommendationModel(
-      travelId: json['travelId'] as int,
+      travelId: json['travelId'] as int?,
       dayCount: json['dayCount'] as int? ?? 0,
       days: (json['days'] as List<dynamic>? ?? const [])
           .map(

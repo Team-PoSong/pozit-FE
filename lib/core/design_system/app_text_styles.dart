@@ -43,4 +43,10 @@ class AppTextStyles {
     letterSpacing: 0,
     fontWeight: FontWeight.w600,
   );
+
+  static const TextStyle attribution = TextStyle(
+    fontFamily: 'Pretendard',
+    fontSize: 11,
+    fontWeight: FontWeight.w400,
+  );
 }
