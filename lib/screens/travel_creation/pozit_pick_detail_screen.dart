@@ -73,91 +73,104 @@ class _PozitPickDetailScreenState extends State<PozitPickDetailScreen> {
     }
   }
 
+  void _handleBack() {
+    if (_isSaving) return;
+    Navigator.of(context).maybePop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final courses = _courses;
     final effectiveDayCount = courses.length;
     final selectedDay = _selectedDay.clamp(1, effectiveDayCount);
     final course = courses[selectedDay - 1];
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: _Hero(
-              durationText: '${_startDate.month}월 추천 · $_durationText',
-              destination: widget.destination,
-              title: widget.title,
-              tags: widget.tags,
-              backgroundImage:
-                  widget.backgroundImage ??
-                  const AssetImage(AppImages.travelMockup),
-              onBack: () => Navigator.of(context).maybePop(),
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(
-              24,
-              20,
-              24,
-              MediaQuery.paddingOf(context).bottom +
-                  AppDimensions.screenBottomPadding,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  AppDateDetailSelect(
-                    dayCount: effectiveDayCount,
-                    selectedDay: selectedDay,
-                    onChanged: (day) => setState(() => _selectedDay = day),
-                  ),
-                  const SizedBox(height: 10),
-                  _CourseCard(
-                    course: course,
-                    pageCount: courses.length,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => TravelCourseMapScreen(
-                          courses: _courses,
-                          status: AppTravelStatus.completed,
-                          totalDays: _courses.length,
-                          initialDay: _selectedDay,
+    return PopScope(
+      canPop: !_isSaving,
+      child: Scaffold(
+        backgroundColor: AppColors.white,
+        body: IgnorePointer(
+          ignoring: _isSaving,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: _Hero(
+                  durationText: '${_startDate.month}월 추천 · $_durationText',
+                  destination: widget.destination,
+                  title: widget.title,
+                  tags: widget.tags,
+                  backgroundImage:
+                      widget.backgroundImage ??
+                      const AssetImage(AppImages.travelMockup),
+                  onBack: _handleBack,
+                ),
+              ),
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  20,
+                  24,
+                  MediaQuery.paddingOf(context).bottom +
+                      AppDimensions.screenBottomPadding,
+                ),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      AppDateDetailSelect(
+                        dayCount: effectiveDayCount,
+                        selectedDay: selectedDay,
+                        onChanged: (day) => setState(() => _selectedDay = day),
+                      ),
+                      const SizedBox(height: 10),
+                      _CourseCard(
+                        course: course,
+                        pageCount: courses.length,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => TravelCourseMapScreen(
+                              courses: _courses,
+                              status: AppTravelStatus.completed,
+                              totalDays: _courses.length,
+                              initialDay: _selectedDay,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 24),
+                      Image.asset(
+                        AppImages.carrier,
+                        width: 94,
+                        height: 154,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Pozit이 직접 준비한 코스와 떠나볼까요?',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.gray5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '출처 : © 한국관광콘텐츠랩',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.attribution.copyWith(
+                          color: AppColors.attribution,
+                        ),
+                      ),
+                      const SizedBox(height: 11),
+                      AppButton(
+                        text: _isSaving ? '코스를 저장하는 중...' : '이 코스 따라하기',
+                        isEnabled: !_isSaving,
+                        onPressed: _handlePrimaryTap,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  Image.asset(
-                    AppImages.carrier,
-                    width: 94,
-                    height: 154,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Pozit이 직접 준비한 코스와 떠나볼까요?',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.body.copyWith(color: AppColors.gray5),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '출처 : © 한국관광콘텐츠랩',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.attribution.copyWith(
-                      color: AppColors.attribution,
-                    ),
-                  ),
-                  const SizedBox(height: 11),
-                  AppButton(
-                    text: _isSaving ? '코스를 저장하는 중...' : '이 코스 따라하기',
-                    isEnabled: !_isSaving,
-                    onPressed: _handlePrimaryTap,
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
