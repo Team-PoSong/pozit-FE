@@ -390,6 +390,9 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
   }
 
   Widget _buildScaffold(int spotPageCount, int spotPageIndex) {
+    final backgroundPlaceholder = ColoredBox(
+      color: Colors.black.withValues(alpha: 0.50),
+    );
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
@@ -409,14 +412,17 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                       Image(
                         image: backgroundImage,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            const ColoredBox(color: AppColors.gray5),
-                      ),
-                    ColoredBox(
-                      color: widget.backgroundImage == null
-                          ? Colors.black.withValues(alpha: 0.50)
-                          : AppColors.dim30,
-                    ),
+                        frameBuilder: (_, child, _, _) => Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            child,
+                            const ColoredBox(color: AppColors.dim30),
+                          ],
+                        ),
+                        errorBuilder: (_, _, _) => backgroundPlaceholder,
+                      )
+                    else
+                      backgroundPlaceholder,
                     SafeArea(
                       bottom: false,
                       child: Column(
