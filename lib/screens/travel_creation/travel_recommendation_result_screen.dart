@@ -301,7 +301,9 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
                             ? card.travelTitle
                             : card.cardTitle,
                         location: card.destination,
-                        dateText: card.periodText.isEmpty
+                        dateText:
+                            DateUtils.isSameDay(range.start, range.end) ||
+                                card.periodText.isEmpty
                             ? dateText
                             : card.periodText,
                         tags: card.tags,

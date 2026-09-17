@@ -12,6 +12,7 @@ class AppFilterChip extends StatelessWidget {
     required String label,
     this.onTap,
     this.assetPackage,
+    this.isSelected = false,
   }) : _label = label,
        _iconAsset = AppIcons.arrowDown,
        _iconSize = 24;
@@ -21,6 +22,7 @@ class AppFilterChip extends StatelessWidget {
     required String iconAsset,
     this.onTap,
     this.assetPackage,
+    this.isSelected = false,
   }) : _label = null,
        _iconAsset = iconAsset,
        _iconSize = 15;
@@ -31,6 +33,9 @@ class AppFilterChip extends StatelessWidget {
   final VoidCallback? onTap;
   final String? assetPackage;
 
+  /// 필터 적용 상태는 글씨 색상만 변경해 표시합니다.
+  final bool isSelected;
+
   @override
   Widget build(BuildContext context) {
     final label = _label;
@@ -39,6 +44,7 @@ class AppFilterChip extends StatelessWidget {
     return Semantics(
       button: isInteractive,
       enabled: isInteractive,
+      selected: isSelected,
       label: label ?? '필터 초기화',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -59,7 +65,9 @@ class AppFilterChip extends StatelessWidget {
                 Text(
                   label,
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.caption.copyWith(color: AppColors.gray5),
+                  style: AppTextStyles.caption.copyWith(
+                    color: isSelected ? AppColors.purple3 : AppColors.gray5,
+                  ),
                 ),
                 const SizedBox(width: 1),
               ],

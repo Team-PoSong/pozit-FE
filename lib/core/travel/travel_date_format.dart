@@ -7,7 +7,7 @@ String formatTravelDateRange(
   if (start.year == end.year &&
       start.month == end.month &&
       start.day == end.day) {
-    return '${start.month}.${start.day}';
+    return '${start.month}/${start.day}';
   }
   return '${start.month}/${start.day}$separator${end.month}/${end.day}';
 }
