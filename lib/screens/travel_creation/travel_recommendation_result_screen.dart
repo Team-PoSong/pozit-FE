@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:pozit/core/travel/travel_date_format.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_images.dart';
 import '../../core/design_system/app_text_styles.dart';
@@ -220,7 +221,16 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
       return;
     }
     setState(() => _canPop = true);
-    Navigator.of(context).maybePop();
+    // PopScope에 변경된 canPop이 반영된 다음 뒤로가기를 실행합니다.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    final bool didPop = await Navigator.of(context).maybePop();
+    if (!didPop && mounted) {
+      setState(() {
+        _isLeaving = false;
+        _canPop = false;
+      });
+    }
   }
 
   void _browseOtherCourses() {
@@ -256,9 +266,7 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
     final range = widget.travelInfo.dateRange;
     final card = widget.recommendationCard;
     final previewImage = _imageProvider(card.thumbnailImageUrl);
-    final dateText =
-        '${range.start.month}/${range.start.day} ~ '
-        '${range.end.month}/${range.end.day}';
+    final dateText = formatTravelDateRange(range.start, range.end);
     return PopScope(
       canPop: _canPop,
       onPopInvokedWithResult: (didPop, _) {
@@ -307,9 +315,10 @@ class _ApiRecommendationResultState extends State<_ApiRecommendationResult> {
                           type: AppTravelCardType.otherTravel,
                           title: related.title,
                           location: related.destination,
-                          dateText:
-                              '${related.startDate.month}/${related.startDate.day} ~ '
-                              '${related.endDate.month}/${related.endDate.day}',
+                          dateText: formatTravelDateRange(
+                            related.startDate,
+                            related.endDate,
+                          ),
                           tags: related.tags,
                           author: related.leaderNickname,
                           participantCount: related.memberCount,

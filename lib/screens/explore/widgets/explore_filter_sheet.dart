@@ -239,6 +239,10 @@ class _ExploreFilterSheetState extends State<ExploreFilterSheet> {
       initialRangeStart: _selectedDateRange?.start,
       initialRangeEnd: _selectedDateRange?.end,
       isCompact: true,
+      // 첫 날짜만 선택하고 적용해도 하루 범위로 필터에 반영합니다.
+      onSelectionStarted: (DateTime start) {
+        _selectedDateRange = DateTimeRange(start: start, end: start);
+      },
       onRangeSelected: (start, end) {
         _selectedDateRange = DateTimeRange(start: start, end: end);
       },

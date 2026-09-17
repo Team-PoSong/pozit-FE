@@ -439,7 +439,12 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                             padding: const EdgeInsets.symmetric(
                               horizontal: _kHorizontalPadding,
                             ),
-                            child: TravelInfoCard(info: widget.info),
+                            child: TravelInfoCard(
+                              info: widget.info,
+                              onMemberTap: widget.isMyTravel
+                                  ? widget.onMemberTap
+                                  : null,
+                            ),
                           ),
                         ],
                       ),

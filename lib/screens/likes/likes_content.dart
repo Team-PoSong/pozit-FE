@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
+import 'package:pozit/core/travel/travel_date_format.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/widgets/app_travel_card.dart';
@@ -74,6 +75,10 @@ class LikesContent extends StatelessWidget {
   }
 
   static String _dateText(DateTime startDate, DateTime endDate) {
+    // 당일치기는 기간 문구 없이 날짜 하나만 표시합니다.
+    if (DateUtils.isSameDay(startDate, endDate)) {
+      return formatTravelDateRange(startDate, endDate);
+    }
     final totalDays = endDate.difference(startDate).inDays + 1;
     final duration = totalDays == 1 ? '당일치기' : '${totalDays - 1}박 $totalDays일';
     return '${startDate.month}/${startDate.day} ~ '

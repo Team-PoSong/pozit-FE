@@ -6,6 +6,7 @@ import 'package:pozit/core/design_system/app_images.dart';
 import 'package:pozit/core/design_system/widgets/app_travel_card.dart';
 import 'package:pozit/screens/explore/travel_creation_explore_page.dart';
 import 'package:pozit/screens/travel_creation/travel_creation_data.dart';
+import 'package:pozit/screens/travel_creation/widgets/travel_creation_header.dart';
 import 'package:pozit/screens/travel_creation/travel_recommendation_loading_screen.dart';
 import 'package:pozit/screens/travel_creation/travel_recommendation_result_screen.dart';
 import 'package:pozit/data/models/travel/travel_recommendation_model.dart';
@@ -52,6 +53,56 @@ TravelRecommendationLoadResult _result() => TravelRecommendationLoadResult(
 );
 
 void main() {
+  // 실제 Navigator와 PopScope를 거쳐 첫 뒤로가기 입력으로 이탈하는지 확인합니다.
+  for (final bool systemBack in [false, true]) {
+    testWidgets('추천 결과에서 ${systemBack ? '시스템' : '상단'} 뒤로가기가 한 번에 동작한다', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(393, 852);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final GlobalKey<NavigatorState> navigatorKey =
+          GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          home: const Scaffold(body: Text('이전 화면')),
+        ),
+      );
+      final TravelRecommendationLoadResult result = _result();
+      navigatorKey.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) => TravelRecommendationResultScreen(
+            travelInfo: TravelInfoResult(
+              destination: '경주',
+              dateRange: DateTimeRange(
+                start: DateTime(2026, 7, 3),
+                end: DateTime(2026, 7, 6),
+              ),
+              name: '포송한 여행',
+              tags: const {'미식'},
+              creationMethod: TravelCreationMethod.recommendation,
+            ),
+            recommendationCard: result.card,
+            recommendation: result.recommendation,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      if (systemBack) {
+        await tester.binding.handlePopRoute();
+      } else {
+        tester
+            .widget<TravelCreationHeader>(find.byType(TravelCreationHeader))
+            .onBackTap();
+      }
+      await tester.pumpAndSettle();
+      expect(find.text('이전 화면'), findsOneWidget);
+      expect(find.byType(TravelRecommendationResultScreen), findsNothing);
+    });
+  }
+
   testWidgets('추천 준비 중 티켓 이미지가 떠 있고 응답 후 결과로 이동한다', (tester) async {
     tester.view.physicalSize = const Size(393, 852);
     tester.view.devicePixelRatio = 1;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:pozit/core/travel/travel_date_format.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/widgets/app_detail_header.dart';
 import '../../core/design_system/widgets/app_retry_error_view.dart';
@@ -145,9 +146,7 @@ class _TravelCreationExplorePageState extends State<TravelCreationExplorePage> {
       id: travel.travelId,
       title: travel.title,
       location: travel.destination,
-      dateText:
-          '${travel.startDate.month}/${travel.startDate.day} ~ '
-          '${travel.endDate.month}/${travel.endDate.day}',
+      dateText: formatTravelDateRange(travel.startDate, travel.endDate),
       author: travel.leaderNickname,
       participantCount: travel.memberCount,
       tags: travel.tags,

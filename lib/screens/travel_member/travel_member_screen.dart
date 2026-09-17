@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../core/design_system/widgets/app_toast.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_text_styles.dart';
@@ -147,8 +148,11 @@ class _InviteCodeSection extends StatelessWidget {
   final String code;
   final VoidCallback? onCopyTap;
 
-  void _handleCopy() {
-    Clipboard.setData(ClipboardData(text: code));
+  Future<void> _handleCopy(BuildContext context) async {
+    // 실제 클립보드 복사가 완료된 뒤 성공 안내를 표시합니다.
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!context.mounted) return;
+    showAppToast(context, '코드가 복사되었습니다');
     onCopyTap?.call();
   }
 
@@ -181,7 +185,7 @@ class _InviteCodeSection extends StatelessWidget {
         ),
         const SizedBox(height: _kCodeBoxesToCopyGap),
         GestureDetector(
-          onTap: _handleCopy,
+          onTap: () => _handleCopy(context),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -232,7 +236,11 @@ List<TravelMemberModel> _previewMembers() {
   ];
 }
 
-@Preview(group: 'travel_member', name: 'TravelMemberScreen - 팀장', size: Size(390, 844))
+@Preview(
+  group: 'travel_member',
+  name: 'TravelMemberScreen - 팀장',
+  size: Size(390, 844),
+)
 Widget travelMemberScreenLeaderPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -245,7 +253,11 @@ Widget travelMemberScreenLeaderPreview() {
   );
 }
 
-@Preview(group: 'travel_member', name: 'TravelMemberScreen - 팀원', size: Size(390, 844))
+@Preview(
+  group: 'travel_member',
+  name: 'TravelMemberScreen - 팀원',
+  size: Size(390, 844),
+)
 Widget travelMemberScreenMemberPreview() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
