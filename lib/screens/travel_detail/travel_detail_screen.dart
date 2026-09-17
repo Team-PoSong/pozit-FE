@@ -406,7 +406,12 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
                   fit: StackFit.expand,
                   children: [
                     if (widget.backgroundImage case final backgroundImage?)
-                      Image(image: backgroundImage, fit: BoxFit.cover),
+                      Image(
+                        image: backgroundImage,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            const ColoredBox(color: AppColors.gray5),
+                      ),
                     ColoredBox(
                       color: widget.backgroundImage == null
                           ? Colors.black.withValues(alpha: 0.50)
