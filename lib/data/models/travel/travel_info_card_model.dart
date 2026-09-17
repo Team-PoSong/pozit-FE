@@ -1,3 +1,5 @@
+import 'package:pozit/core/travel/travel_date_format.dart';
+
 import 'travel_course_model.dart';
 import 'travel_detail_model.dart';
 
@@ -33,7 +35,7 @@ class TravelInfoCardModel {
   String get durationText => nights <= 0 ? '당일치기' : '$nights박$totalDays일';
 
   String get dateRangeText =>
-      '${startDate.month}/${startDate.day}-${endDate.month}/${endDate.day}';
+      formatTravelDateRange(startDate, endDate, separator: '-');
 
   factory TravelInfoCardModel.fromTravelDetail(
     TravelDetailModel detail, {

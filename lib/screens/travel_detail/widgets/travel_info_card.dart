@@ -10,9 +10,12 @@ import '../../../core/design_system/widgets/progress/app_completion_progress_bar
 import '../../../data/models/travel/travel_info_card_model.dart';
 
 class TravelInfoCard extends StatelessWidget {
-  const TravelInfoCard({super.key, required this.info});
+  const TravelInfoCard({super.key, required this.info, this.onMemberTap});
 
   final TravelInfoCardModel info;
+
+  /// 내 여행의 인원 영역에서 멤버 화면을 엽니다.
+  final VoidCallback? onMemberTap;
 
   @override
   Widget build(BuildContext context) {
@@ -38,28 +41,50 @@ class TravelInfoCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 22),
                   Text(
-                    '${info.dateRangeText} · ${info.durationText}',
+                    DateUtils.isSameDay(info.startDate, info.endDate)
+                        ? info.dateRangeText
+                        : '${info.dateRangeText} · ${info.durationText}',
                     maxLines: 1,
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.white,
-                    ),
+                    style: AppTextStyles.body.copyWith(color: AppColors.white),
                   ),
                 ],
               ),
             ),
-            SvgPicture.asset(
-              AppIcons.mypageFilled,
-              width: 24,
-              height: 24,
-              colorFilter: const ColorFilter.mode(
-                AppColors.white,
-                BlendMode.srcIn,
+            // 아이콘과 인원수를 하나의 터치 영역으로 묶습니다.
+            Semantics(
+              button: onMemberTap != null,
+              label: '여행 멤버 ${info.companionCount}명',
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onMemberTap,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SvgPicture.asset(
+                        AppIcons.mypageFilled,
+                        width: 24,
+                        height: 24,
+                        colorFilter: const ColorFilter.mode(
+                          AppColors.white,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${info.companionCount}',
+                        style: AppTextStyles.subTitle.copyWith(
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              '${info.companionCount}',
-              style: AppTextStyles.subTitle.copyWith(color: AppColors.white),
             ),
           ],
         ),

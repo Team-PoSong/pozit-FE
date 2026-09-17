@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:kakao_map_sdk/kakao_map_sdk.dart' show LatLng;
 
+import 'package:pozit/core/travel/travel_date_format.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_images.dart';
@@ -268,9 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
       id: 'server-${travel.travelId}',
       title: travel.title,
       location: travel.destination,
-      dateText:
-          '${travel.startDate.month}/${travel.startDate.day} ~ '
-          '${travel.endDate.month}/${travel.endDate.day}',
+      dateText: formatTravelDateRange(travel.startDate, travel.endDate),
       author: travel.leaderNickname,
       info: TravelInfoCardModel(
         destination: travel.destination,

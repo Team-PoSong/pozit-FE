@@ -62,10 +62,8 @@ class _TravelScheduleScreenState extends State<TravelScheduleScreen> {
 
   bool get _canContinue => _hasCompleteRange && !_exceedsMaximumTripLength;
 
-  String get _maximumTripLengthMessage =>
-      widget.creationMethod == TravelCreationMethod.wish
-      ? '찜한 코스는 4박 5일까지 가져올 수 있어요'
-      : '아직 포짓에서는 3박 4일까지만 지원해요';
+  // 진입 경로나 찜 여부와 관계없이 동일한 여행 기간 제한을 안내합니다.
+  String get _maximumTripLengthMessage => '아직 포짓에서는 3박 4일까지만 지원해요';
 
   void _handleSelectionStarted(DateTime start) {
     setState(() {

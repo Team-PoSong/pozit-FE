@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
+import 'package:pozit/core/travel/travel_date_format.dart';
 import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_icons.dart';
 import '../../core/design_system/app_images.dart';
@@ -93,13 +94,6 @@ class _ExploreContentState extends State<ExploreContent> {
   final Set<int> _pendingFavoriteIds = {};
 
   List<ExploreTravelItem> get _travels => widget.travels;
-
-  String get _dateFilterLabel {
-    final range = _selectedDateRange;
-    if (range == null) return '날짜';
-    return '날짜 ${range.start.month}/${range.start.day}~'
-        '${range.end.month}/${range.end.day}';
-  }
 
   @override
   void initState() {
@@ -299,12 +293,20 @@ class _ExploreContentState extends State<ExploreContent> {
               children: [
                 AppFilterChip(
                   label: _selectedRegion ?? '지역',
+                  isSelected: _selectedRegion != null,
                   onTap: _selectRegion,
                   assetPackage: widget.assetPackage,
                 ),
                 const SizedBox(width: _filterChipGap),
                 AppFilterChip(
-                  label: _dateFilterLabel,
+                  label: _selectedDateRange == null
+                      ? '날짜'
+                      : formatTravelDateRange(
+                          _selectedDateRange!.start,
+                          _selectedDateRange!.end,
+                          separator: '~',
+                        ),
+                  isSelected: _selectedDateRange != null,
                   onTap: _selectDate,
                   assetPackage: widget.assetPackage,
                 ),
@@ -313,6 +315,7 @@ class _ExploreContentState extends State<ExploreContent> {
                   label: _selectedCategories.isEmpty
                       ? '카테고리'
                       : '카테고리 ${_selectedCategories.length}',
+                  isSelected: _selectedCategories.isNotEmpty,
                   onTap: _selectCategories,
                   assetPackage: widget.assetPackage,
                 ),

@@ -89,7 +89,8 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final originalCourses = List.generate(4, _courseForDay);
+    // 3박 4일 범위 안에서 일정 확장 시 빈 일차를 유지합니다.
+    final originalCourses = List.generate(3, _courseForDay);
     await tester.pumpWidget(
       MaterialApp(
         home: TravelCourseCreationScreen(
@@ -97,7 +98,7 @@ void main() {
             destination: '경주',
             dateRange: DateTimeRange(
               start: DateTime(2026, 8, 1),
-              end: DateTime(2026, 8, 5),
+              end: DateTime(2026, 8, 4),
             ),
             name: '긴 여행',
             tags: const {'힐링'},
@@ -108,16 +109,17 @@ void main() {
       ),
     );
 
-    expect(find.text('5일차'), findsOneWidget);
-    final fifthDayButton = find
+    expect(find.text('5일차'), findsNothing);
+    expect(find.text('4일차'), findsOneWidget);
+    final fourthDayButton = find
         .descendant(
           of: find.byType(AppDateDetailSelect),
           matching: find.byType(GestureDetector),
         )
         .last;
-    await tester.tap(fifthDayButton);
+    await tester.tap(fourthDayButton);
     await tester.pumpAndSettle();
-    expect(find.text('5일차'), findsNWidgets(2));
+    expect(find.text('4일차'), findsNWidgets(2));
     expect(find.byType(AppLocation), findsNothing);
 
     await tester.pumpWidget(

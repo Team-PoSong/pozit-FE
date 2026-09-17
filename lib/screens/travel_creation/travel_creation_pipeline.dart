@@ -4,8 +4,8 @@ import '../../data/models/travel/like_based_travel_model.dart';
 import 'travel_creation_data.dart';
 
 abstract final class TravelCreationPipeline {
-  static int maximumTripNights(TravelCreationMethod method) =>
-      method == TravelCreationMethod.wish ? 4 : 3;
+  /// 따라하기를 포함한 모든 여행 생성 방식은 최대 3박 4일까지 지원합니다.
+  static int maximumTripNights(TravelCreationMethod method) => 3;
 
   static bool requiresPreferences(TravelCreationMethod method) =>
       method == TravelCreationMethod.recommendation;
